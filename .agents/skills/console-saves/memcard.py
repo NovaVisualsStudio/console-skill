@@ -677,7 +677,7 @@ def _host_files(root):
     return out
 
 
-def make_backup(mc0, to, keep=20, label=None):
+def make_backup(mc0, to, keep=0, label=None):
     if not os.path.isdir(mc0):
         raise ToolError("%s is not a folder" % mc0)
     to = to or os.path.join("console", "saves", "backups")
@@ -727,7 +727,8 @@ def cmd_backup(args):
     path = make_backup(args.mc0, args.to, args.keep, args.label)
     with zipfile.ZipFile(path) as z:
         n = len(z.namelist())
-    print("backed up %s (%d file%s) to %s; keeping the newest %d" % (args.mc0, n, "" if n == 1 else "s", path, args.keep))
+    retention = "keeping all backups" if args.keep == 0 else "keeping the newest %d" % args.keep
+    print("backed up %s (%d file%s) to %s; %s" % (args.mc0, n, "" if n == 1 else "s", path, retention))
     return 0
 
 
@@ -989,7 +990,7 @@ def build_parser():
     s.add_argument("--only", nargs="+", metavar="SAVE", help="only these save folders")
     s.add_argument("--force", action="store_true", help="replace saves already in mc0 (backs mc0 up first)")
     s.add_argument("--backups", default=None, help="backup folder (default console/saves/backups)")
-    s.add_argument("--keep", type=int, default=20)
+    s.add_argument("--keep", type=int, default=0, help="backups to keep for this card (default: all; 0 = all)")
     s.set_defaults(func=cmd_export)
 
     s = sub.add_parser("psu", help=".psu single-save files: export, import, ls")
@@ -1006,17 +1007,17 @@ def build_parser():
     q.add_argument("--to", required=True, help="the mc0 folder")
     q.add_argument("--force", action="store_true", help="replace an existing save (backs mc0 up first)")
     q.add_argument("--backups", default=None)
-    q.add_argument("--keep", type=int, default=20)
+    q.add_argument("--keep", type=int, default=0, help="backups to keep for this card (default: all; 0 = all)")
     q.set_defaults(func=cmd_psu_import)
     q = psub.add_parser("ls", help="what a .psu holds")
     q.add_argument("psu")
     q.add_argument("--json", action="store_true")
     q.set_defaults(func=cmd_psu_ls)
 
-    s = sub.add_parser("backup", help="timestamped zip of mc0, keeping the newest N")
+    s = sub.add_parser("backup", help="timestamped zip of mc0; keeps all unless --keep is set")
     s.add_argument("mc0")
     s.add_argument("--to", default=os.path.join("console", "saves", "backups"))
-    s.add_argument("--keep", type=int, default=20, help="backups to keep for this card (default 20, 0 = all)")
+    s.add_argument("--keep", type=int, default=0, help="backups to keep for this card (default: all; 0 = all)")
     s.add_argument("--label", default=None, help="name prefix (default <parent folder>-<mc0 folder>)")
     s.set_defaults(func=cmd_backup)
 
@@ -1038,7 +1039,7 @@ def build_parser():
     s.add_argument("--dry-run", action="store_true", help="show what would happen, change nothing")
     s.add_argument("--manifest", default=None, help="sync state file (default .console-sync.json next to mc0)")
     s.add_argument("--backups", default=None, help="backup folder (default console/saves/backups)")
-    s.add_argument("--keep", type=int, default=20)
+    s.add_argument("--keep", type=int, default=0, help="backups to keep for this card (default: all; 0 = all)")
     s.add_argument("--verbose", action="store_true", help="also list files that are already the same")
     s.add_argument("--json", action="store_true")
     s.set_defaults(func=cmd_sync)
