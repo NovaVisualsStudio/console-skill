@@ -54,7 +54,7 @@ class Repo(unittest.TestCase):
 
     def test_root_matches_the_reel(self):
         root = sorted(d for d in os.listdir(ROOT) if not d.startswith(".git") and d != ".DS_Store")
-        self.assertEqual(root, sorted([".claude-plugin", "LICENSE", "README.md", "tests"] + SKILLS))
+        self.assertEqual(root, sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "tests"] + SKILLS))
 
     def test_frontmatter_name_description_hint(self):
         for s in SKILLS:
@@ -177,6 +177,36 @@ class Repo(unittest.TestCase):
         self.assertIn("Copyright (c) 2026 [Your Name / Alias]", notice)
         self.assertIn("Permission is hereby granted", notice)
         self.assertIn("THE SOFTWARE IS PROVIDED \"AS IS\"", notice)
+
+
+    def test_agents_skill_copies_match_root(self):
+        mirror = os.path.join(ROOT, ".agents", "skills")
+        self.assertTrue(os.path.isdir(mirror), ".agents/skills is missing")
+
+        for skill in SKILLS:
+            source = os.path.join(ROOT, skill)
+            target = os.path.join(mirror, skill)
+            self.assertTrue(os.path.isdir(target), "%s is missing from .agents/skills" % skill)
+
+            source_files = set()
+            for base, dirs, files in os.walk(source):
+                for filename in files:
+                    source_path = os.path.join(base, filename)
+                    relative = os.path.relpath(source_path, source)
+                    source_files.add(relative)
+                    target_path = os.path.join(target, relative)
+                    self.assertTrue(os.path.isfile(target_path),
+                                    "%s is missing from .agents/skills/%s" % (skill, relative))
+                    with open(source_path, "rb") as source_fh, open(target_path, "rb") as target_fh:
+                        self.assertEqual(source_fh.read(), target_fh.read(),
+                                         "%s/%s differs from its Codex copy" % (skill, relative))
+
+            target_files = set()
+            for base, dirs, files in os.walk(target):
+                for filename in files:
+                    target_files.add(os.path.relpath(os.path.join(base, filename), target))
+            self.assertEqual(target_files, source_files,
+                             "%s has extra or missing files in .agents/skills" % skill)
 
 
 if __name__ == "__main__":
