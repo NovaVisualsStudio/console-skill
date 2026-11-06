@@ -1,4 +1,4 @@
-# Nova Dodge — PS2 homebrew test game
+# Nova Dodge - PS2 homebrew test game
 
 An original, small PS2 game created to validate the PS2SDK build path and provide a first playable test on an Android PS2 emulator.
 
