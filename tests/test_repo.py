@@ -203,9 +203,40 @@ class Repo(unittest.TestCase):
         source_path = os.path.join(ROOT, "ps2-game", "main.c")
         with open(source_path, encoding="utf-8") as fh:
             source = fh.read()
-        self.assertIn("GIF_SET_TAG(3, 1, 0, 0, 0, 2)", source)
-        self.assertNotIn("GIF_SET_TAG(6, 1, 0, 0, 0, 2)", source)
-        self.assertEqual(source.count("GIF_SET_XYZ("), 3)
+        triangle_body = source.split("static qword_t *tri2", 1)[1].split("static int project", 1)[0]
+        self.assertIn("GIF_SET_TAG(3,1,0,0,0,2)", triangle_body)
+        self.assertNotIn("GIF_SET_TAG(6,1,0,0,0,2)", triangle_body)
+        self.assertEqual(triangle_body.count("GIF_SET_XYZ("), 3)
+
+
+    def test_nova_airstrike_uses_gs_depth_buffer_and_clips_near_plane(self):
+        with open(os.path.join(ROOT, "ps2-game", "main.c"), encoding="utf-8") as fh:
+            source = fh.read()
+        self.assertIn("zb.enable=DRAW_ENABLE", source)
+        self.assertIn("zb.method=ZTEST_METHOD_GREATER_EQUAL", source)
+        self.assertIn("zb.zsm=GS_ZBUF_32", source)
+        self.assertIn("draw_disable_tests(q,0,zb)", source)
+        self.assertIn("draw_enable_tests(q,0,zb)", source)
+        self.assertIn("static int clip_near(", source)
+        self.assertIn("depth_from_z(v.z)", source)
+
+    def test_nova_airstrike_has_vertical_flight_and_particle_effects(self):
+        with open(os.path.join(ROOT, "ps2-game", "main.c"), encoding="utf-8") as fh:
+            source = fh.read()
+        self.assertIn("typedef struct { float x,y,z,vx,vy,vz; int life; } Particle;", source)
+        self.assertIn("static void burst(", source)
+        self.assertIn("static void update_particles(", source)
+        self.assertIn("float px,py,vx=0.0f,vy=0.0f", source)
+        self.assertIn("absf(shots[i].y-enemies[j].y)", source)
+        self.assertIn("absf(enemies[i].y-py)", source)
+
+    def test_triangle_packet_emits_three_vertex_register_pairs(self):
+        with open(os.path.join(ROOT, "ps2-game", "main.c"), encoding="utf-8") as fh:
+            source = fh.read()
+        body = source.split("static qword_t *tri2", 1)[1].split("static int project", 1)[0]
+        self.assertIn("GIF_SET_TAG(3,1,0,0,0,2)", body)
+        self.assertEqual(body.count("GIF_SET_XYZ("), 3)
+        self.assertNotIn("GIF_SET_TAG(6,1,0,0,0,2)", body)
 
     def test_license_credits_the_base_skill(self):
         with open(os.path.join(ROOT, "LICENSE"), encoding="utf-8") as fh:
