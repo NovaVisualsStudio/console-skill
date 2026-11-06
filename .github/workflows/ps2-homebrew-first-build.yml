@@ -52,7 +52,7 @@ jobs:
           test "$(grep -Fc 'qwordBuffer = rcast<qword_t *>(ucabAddr)' /tmp/ps2-homebrew/source/framework/renderer.cpp)" -eq 2
           ! grep -q 'const float restrict (' /tmp/ps2-homebrew/source/framework/renderer.cpp
           # GNU binutils expects explicit $ prefixes for R5900 VU0 vector registers.
-          sed -E -i 's/\\b(vf[0-9]+|ACC)\\b/\\$\\1/g' /tmp/ps2-homebrew/source/framework/vertex_xform.h
+          sed -E -i 's/\b(vf[0-9]+|ACC)\b/\$\1/g' /tmp/ps2-homebrew/source/framework/vertex_xform.h
           grep -Fq 'lqc2       $vf4' /tmp/ps2-homebrew/source/framework/vertex_xform.h
           grep -Fq 'vmulax.xyzw  $ACC' /tmp/ps2-homebrew/source/framework/vertex_xform.h
           sed -i 's/-Dnullptr=NULL//g' Makefile
