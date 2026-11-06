@@ -93,6 +93,9 @@ static qword_t *draw_rect(qword_t *q, int x, int y, int w, int h,
 static qword_t *draw_triangle(qword_t *q, int x0, int y0, int x1, int y1,
                               int x2, int y2, int r, int g, int b) {
     u64 color = GIF_SET_RGBAQ(r, g, b, 0x80, 0x3f800000);
+    /* Select triangle primitive before sending the three packed vertices. */
+    PACK_GIFTAG(q, GIF_SET_TAG(1, 1, 0, 0, 0, 1), GIF_REG_AD); q++;
+    PACK_GIFTAG(q, GIF_SET_PRIM(3, 0, 0, 0, 0, 0, 0, 0, 0), GIF_REG_PRIM); q++;
     PACK_GIFTAG(q, GIF_SET_TAG(6, 1, 0, 0, 0, 2),
                 GIF_REG_RGBAQ | (GIF_REG_XYZ2 << 4)); q++;
     PACK_GIFTAG(q, color, GIF_REG_RGBAQ); q++;
