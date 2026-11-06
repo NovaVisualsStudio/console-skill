@@ -1,6 +1,6 @@
 # The Console skill
 
-11 Claude skills that port PlayStation 2 games you own to PC: reverse engineer the code, rebuild the graphics and backend, any controller, play it anywhere, then mod it however you want.
+11 agent skills for Claude and Codex that port PlayStation 2 games you own to PC: reverse engineer the code, rebuild the graphics and backend, any controller, play it anywhere, then mod it however you want.
 
 Free, MIT, no signup, no API key. The tools are plain Python with nothing to
 install. The heavy lifting is done by [PS2Recomp](https://github.com/ran-j/PS2Recomp),
@@ -49,6 +49,31 @@ want plain `/console-reverse`:
 git clone https://github.com/Jakeschincariol/console-skill.git
 cp -r console-skill/console-* ~/.claude/skills/
 ```
+
+### Codex
+
+Codex discovers repository skills from `.agents/skills/`. The easiest option is
+to clone this repository and open its root folder in Codex; the 11 skills are
+already mirrored there:
+
+```bash
+git clone https://github.com/NovaVisualsStudio/console-skill.git
+cd console-skill
+codex
+```
+
+In Codex CLI, run `/skills` to inspect the available skills, or invoke one
+explicitly with its name, for example `$console-reverse`. To make the skills
+available in every workspace instead, copy them to your personal skills folder:
+
+```bash
+mkdir -p ~/.agents/skills
+cp -R .agents/skills/console-* ~/.agents/skills/
+```
+
+Codex detects skill changes automatically. If a newly added skill does not
+appear, restart Codex. The repository-local `.agents/skills/` copy is kept in
+sync with the canonical skill folders by the test suite.
 
 The tools need Python 3.8 or newer. Nothing to pip install.
 
@@ -115,7 +140,7 @@ saves -> anywhere                            (play it everywhere)
 
 ## The tools
 
-All standard-library Python, run from the repo (or from `~/.claude/skills/`).
+All standard-library Python, run from the repo (or from `~/.claude/skills/` in Claude Code or `~/.agents/skills/` in Codex).
 Everything lands in a `console/` folder in your game workspace.
 
 ```bash
