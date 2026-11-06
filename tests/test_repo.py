@@ -238,6 +238,32 @@ class Repo(unittest.TestCase):
         self.assertEqual(body.count("GIF_SET_XYZ("), 3)
         self.assertNotIn("GIF_SET_TAG(6,1,0,0,0,2)", body)
 
+
+    def test_nova_airstrike_has_spu2_audio_and_embeds_audsrv(self):
+        root = os.path.join(ROOT, "ps2-game")
+        with open(os.path.join(root, "audio.c"), encoding="utf-8") as fh:
+            audio = fh.read()
+        with open(os.path.join(root, "audio.h"), encoding="utf-8") as fh:
+            header = fh.read()
+        with open(os.path.join(root, "Makefile"), encoding="utf-8") as fh:
+            makefile = fh.read()
+        with open(os.path.join(root, "main.c"), encoding="utf-8") as fh:
+            main = fh.read()
+        self.assertIn("SifExecModuleBuffer(audsrv_irx", audio)
+        self.assertIn("audsrv_init()", audio)
+        self.assertIn("audsrv_set_format(&format)", audio)
+        self.assertIn("audsrv_wait_audio(", audio)
+        self.assertIn("audsrv_play_audio(", audio)
+        self.assertIn("audio_tick", header)
+        self.assertIn("audio.o audsrv_irx.o", makefile)
+        self.assertIn("-laudsrv", makefile)
+        self.assertIn("$(PS2SDK)/bin/bin2c", makefile)
+        self.assertIn("audio_init(graph_get_region())", main)
+        self.assertIn("audio_play_sfx(NOVA_SFX_FIRE)", main)
+        self.assertIn("audio_play_sfx(NOVA_SFX_EXPLOSION)", main)
+        self.assertIn("audio_play_sfx(NOVA_SFX_GAMEOVER)", main)
+        self.assertIn("audio_tick()", main)
+
     def test_license_credits_the_base_skill(self):
         with open(os.path.join(ROOT, "LICENSE"), encoding="utf-8") as fh:
             lic = fh.read()
