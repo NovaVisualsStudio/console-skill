@@ -135,9 +135,13 @@ class Repo(unittest.TestCase):
             self.assertIn("publish", low, "%s: nothing from the game gets published" % s)
 
     def test_untracked_workspace_files_are_not_audited(self):
+        if not os.path.lexists(os.path.join(ROOT, ".git")):
+            self.skipTest("Git index is unavailable in a source archive")
         skill_dir = os.path.join(ROOT, "console-reverse")
-        with tempfile.NamedTemporaryFile(prefix=".workspace-noise-", dir=skill_dir) as scratch:
-            self.assertNotIn(scratch.name, tracked_files_in(skill_dir))
+        with tempfile.NamedTemporaryFile(prefix=".workspace-noise-", dir=ROOT) as root_noise:
+            with tempfile.NamedTemporaryFile(prefix=".workspace-noise-", dir=skill_dir) as skill_noise:
+                self.assertNotIn(root_noise.name, tracked_files_in(ROOT))
+                self.assertNotIn(skill_noise.name, tracked_files_in(skill_dir))
 
     def test_no_em_dashes_anywhere(self):
         for p in every_text_file():
