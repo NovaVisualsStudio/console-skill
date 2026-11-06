@@ -196,7 +196,7 @@ that is kept. This pack adds:
   converter, a widescreen candidate finder, a DMA/VIF/GIF packet walker, a VAG
   audio decoder and encoder, a data archive mapper, a memory card reader with
   safe cloud sync, a controller code generator with input replay, and a
-  packager that refuses to ship game files. 559 offline tests.
+  packager that refuses to ship game files. 561 offline tests.
 - **Every platform.** The base skill was Windows only (vcvars64, PowerShell,
   `.bat`). This pack covers Windows, macOS, Linux, Steam Deck, Android and
   PS Vita.
