@@ -43,7 +43,7 @@ static int clamp_int(int v, int lo, int hi) {
 }
 static int random_x(void) {
     rng_state = rng_state * 1664525u + 1013904223u;
-    return 24 + (int)(rng_state % 464u);
+    return 24 + (int)(rng_state % 456u);
 }
 static void init_pad(void) {
     int i, ret;
@@ -100,7 +100,7 @@ static qword_t *draw_triangle(qword_t *q, int x0, int y0, int x1, int y1,
     /* Select triangle primitive before sending the three packed vertices. */
     PACK_GIFTAG(q, GIF_SET_TAG(1, 1, 0, 0, 0, 1), GIF_REG_AD); q++;
     PACK_GIFTAG(q, GIF_SET_PRIM(3, 0, 0, 0, 0, 0, 0, 0, 0), GIF_REG_PRIM); q++;
-    PACK_GIFTAG(q, GIF_SET_TAG(6, 1, 0, 0, 0, 2),
+    PACK_GIFTAG(q, GIF_SET_TAG(3, 1, 0, 0, 0, 2),
                 GIF_REG_RGBAQ | (GIF_REG_XYZ2 << 4)); q++;
     PACK_GIFTAG(q, color, GIF_REG_RGBAQ); q++;
     PACK_GIFTAG(q, GIF_SET_XYZ((x0 << 4) + (2048 << 4),
