@@ -81,7 +81,8 @@ static qword_t *rect(qword_t*q,int x,int y,int w,int h,int r,int g,int b,u32 z){
 static qword_t *tri2(qword_t*q,int x0,int y0,u32 z0,int x1,int y1,u32 z1,
                      int x2,int y2,u32 z2,int r,int g,int b){
  u64 c=GIF_SET_RGBAQ(r,g,b,0x80,0x3f800000);
- PACK_GIFTAG(q,GIF_SET_TAG(1,1,0,0,0,1),GIF_REG_AD);q++;
+ /* This is an intermediate tag: EOP must stay 0 or the triangle tag below is discarded. */
+  PACK_GIFTAG(q,GIF_SET_TAG(1,0,0,0,0,1),GIF_REG_AD);q++;
  PACK_GIFTAG(q,GIF_SET_PRIM(3,0,0,0,0,0,0,0,0),GIF_REG_PRIM);q++;
  PACK_GIFTAG(q,GIF_SET_TAG(3,1,0,0,0,2),GIF_REG_RGBAQ|(GIF_REG_XYZ2<<4));q++;
  PACK_GIFTAG(q,c,GIF_REG_RGBAQ);q++; PACK_GIFTAG(q,GIF_SET_XYZ((x0<<4)+(2048<<4),(y0<<4)+(2048<<4),z0),GIF_REG_XYZ2);q++;
