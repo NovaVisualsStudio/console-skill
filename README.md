@@ -207,11 +207,18 @@ that is kept. This pack adds:
 - **A design doc and a state file every skill shares**, kept in
   `console/STATE.md` and `console/design.md`.
 
-## Test the original PS2 homebrew game on Android
+## Run Nova Dodge on Android (PS2 emulator)
 
-This repository also contains **Nova Dodge**, an original PS2 homebrew test game. To test its PS2 ELF with the free, open-source [Play! emulator](https://github.com/jpd002/Play-), see the [Android testing guide](docs/ANDROID-PS2-TESTING.md).
+**Get the emulator from its official publisher:**
+- [Play! official Android downloads](https://purei.org/downloads.php) — choose the Android build / Google Play option.
+- [Play! source code and releases](https://github.com/jpd002/Play-).
+- [Play! compatibility tracker](https://github.com/jpd002/Play-Compatibility).
 
-The emulator is maintained separately and is not bundled with this repository. Android ELF launching depends on the Play! Android build and must be verified on the target device; a PS2 ELF is not an Android APK.
+**Get our PS2 game:** open [the PS2 Homebrew First Build workflow](https://github.com/NovaVisualsStudio/console-skill/actions/workflows/ps2-homebrew-first-build.yml), open the latest successful run, and download the `nova-dodge-ps2-elf` artifact. Extract `nova_dodge.elf` from the ZIP.
+
+**Important Android note:** the standalone Play! Android app is the emulator, but its Android interface may not expose direct ELF loading in every build. The Play! core documentation for [RetroArch](https://docs.libretro.com/library/play/) explicitly lists `.elf` as a supported content format; this is a fallback route if the standalone app cannot open the file. Actual compatibility of this homebrew ELF still needs a real-device test.
+
+Read the [step-by-step Android test guide](docs/ANDROID-PS2-TESTING.md). The emulator is linked, not bundled: this keeps its licensing, updates, and downloads under the emulator maintainer's control. A PS2 ELF is not an installable Android APK.
 
 ## Fine print
 
