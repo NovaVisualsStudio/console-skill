@@ -29,7 +29,7 @@ into the game as code that never touches the original files.
 Paste this into Claude:
 
 ```
-https://github.com/Jakeschincariol/console-skill
+https://github.com/NovaVisualsStudio/console-skill
 
 install skill
 ```
@@ -37,7 +37,7 @@ install skill
 Or as a plugin, in Claude Code:
 
 ```
-/plugin marketplace add Jakeschincariol/console-skill
+/plugin marketplace add NovaVisualsStudio/console-skill
 /plugin install console-skill@console-skill
 ```
 
@@ -46,7 +46,7 @@ Claude Code namespaces plugin skills, so installed as a plugin they show up as
 want plain `/console-reverse`:
 
 ```bash
-git clone https://github.com/Jakeschincariol/console-skill.git
+git clone https://github.com/NovaVisualsStudio/console-skill.git
 cp -r console-skill/console-* ~/.claude/skills/
 ```
 
