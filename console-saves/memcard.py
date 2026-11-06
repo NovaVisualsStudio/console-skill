@@ -1039,7 +1039,7 @@ def build_parser():
     s.add_argument("--dry-run", action="store_true", help="show what would happen, change nothing")
     s.add_argument("--manifest", default=None, help="sync state file (default .console-sync.json next to mc0)")
     s.add_argument("--backups", default=None, help="backup folder (default console/saves/backups)")
-    s.add_argument("--keep", type=int, default=20)
+    s.add_argument("--keep", type=int, default=0, help="backups to keep for this card (default: all; 0 = all)")
     s.add_argument("--verbose", action="store_true", help="also list files that are already the same")
     s.add_argument("--json", action="store_true")
     s.set_defaults(func=cmd_sync)
