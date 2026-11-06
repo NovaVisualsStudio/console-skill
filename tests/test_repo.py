@@ -77,7 +77,9 @@ class Repo(unittest.TestCase):
         # Check the published Git tree, not arbitrary local workspace files.
         root = set()
         for relpath in tracked_files():
-            root.add(relpath.split("/", 1)[0])
+            top = relpath.split("/", 1)[0]
+            if not top.startswith(".git"):
+                root.add(top)
         self.assertEqual(sorted(root),
                          sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "tests"] + SKILLS))
 
