@@ -5,8 +5,8 @@ An original PlayStation 2 homebrew shooter built with PS2SDK. This is a top-down
 ## Gameplay
 
 - Fly a detailed, layered fighter aircraft.
-- Move with the controller D-pad.
-- Fire repeated cannon shots with **CROSS**, **SQUARE**, **CIRCLE**, or **R1**. These common mappings are supported so the on-screen emulator buttons can be tested.
+- Move with the D-pad or the left analog stick (including the emulator's virtual stick).
+- Fire repeated cannon shots with **TRIANGLE**, **CROSS**, **SQUARE**, **CIRCLE**, **R1**, or **R2**. Multiple mappings are supported for common on-screen emulator layouts.
 - Destroy incoming enemy aircraft to earn points.
 - Avoid enemy aircraft; the player has three lives.
 - START restarts after game over.
