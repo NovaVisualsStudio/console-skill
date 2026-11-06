@@ -17,6 +17,7 @@
 #include <graph.h>
 #include <packet.h>
 #include <stdio.h>
+#include "audio.h"
 
 #define SW 512
 #define SH 512
@@ -49,7 +50,7 @@ static u32 depth_from_z(float z){
  return (u32)d;
 }
 static void pad_init(void){
- int i,r; sceSifInitRpc(0);
+ int i,r;
  r=SifLoadModule("rom0:SIO2MAN",0,NULL); if(r<0)return;
  r=SifLoadModule("rom0:PADMAN",0,NULL); if(r<0)return;
  padInit(0); if(padPortOpen(0,0,pad_dma)==0)return;
@@ -160,7 +161,8 @@ static void reset(float *px,float *py,int *lives,int *score,int *over,Enemy e[EN
  for(i=0;i<SHOTS;i++)s[i].active=0;
 }
 static void burst(Particle p[PARTICLES],float x,float y,float z){
- int i;for(i=0;i<PARTICLES;i++)if(p[i].life<=0){
+ int i;
+ audio_play_sfx(NOVA_SFX_EXPLOSION);for(i=0;i<PARTICLES;i++)if(p[i].life<=0){
   float a=(float)(rnd(200)-100)*0.01f;
   p[i].x=x;p[i].y=y;p[i].z=z;p[i].vx=a*0.055f;
   p[i].vy=(float)(rnd(160)-80)*0.001f;p[i].vz=(float)(rnd(100)-50)*0.018f;
@@ -174,7 +176,8 @@ static void update_particles(Particle p[PARTICLES]){
  }
 }
 static void fire(Shot s[SHOTS],float x,float y){
- int i;for(i=0;i<SHOTS;i++)if(!s[i].active){s[i].x=x;s[i].y=y;s[i].z=13.0f;s[i].active=1;s[i].kind=0;return;}
+ int i;
+ audio_play_sfx(NOVA_SFX_FIRE);for(i=0;i<SHOTS;i++)if(!s[i].active){s[i].x=x;s[i].y=y;s[i].z=13.0f;s[i].active=1;s[i].kind=0;return;}
 }
 static void render(packet_t*p,zbuffer_t*zb,float px,float py,Enemy e[ENEMIES],Shot s[SHOTS],Particle particles[PARTICLES],
                    int lives,int score,int over,int frame){
@@ -237,10 +240,12 @@ int main(void){
  {qword_t*q=draw_setup_environment(p->data,0,&fb,&zb);q=draw_finish(q);
   dma_channel_send_normal(DMA_CHANNEL_GIF,p->data,q-p->data,0,0);draw_wait_finish();}
  for(i=0;i<PARTICLES;i++)particles[i].life=0;
+ sceSifInitRpc(0);
+ audio_init(graph_get_region());
  pad_init();reset(&px,&py,&lives,&score,&over,enemies,shots);
  for(;;){
   u32 buttons=pad_read();
-  if(over){if(buttons&PAD_START){int k;vx=vy=0.0f;for(k=0;k<PARTICLES;k++)particles[k].life=0;reset(&px,&py,&lives,&score,&over,enemies,shots);}}
+  if(over){if(buttons&PAD_START){int k;vx=vy=0.0f;for(k=0;k<PARTICLES;k++)particles[k].life=0;reset(&px,&py,&lives,&score,&over,enemies,shots);audio_play_sfx(NOVA_SFX_START);}}
   else{
    vx+=(buttons&PAD_LEFT)?-0.11f:0.0f;vx+=(buttons&PAD_RIGHT)?0.11f:0.0f;
    vy+=(buttons&PAD_UP)?0.09f:0.0f;vy+=(buttons&PAD_DOWN)?-0.09f:0.0f;
@@ -259,11 +264,13 @@ int main(void){
    for(i=0;i<ENEMIES;i++){
     enemies[i].z-=0.32f+(float)(score/30)*0.04f;
     if(enemies[i].z<NEAR_Z+2.0f){
-     if(absf(enemies[i].x-px)<2.5f&&absf(enemies[i].y-py)<2.0f){burst(particles,px,py,11.0f);--lives;if(lives<=0)over=1;}
+     if(absf(enemies[i].x-px)<2.5f&&absf(enemies[i].y-py)<2.0f){burst(particles,px,py,11.0f);audio_play_sfx(NOVA_SFX_HIT);--lives;if(lives<=0){over=1;audio_play_sfx(NOVA_SFX_GAMEOVER);}}
      enemies[i].z=130.0f+(float)rnd(70);enemies[i].x=(float)(rnd(25)-12);enemies[i].y=(float)(rnd(9)-4)*0.45f;++score;
     }
    }
   }
+  audio_set_engine(over?0:clampi((int)((absf(vx)+absf(vy))*90.0f),0,100));
+  audio_tick();
   update_particles(particles);++frame;render(p,&zb,px,py,enemies,shots,particles,lives,score,over,frame);
  }
  return 0;
