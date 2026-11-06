@@ -29,8 +29,8 @@
 #define DEPTH_UI 0x7fffffffu
 
 typedef struct { float x,y,z; } V3;
-typedef struct { float x,z; int hp,kind; } Enemy;
-typedef struct { float x,z; int active,kind; } Shot;
+typedef struct { float x,y,z; int hp,kind; } Enemy;
+typedef struct { float x,y,z; int active,kind; } Shot;
 static char pad_dma[256] __attribute__((aligned(64)));
 static int pad_ok=0, stick_x=0, stick_y=0;
 static u32 rng=0x4E4F5641u;
@@ -62,7 +62,7 @@ static u32 pad_read(void){
  s=padGetState(0,0);
  if(s!=PAD_STATE_STABLE&&s!=PAD_STATE_FINDCTP1)return 0;
  if(padRead(0,0,&b)==0)return 0;
- stick_x=(int)b.ljoy_h-128; stick_y=(int)b.ljoy_v-128;
+ stick_x=(int)b.ljoy_h-128; stick_y=128-(int)b.ljoy_v;
  return (u32)(0xffffu^b.btns);
 }
 static qword_t *rect(qword_t*q,int x,int y,int w,int h,int r,int g,int b,u32 z){
@@ -95,12 +95,31 @@ static int project(V3 v,float camx,int *sx,int *sy,u32 *depth){
  *depth=depth_from_z(v.z);
  return 1;
 }
-static qword_t *tri3(qword_t*q,V3 a,V3 b,V3 c,float camx,int r,int g,int bl){
+/* Clip triangles against the near plane before perspective division.
+   A crossing triangle becomes a quad and is submitted as two triangles. */
+static int clip_near(const V3 in[3],V3 out[4]){
+ int i,n=0;
+ for(i=0;i<3;i++){
+  V3 a=in[i],b=in[(i+1)%3];
+  int ai=(a.z>=NEAR_Z),bi=(b.z>=NEAR_Z);
+  if(ai&&bi){out[n++]=b;}
+  else if(ai&&!bi){float t=(NEAR_Z-a.z)/(b.z-a.z);out[n++]=(V3){a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,NEAR_Z};}
+  else if(!ai&&bi){float t=(NEAR_Z-a.z)/(b.z-a.z);out[n++]=(V3){a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,NEAR_Z};out[n++]=b;}
+ }
+ return n;
+}
+static qword_t *projected_tri(qword_t*q,V3 a,V3 b,V3 c,float camx,int r,int g,int bl){
  int ax,ay,bx,by,cx,cy; u32 az,bz,cz;
  if(!project(a,camx,&ax,&ay,&az)||!project(b,camx,&bx,&by,&bz)||!project(c,camx,&cx,&cy,&cz))return q;
- if((ax<0&&bx<0&&cx<0)||(ax>=SW&&bx>=SW&&cx>=SW)||
-    (ay<0&&by<0&&cy<0)||(ay>=SH&&by>=SH&&cy>=SH))return q;
+ if((ax<0&&bx<0&&cx<0)||(ax>=SW&&bx>=SW&&cx>=SW)||(ay<0&&by<0&&cy<0)||(ay>=SH&&by>=SH&&cy>=SH))return q;
  return tri2(q,ax,ay,az,bx,by,bz,cx,cy,cz,r,g,bl);
+}
+static qword_t *tri3(qword_t*q,V3 a,V3 b,V3 c,float camx,int r,int g,int bl){
+ V3 in[3],out[4];int n;in[0]=a;in[1]=b;in[2]=c;n=clip_near(in,out);
+ if(n<3)return q;
+ q=projected_tri(q,out[0],out[1],out[2],camx,r,g,bl);
+ if(n==4)q=projected_tri(q,out[0],out[2],out[3],camx,r,g,bl);
+ return q;
 }
 static qword_t *jet(qword_t*q,float x,float y,float z,float camx,int enemy){
  int br=enemy?190:85,bg=enemy?55:175,bb=enemy?55:235;
@@ -133,15 +152,15 @@ static qword_t *ocean(qword_t*q,float camx,int phase){
  }
  return q;
 }
-static void reset(float *px,int *lives,int *score,int *over,Enemy e[ENEMIES],Shot s[SHOTS]){
- int i; *px=0;*lives=3;*score=0;*over=0;
- for(i=0;i<ENEMIES;i++){e[i].x=(float)(rnd(25)-12);e[i].z=38.0f+i*23.0f;e[i].hp=1;e[i].kind=i%3;}
+static void reset(float *px,float *py,int *lives,int *score,int *over,Enemy e[ENEMIES],Shot s[SHOTS]){
+ int i; *px=0;*py=0;*lives=3;*score=0;*over=0;
+ for(i=0;i<ENEMIES;i++){e[i].x=(float)(rnd(25)-12);e[i].y=(float)(rnd(9)-4)*0.45f;e[i].z=38.0f+i*23.0f;e[i].hp=1;e[i].kind=i%3;}
  for(i=0;i<SHOTS;i++)s[i].active=0;
 }
-static void fire(Shot s[SHOTS],float x){
- int i;for(i=0;i<SHOTS;i++)if(!s[i].active){s[i].x=x;s[i].z=13.0f;s[i].active=1;s[i].kind=0;return;}
+static void fire(Shot s[SHOTS],float x,float y){
+ int i;for(i=0;i<SHOTS;i++)if(!s[i].active){s[i].x=x;s[i].y=y;s[i].z=13.0f;s[i].active=1;s[i].kind=0;return;}
 }
-static void render(packet_t*p,zbuffer_t*zb,float px,Enemy e[ENEMIES],Shot s[SHOTS],
+static void render(packet_t*p,zbuffer_t*zb,float px,float py,Enemy e[ENEMIES],Shot s[SHOTS],
                    int lives,int score,int over,int frame){
  int i,progress=score*3; qword_t*q;
  if(progress>250)progress=250;
@@ -159,12 +178,12 @@ static void render(packet_t*p,zbuffer_t*zb,float px,Enemy e[ENEMIES],Shot s[SHOT
  for(i=0;i<6;i++){int x=(i*103+(frame/3)%103)%SW;q=rect(q,x,150+(i%3)*8,42,3,25,55,77,DEPTH_CLEAR);}
  q=ocean(q,px*0.25f,frame);
  for(i=0;i<ENEMIES;i++)if(e[i].z>NEAR_Z)
-  q=jet(q,e[i].x,0.0f,e[i].z,px*0.25f,1);
+  q=jet(q,e[i].x,e[i].y,e[i].z,px*0.25f,1);
  for(i=0;i<SHOTS;i++)if(s[i].active){
-  V3 a={s[i].x-0.12f,0.0f,s[i].z},b={s[i].x+0.12f,0.0f,s[i].z},c={s[i].x,0.0f,s[i].z+2.2f};
+  V3 a={s[i].x-0.12f,s[i].y,s[i].z},b={s[i].x+0.12f,s[i].y,s[i].z},c={s[i].x,s[i].y,s[i].z+2.2f};
   q=tri3(q,a,b,c,px*0.25f,255,230,105);
  }
- q=jet(q,px,0.0f,11.0f,px*0.25f,0);
+ q=jet(q,px,py,11.0f,px*0.25f,0);
  q=rect(q,16,15,260,8,28,48,69,DEPTH_UI);
  q=rect(q,16,15,progress,8,25,220,165,DEPTH_UI);
  for(i=0;i<lives;i++)q=tri2(q,420+i*23,34,DEPTH_UI,426+i*23,19,DEPTH_UI,432+i*23,34,DEPTH_UI,255,80,90);
@@ -178,7 +197,7 @@ static void render(packet_t*p,zbuffer_t*zb,float px,Enemy e[ENEMIES],Shot s[SHOT
 }
 int main(void){
  framebuffer_t fb;zbuffer_t zb;packet_t*p;
- Enemy enemies[ENEMIES];Shot shots[SHOTS];float px;int lives,score,over,frame=0,i;
+ Enemy enemies[ENEMIES];Shot shots[SHOTS];float px,py,vx=0.0f,vy=0.0f;int lives,score,over,frame=0,i;
  dma_channel_initialize(DMA_CHANNEL_GIF,NULL,0);dma_channel_fast_waits(DMA_CHANNEL_GIF);
  fb.width=SW;fb.height=SH;fb.mask=0;fb.psm=GS_PSM_32;
  fb.address=graph_vram_allocate(fb.width,fb.height,fb.psm,GRAPH_ALIGN_PAGE);
@@ -189,31 +208,34 @@ int main(void){
  if(!p){graph_shutdown();dma_channel_shutdown(DMA_CHANNEL_GIF,0);SleepThread();return 1;}
  {qword_t*q=draw_setup_environment(p->data,0,&fb,&zb);q=draw_finish(q);
   dma_channel_send_normal(DMA_CHANNEL_GIF,p->data,q-p->data,0,0);draw_wait_finish();}
- pad_init();reset(&px,&lives,&score,&over,enemies,shots);
+ pad_init();reset(&px,&py,&lives,&score,&over,enemies,shots);
  for(;;){
   u32 buttons=pad_read();
-  if(over){if(buttons&PAD_START)reset(&px,&lives,&score,&over,enemies,shots);}
+  if(over){if(buttons&PAD_START){vx=vy=0.0f;reset(&px,&py,&lives,&score,&over,enemies,shots);}}
   else{
-   if(buttons&PAD_LEFT)px-=0.55f;if(buttons&PAD_RIGHT)px+=0.55f;
-   if(stick_x < -24)px-=0.12f;if(stick_x > 24)px+=0.12f;
-   px=clampf(px,-13.0f,13.0f);
-   if((buttons&(PAD_CROSS|PAD_SQUARE|PAD_CIRCLE|PAD_TRIANGLE|PAD_R1|PAD_R2))&&frame%7==0)fire(shots,px);
+   vx+=(buttons&PAD_LEFT)?-0.11f:0.0f;vx+=(buttons&PAD_RIGHT)?0.11f:0.0f;
+   vy+=(buttons&PAD_UP)?0.09f:0.0f;vy+=(buttons&PAD_DOWN)?-0.09f:0.0f;
+   if(stick_x < -24)vx+=(float)stick_x*0.0009f;if(stick_x > 24)vx+=(float)stick_x*0.0009f;
+   if(stick_y < -24)vy+=(float)stick_y*0.0008f;if(stick_y > 24)vy+=(float)stick_y*0.0008f;
+   vx*=0.82f;vy*=0.82f;px=clampf(px+vx,-13.0f,13.0f);py=clampf(py+vy,-3.5f,3.5f);
+   if(px<=-13.0f||px>=13.0f)vx=0.0f;if(py<=-3.5f||py>=3.5f)vy=0.0f;
+   if((buttons&(PAD_CROSS|PAD_SQUARE|PAD_CIRCLE|PAD_TRIANGLE|PAD_R1|PAD_R2))&&frame%7==0)fire(shots,px,py);
    for(i=0;i<SHOTS;i++)if(shots[i].active){
     shots[i].z+=2.6f;
     if(shots[i].z>125.0f)shots[i].active=0;
-    else {int j;for(j=0;j<ENEMIES;j++)if(absf(shots[i].x-enemies[j].x)<2.1f&&absf(shots[i].z-enemies[j].z)<3.0f){
-      shots[i].active=0;enemies[j].z=145.0f+(float)rnd(55);enemies[j].x=(float)(rnd(25)-12);++score;break;
+    else {int j;for(j=0;j<ENEMIES;j++)if(absf(shots[i].x-enemies[j].x)<2.1f&&absf(shots[i].y-enemies[j].y)<1.7f&&absf(shots[i].z-enemies[j].z)<3.0f){
+      shots[i].active=0;enemies[j].z=145.0f+(float)rnd(55);enemies[j].x=(float)(rnd(25)-12);enemies[j].y=(float)(rnd(9)-4)*0.45f;++score;break;
     }}
    }
    for(i=0;i<ENEMIES;i++){
     enemies[i].z-=0.32f+(float)(score/30)*0.04f;
     if(enemies[i].z<NEAR_Z+2.0f){
-     if(absf(enemies[i].x-px)<2.5f){--lives;if(lives<=0)over=1;}
-     enemies[i].z=130.0f+(float)rnd(70);enemies[i].x=(float)(rnd(25)-12);++score;
+     if(absf(enemies[i].x-px)<2.5f&&absf(enemies[i].y-py)<2.0f){--lives;if(lives<=0)over=1;}
+     enemies[i].z=130.0f+(float)rnd(70);enemies[i].x=(float)(rnd(25)-12);enemies[i].y=(float)(rnd(9)-4)*0.45f;++score;
     }
    }
   }
-  ++frame;render(p,&zb,px,enemies,shots,lives,score,over,frame);
+  ++frame;render(p,&zb,px,py,enemies,shots,lives,score,over,frame);
  }
  return 0;
 }
