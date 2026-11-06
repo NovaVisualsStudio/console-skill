@@ -1008,8 +1008,9 @@ def cmd_package(args):
                                  "safe first, or package to a new --out. Nothing in game/ is ever deleted"
                                  % out)
     staging = out + ".staging-%d" % os.getpid()
-    if os.path.exists(staging):
-        shutil.rmtree(staging)
+    if os.path.lexists(staging):
+        raise UsageError("%s already exists; refusing to remove or overwrite a staging path not created "
+                         "by this run. Inspect it and choose another --out or retry later." % staging)
     os.makedirs(os.path.join(staging, "game"))
     try:
         runner_name = os.path.basename(runner)
