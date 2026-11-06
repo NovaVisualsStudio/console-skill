@@ -2,6 +2,9 @@ EE_BIN = nova_dodge.elf
 EE_OBJS = main.o audio.o audsrv_irx.o
 EE_LIBS = -laudsrv -lpad -lpacket -ldma -lgraph -ldraw -lc
 
+# Treat compiler warnings as build failures so regressions cannot slip into ELF artifacts.
+EE_CFLAGS += -Werror
+
 all: $(EE_BIN)
 	$(EE_STRIP) --strip-all $(EE_BIN)
 
