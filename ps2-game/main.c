@@ -22,6 +22,7 @@
 #define SH 512
 #define ENEMIES 6
 #define SHOTS 18
+#define PARTICLES 24
 #define FOCAL 170
 #define NEAR_Z 8.0f
 #define PACKET_QWORDS 4096
@@ -31,6 +32,7 @@
 typedef struct { float x,y,z; } V3;
 typedef struct { float x,y,z; int hp,kind; } Enemy;
 typedef struct { float x,y,z; int active,kind; } Shot;
+typedef struct { float x,y,z,vx,vy,vz; int life; } Particle;
 static char pad_dma[256] __attribute__((aligned(64)));
 static int pad_ok=0, stick_x=0, stick_y=0;
 static u32 rng=0x4E4F5641u;
@@ -157,10 +159,24 @@ static void reset(float *px,float *py,int *lives,int *score,int *over,Enemy e[EN
  for(i=0;i<ENEMIES;i++){e[i].x=(float)(rnd(25)-12);e[i].y=(float)(rnd(9)-4)*0.45f;e[i].z=38.0f+i*23.0f;e[i].hp=1;e[i].kind=i%3;}
  for(i=0;i<SHOTS;i++)s[i].active=0;
 }
+static void burst(Particle p[PARTICLES],float x,float y,float z){
+ int i;for(i=0;i<PARTICLES;i++)if(p[i].life<=0){
+  float a=(float)(rnd(200)-100)*0.01f;
+  p[i].x=x;p[i].y=y;p[i].z=z;p[i].vx=a*0.055f;
+  p[i].vy=(float)(rnd(160)-80)*0.001f;p[i].vz=(float)(rnd(100)-50)*0.018f;
+  p[i].life=12+rnd(12);
+ }
+}
+static void update_particles(Particle p[PARTICLES]){
+ int i;for(i=0;i<PARTICLES;i++)if(p[i].life>0){
+  p[i].x+=p[i].vx;p[i].y+=p[i].vy;p[i].z+=p[i].vz;
+  p[i].vx*=0.94f;p[i].vy-=0.0015f;--p[i].life;
+ }
+}
 static void fire(Shot s[SHOTS],float x,float y){
  int i;for(i=0;i<SHOTS;i++)if(!s[i].active){s[i].x=x;s[i].y=y;s[i].z=13.0f;s[i].active=1;s[i].kind=0;return;}
 }
-static void render(packet_t*p,zbuffer_t*zb,float px,float py,Enemy e[ENEMIES],Shot s[SHOTS],
+static void render(packet_t*p,zbuffer_t*zb,float px,float py,Enemy e[ENEMIES],Shot s[SHOTS],Particle particles[PARTICLES],
                    int lives,int score,int over,int frame){
  int i,progress=score*3; qword_t*q;
  if(progress>250)progress=250;
@@ -183,6 +199,18 @@ static void render(packet_t*p,zbuffer_t*zb,float px,float py,Enemy e[ENEMIES],Sh
   V3 a={s[i].x-0.12f,s[i].y,s[i].z},b={s[i].x+0.12f,s[i].y,s[i].z},c={s[i].x,s[i].y,s[i].z+2.2f};
   q=tri3(q,a,b,c,px*0.25f,255,230,105);
  }
+ for(i=0;i<PARTICLES;i++)if(particles[i].life>0){
+  float size=0.10f+(float)particles[i].life*0.012f;
+  int glow=clampi(255-particles[i].life*5,90,255);
+  V3 a={particles[i].x-size,particles[i].y,particles[i].z};
+  V3 b={particles[i].x+size,particles[i].y,particles[i].z};
+  V3 c={particles[i].x,particles[i].y+size,particles[i].z};
+  V3 d={particles[i].x,particles[i].y-size,particles[i].z};
+  q=tri3(q,a,b,c,px*0.25f,glow,glow/2,35);
+  q=tri3(q,a,c,d,px*0.25f,255,glow/3,25);
+ }
+ /* Engine exhaust is a small warm plume behind the player aircraft. */
+ q=tri3(q,(V3){px-0.22f,py,9.2f},(V3){px+0.22f,py,9.2f},(V3){px,py,7.8f},px*0.25f,255,125,35);
  q=jet(q,px,py,11.0f,px*0.25f,0);
  q=rect(q,16,15,260,8,28,48,69,DEPTH_UI);
  q=rect(q,16,15,progress,8,25,220,165,DEPTH_UI);
@@ -197,7 +225,7 @@ static void render(packet_t*p,zbuffer_t*zb,float px,float py,Enemy e[ENEMIES],Sh
 }
 int main(void){
  framebuffer_t fb;zbuffer_t zb;packet_t*p;
- Enemy enemies[ENEMIES];Shot shots[SHOTS];float px,py,vx=0.0f,vy=0.0f;int lives,score,over,frame=0,i;
+ Enemy enemies[ENEMIES];Shot shots[SHOTS];Particle particles[PARTICLES];float px,py,vx=0.0f,vy=0.0f;int lives,score,over,frame=0,i;
  dma_channel_initialize(DMA_CHANNEL_GIF,NULL,0);dma_channel_fast_waits(DMA_CHANNEL_GIF);
  fb.width=SW;fb.height=SH;fb.mask=0;fb.psm=GS_PSM_32;
  fb.address=graph_vram_allocate(fb.width,fb.height,fb.psm,GRAPH_ALIGN_PAGE);
@@ -208,10 +236,11 @@ int main(void){
  if(!p){graph_shutdown();dma_channel_shutdown(DMA_CHANNEL_GIF,0);SleepThread();return 1;}
  {qword_t*q=draw_setup_environment(p->data,0,&fb,&zb);q=draw_finish(q);
   dma_channel_send_normal(DMA_CHANNEL_GIF,p->data,q-p->data,0,0);draw_wait_finish();}
+ for(i=0;i<PARTICLES;i++)particles[i].life=0;
  pad_init();reset(&px,&py,&lives,&score,&over,enemies,shots);
  for(;;){
   u32 buttons=pad_read();
-  if(over){if(buttons&PAD_START){vx=vy=0.0f;reset(&px,&py,&lives,&score,&over,enemies,shots);}}
+  if(over){if(buttons&PAD_START){int k;vx=vy=0.0f;for(k=0;k<PARTICLES;k++)particles[k].life=0;reset(&px,&py,&lives,&score,&over,enemies,shots);}}
   else{
    vx+=(buttons&PAD_LEFT)?-0.11f:0.0f;vx+=(buttons&PAD_RIGHT)?0.11f:0.0f;
    vy+=(buttons&PAD_UP)?0.09f:0.0f;vy+=(buttons&PAD_DOWN)?-0.09f:0.0f;
@@ -224,18 +253,18 @@ int main(void){
     shots[i].z+=2.6f;
     if(shots[i].z>125.0f)shots[i].active=0;
     else {int j;for(j=0;j<ENEMIES;j++)if(absf(shots[i].x-enemies[j].x)<2.1f&&absf(shots[i].y-enemies[j].y)<1.7f&&absf(shots[i].z-enemies[j].z)<3.0f){
-      shots[i].active=0;enemies[j].z=145.0f+(float)rnd(55);enemies[j].x=(float)(rnd(25)-12);enemies[j].y=(float)(rnd(9)-4)*0.45f;++score;break;
+      shots[i].active=0;burst(particles,enemies[j].x,enemies[j].y,enemies[j].z);enemies[j].z=145.0f+(float)rnd(55);enemies[j].x=(float)(rnd(25)-12);enemies[j].y=(float)(rnd(9)-4)*0.45f;++score;break;
     }}
    }
    for(i=0;i<ENEMIES;i++){
     enemies[i].z-=0.32f+(float)(score/30)*0.04f;
     if(enemies[i].z<NEAR_Z+2.0f){
-     if(absf(enemies[i].x-px)<2.5f&&absf(enemies[i].y-py)<2.0f){--lives;if(lives<=0)over=1;}
+     if(absf(enemies[i].x-px)<2.5f&&absf(enemies[i].y-py)<2.0f){burst(particles,px,py,11.0f);--lives;if(lives<=0)over=1;}
      enemies[i].z=130.0f+(float)rnd(70);enemies[i].x=(float)(rnd(25)-12);enemies[i].y=(float)(rnd(9)-4)*0.45f;++score;
     }
    }
   }
-  ++frame;render(p,&zb,px,py,enemies,shots,lives,score,over,frame);
+  update_particles(particles);++frame;render(p,&zb,px,py,enemies,shots,particles,lives,score,over,frame);
  }
  return 0;
 }
