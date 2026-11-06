@@ -1,6 +1,6 @@
 # The Console skill
 
-11 Claude skills that port PlayStation 2 games you own to PC: reverse engineer the code, rebuild the graphics and backend, any controller, play it anywhere, then mod it however you want.
+11 agent skills for Claude and Codex that port PlayStation 2 games you own to PC: reverse engineer the code, rebuild the graphics and backend, any controller, play it anywhere, then mod it however you want.
 
 Free, MIT, no signup, no API key. The tools are plain Python with nothing to
 install. The heavy lifting is done by [PS2Recomp](https://github.com/ran-j/PS2Recomp),
@@ -29,7 +29,7 @@ into the game as code that never touches the original files.
 Paste this into Claude:
 
 ```
-https://github.com/Jakeschincariol/console-skill
+https://github.com/NovaVisualsStudio/console-skill
 
 install skill
 ```
@@ -37,7 +37,7 @@ install skill
 Or as a plugin, in Claude Code:
 
 ```
-/plugin marketplace add Jakeschincariol/console-skill
+/plugin marketplace add NovaVisualsStudio/console-skill
 /plugin install console-skill@console-skill
 ```
 
@@ -46,9 +46,34 @@ Claude Code namespaces plugin skills, so installed as a plugin they show up as
 want plain `/console-reverse`:
 
 ```bash
-git clone https://github.com/Jakeschincariol/console-skill.git
+git clone https://github.com/NovaVisualsStudio/console-skill.git
 cp -r console-skill/console-* ~/.claude/skills/
 ```
+
+### Codex
+
+Codex discovers repository skills from `.agents/skills/`. The easiest option is
+to clone this repository and open its root folder in Codex; the 11 skills are
+already mirrored there:
+
+```bash
+git clone https://github.com/NovaVisualsStudio/console-skill.git
+cd console-skill
+codex
+```
+
+In Codex CLI, run `/skills` to inspect the available skills, or invoke one
+explicitly with its name, for example `$console-reverse`. To make the skills
+available in every workspace instead, copy them to your personal skills folder:
+
+```bash
+mkdir -p ~/.agents/skills
+cp -R .agents/skills/console-* ~/.agents/skills/
+```
+
+Codex detects skill changes automatically. If a newly added skill does not
+appear, restart Codex. The repository-local `.agents/skills/` copy is kept in
+sync with the canonical skill folders by the test suite.
 
 The tools need Python 3.8 or newer. Nothing to pip install.
 
@@ -115,7 +140,7 @@ saves -> anywhere                            (play it everywhere)
 
 ## The tools
 
-All standard-library Python, run from the repo (or from `~/.claude/skills/`).
+All standard-library Python, run from the repo (or from `~/.claude/skills/` in Claude Code or `~/.agents/skills/` in Codex).
 Everything lands in a `console/` folder in your game workspace.
 
 ```bash
@@ -171,7 +196,7 @@ that is kept. This pack adds:
   converter, a widescreen candidate finder, a DMA/VIF/GIF packet walker, a VAG
   audio decoder and encoder, a data archive mapper, a memory card reader with
   safe cloud sync, a controller code generator with input replay, and a
-  packager that refuses to ship game files. 559 offline tests.
+  packager that refuses to ship game files. 561 offline tests.
 - **Every platform.** The base skill was Windows only (vcvars64, PowerShell,
   `.bat`). This pack covers Windows, macOS, Linux, Steam Deck, Android and
   PS Vita.

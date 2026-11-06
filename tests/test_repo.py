@@ -14,6 +14,9 @@ SKILLS = ["console-reverse", "console-graphics", "console-backend", "console-con
 ABOUT = ("11 Claude skills that port PlayStation 2 games you own to PC: reverse engineer the code, "
          "rebuild the graphics and backend, any controller, play it anywhere, then mod it however "
          "you want.")
+README_ABOUT = ("11 agent skills for Claude and Codex that port PlayStation 2 games you own to PC: "
+                "reverse engineer the code, rebuild the graphics and backend, any controller, play it "
+                "anywhere, then mod it however you want.")
 # never in this repo: disc images, game binaries, Sony manuals
 GAME_EXT = (".iso", ".bin", ".img", ".mdf", ".mds", ".nrg", ".chd", ".cso", ".zso", ".elf",
             ".irx", ".tm2", ".vag", ".ps2", ".mcd", ".psu", ".pdf", ".pnach")
@@ -54,7 +57,7 @@ class Repo(unittest.TestCase):
 
     def test_root_matches_the_reel(self):
         root = sorted(d for d in os.listdir(ROOT) if not d.startswith(".git") and d != ".DS_Store")
-        self.assertEqual(root, sorted([".claude-plugin", "LICENSE", "README.md", "tests"] + SKILLS))
+        self.assertEqual(root, sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "tests"] + SKILLS))
 
     def test_frontmatter_name_description_hint(self):
         for s in SKILLS:
@@ -158,7 +161,7 @@ class Repo(unittest.TestCase):
     def test_readme_lists_the_eleven_and_the_fine_print(self):
         with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as fh:
             readme = fh.read()
-        self.assertIn(ABOUT, readme)
+        self.assertIn(README_ABOUT, readme)
         for s in SKILLS:
             self.assertIn("`/%s`" % s, readme)
         for must in ("hkmodd/ps2-recomp-Agent-SKILL", "ran-j/PS2Recomp", "own", "Sony"):
@@ -177,6 +180,50 @@ class Repo(unittest.TestCase):
         self.assertIn("Copyright (c) 2026 [Your Name / Alias]", notice)
         self.assertIn("Permission is hereby granted", notice)
         self.assertIn("THE SOFTWARE IS PROVIDED \"AS IS\"", notice)
+
+
+    def test_agents_skill_copies_match_root(self):
+        mirror = os.path.join(ROOT, ".agents", "skills")
+        self.assertTrue(os.path.isdir(mirror), ".agents/skills is missing")
+
+        for skill in SKILLS:
+            source = os.path.join(ROOT, skill)
+            target = os.path.join(mirror, skill)
+            self.assertTrue(os.path.isdir(target), "%s is missing from .agents/skills" % skill)
+
+            source_files = set()
+            for base, dirs, files in os.walk(source):
+                dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
+                for filename in files:
+                    if filename.endswith(".pyc"):
+                        continue
+                    source_path = os.path.join(base, filename)
+                    relative = os.path.relpath(source_path, source)
+                    source_files.add(relative)
+                    target_path = os.path.join(target, relative)
+                    self.assertTrue(os.path.isfile(target_path),
+                                    "%s is missing from .agents/skills/%s" % (skill, relative))
+                    with open(source_path, "rb") as source_fh, open(target_path, "rb") as target_fh:
+                        self.assertEqual(source_fh.read(), target_fh.read(),
+                                         "%s/%s differs from its Codex copy" % (skill, relative))
+
+            target_files = set()
+            for base, dirs, files in os.walk(target):
+                dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
+                for filename in files:
+                    if filename.endswith(".pyc"):
+                        continue
+                    target_files.add(os.path.relpath(os.path.join(base, filename), target))
+            self.assertEqual(target_files, source_files,
+                             "%s has extra or missing files in .agents/skills" % skill)
+
+
+    def test_codex_skill_paths_use_metadata_path_not_claude_env(self):
+        for skill in SKILLS:
+            _, text = frontmatter(os.path.join(ROOT, skill, "SKILL.md"))
+            self.assertIn("Codex does not document a corresponding skill-directory environment variable", text)
+            self.assertIn("parent directory of that provided path", text)
+            self.assertIn("${CLAUDE_SKILL_DIR}", text)
 
 
 if __name__ == "__main__":

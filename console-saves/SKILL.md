@@ -29,6 +29,8 @@ port loads a given save depends on how far the port is: test it.
 
 `${CLAUDE_SKILL_DIR}` below is this skill's folder (where this SKILL.md lives).
 
+**Runner-specific path handling:** Claude Code expands `${CLAUDE_SKILL_DIR}` to this folder. Codex does not document a corresponding skill-directory environment variable; its skill context includes the path to this `SKILL.md`. In Codex, use the parent directory of that provided path wherever a command below contains `${CLAUDE_SKILL_DIR}`. Do not pass the Claude placeholder literally to the shell.
+
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/memcard.py" ls ~/Documents/PCSX2/memcards/Mcd001.ps2      # saves, titles, serials
 python3 "${CLAUDE_SKILL_DIR}/memcard.py" export Mcd001.ps2 --to console/disc/mc0 --only BASLUS-20312GAME

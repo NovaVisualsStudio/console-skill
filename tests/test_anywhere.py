@@ -626,8 +626,11 @@ class TestDocs(unittest.TestCase):
         self.assertTrue(refs)
         for rel in refs:
             self.assertTrue(os.path.exists(os.path.join(SKILL, rel)), rel)
-        for folder, _, files in os.walk(SKILL):
+        for folder, dirs, files in os.walk(SKILL):
+            dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
             for name in files:
+                if not name.endswith((".md", ".py", ".txt", ".json", ".toml", ".sh", ".csv")):
+                    continue
                 with open(os.path.join(folder, name), encoding="utf-8") as fh:
                     self.assertNotIn("\u2014", fh.read(), name)
         self.assertEqual(cli()[0], 2)

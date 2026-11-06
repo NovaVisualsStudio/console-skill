@@ -29,6 +29,8 @@ never contains the disc, but it is still derived from the game, so it is not som
 
 `${CLAUDE_SKILL_DIR}` below is this skill's folder (where this SKILL.md lives).
 
+**Runner-specific path handling:** Claude Code expands `${CLAUDE_SKILL_DIR}` to this folder. Codex does not document a corresponding skill-directory environment variable; its skill context includes the path to this `SKILL.md`. In Codex, use the parent directory of that provided path wherever a command below contains `${CLAUDE_SKILL_DIR}`. Do not pass the Claude placeholder literally to the shell.
+
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/targets.py" doctor                       # this machine's own OS
 python3 "${CLAUDE_SKILL_DIR}/targets.py" doctor --target android --target vita   # or --target all

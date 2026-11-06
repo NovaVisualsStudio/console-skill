@@ -936,8 +936,11 @@ class SkillContract(unittest.TestCase):
                 self.assertIn(line, fh.read(), f)
 
     def test_no_dead_paths_from_the_base_skill(self):
-        for base, _, files in os.walk(os.path.join(ROOT, SKILL)):
+        for base, dirs, files in os.walk(os.path.join(ROOT, SKILL)):
+            dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
             for f in files:
+                if not f.endswith((".md", ".py", ".txt", ".json", ".toml", ".sh", ".csv")):
+                    continue
                 with open(os.path.join(base, f), encoding="utf-8") as fh:
                     text = fh.read()
                 for dead in ("scripts/vif_gif_surgeon.py", "scripts/install_ghydramcp.py", "Runtime::OverrideFunction",

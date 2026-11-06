@@ -36,6 +36,8 @@ those archives. Widescreen is a candidate hunt, not a lookup.
 
 `${CLAUDE_SKILL_DIR}` below is this skill's folder (where this SKILL.md lives).
 
+**Runner-specific path handling:** Claude Code expands `${CLAUDE_SKILL_DIR}` to this folder. Codex does not document a corresponding skill-directory environment variable; its skill context includes the path to this `SKILL.md`. In Codex, use the parent directory of that provided path wherever a command below contains `${CLAUDE_SKILL_DIR}`. Do not pass the Claude placeholder literally to the shell.
+
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/tim2.py" info  console/disc/DATA/TITLE.TM2                      # pictures, formats, GS TEX0
 python3 "${CLAUDE_SKILL_DIR}/tim2.py" topng console/disc/DATA --out console/textures/png     # every .tm2 under a folder

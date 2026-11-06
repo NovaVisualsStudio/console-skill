@@ -608,8 +608,11 @@ class TestDocs(unittest.TestCase):
         import re
         for rel in re.findall(r"`\$\{CLAUDE_SKILL_DIR\}/([^`\s]+)", text) + re.findall(r"\((reference/[^)]+)\)", text):
             self.assertTrue(os.path.exists(os.path.join(folder, rel)), rel)
-        for root, _, files in os.walk(folder):
+        for root, dirs, files in os.walk(folder):
+            dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
             for name in files:
+                if not name.endswith((".md", ".py", ".txt", ".json", ".toml", ".sh", ".csv")):
+                    continue
                 with open(os.path.join(root, name), encoding="utf-8") as fh:
                     self.assertNotIn("\u2014", fh.read(), name)
         with open(os.path.join(folder, "reference", "test-protocol.md")) as fh:
