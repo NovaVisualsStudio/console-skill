@@ -64,7 +64,7 @@ class Repo(unittest.TestCase):
             if not top.startswith(".git"):
                 root.add(top)
         self.assertEqual(sorted(root),
-                         sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "ps2-game", "tests"] + SKILLS))
+                         sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "docs", "ps2-game", "tests"] + SKILLS))
 
     def test_frontmatter_name_description_hint(self):
         for s in SKILLS:
@@ -183,6 +183,87 @@ class Repo(unittest.TestCase):
             self.assertIn("`/%s`" % s, readme)
         for must in ("hkmodd/ps2-recomp-Agent-SKILL", "ran-j/PS2Recomp", "own", "Sony"):
             self.assertIn(must, readme)
+
+
+    def test_nova_airstrike_has_a_perspective_3d_scene(self):
+        source_path = os.path.join(ROOT, "ps2-game", "main.c")
+        with open(source_path, encoding="utf-8") as fh:
+            source = fh.read()
+        # Guard the 3D milestone against silently regressing to the old 2D game.
+        self.assertIn("typedef struct { float x,y,z; } V3;", source)
+        self.assertIn("static int project(V3", source)
+        self.assertIn("static qword_t *tri3(", source)
+        self.assertIn("static qword_t *jet(", source)
+        self.assertIn("enemies[i].z-=", source)
+        self.assertIn("shots[i].z+=", source)
+
+    def test_ps2_game_triangle_packet_declares_three_vertex_pairs(self):
+        # A packed GIF tag with two registers (RGBAQ, XYZ2) needs one
+        # register pair per vertex. A triangle therefore declares 3 loops.
+        source_path = os.path.join(ROOT, "ps2-game", "main.c")
+        with open(source_path, encoding="utf-8") as fh:
+            source = fh.read()
+        triangle_body = source.split("static qword_t *tri2", 1)[1].split("static int project", 1)[0]
+        self.assertIn("GIF_SET_TAG(1,0,0,0,0,1)", triangle_body)
+        self.assertIn("GIF_SET_TAG(3,1,0,0,0,2)", triangle_body)
+        self.assertNotIn("GIF_SET_TAG(6,1,0,0,0,2)", triangle_body)
+        self.assertEqual(triangle_body.count("GIF_SET_XYZ("), 3)
+
+
+    def test_nova_airstrike_uses_gs_depth_buffer_and_clips_near_plane(self):
+        with open(os.path.join(ROOT, "ps2-game", "main.c"), encoding="utf-8") as fh:
+            source = fh.read()
+        self.assertIn("zb.enable=DRAW_ENABLE", source)
+        self.assertIn("zb.method=ZTEST_METHOD_GREATER_EQUAL", source)
+        self.assertIn("zb.zsm=GS_ZBUF_32", source)
+        self.assertIn("draw_disable_tests(q,0,zb)", source)
+        self.assertIn("draw_enable_tests(q,0,zb)", source)
+        self.assertIn("static int clip_near(", source)
+        self.assertIn("depth_from_z(v.z)", source)
+
+    def test_nova_airstrike_has_vertical_flight_and_particle_effects(self):
+        with open(os.path.join(ROOT, "ps2-game", "main.c"), encoding="utf-8") as fh:
+            source = fh.read()
+        self.assertIn("typedef struct { float x,y,z,vx,vy,vz; int life; } Particle;", source)
+        self.assertIn("static void burst(", source)
+        self.assertIn("static void update_particles(", source)
+        self.assertIn("float px,py,vx=0.0f,vy=0.0f", source)
+        self.assertIn("absf(shots[i].y-enemies[j].y)", source)
+        self.assertIn("absf(enemies[i].y-py)", source)
+
+    def test_triangle_packet_emits_three_vertex_register_pairs(self):
+        with open(os.path.join(ROOT, "ps2-game", "main.c"), encoding="utf-8") as fh:
+            source = fh.read()
+        body = source.split("static qword_t *tri2", 1)[1].split("static int project", 1)[0]
+        self.assertIn("GIF_SET_TAG(3,1,0,0,0,2)", body)
+        self.assertEqual(body.count("GIF_SET_XYZ("), 3)
+        self.assertNotIn("GIF_SET_TAG(6,1,0,0,0,2)", body)
+
+
+    def test_nova_airstrike_has_spu2_audio_and_embeds_audsrv(self):
+        root = os.path.join(ROOT, "ps2-game")
+        with open(os.path.join(root, "audio.c"), encoding="utf-8") as fh:
+            audio = fh.read()
+        with open(os.path.join(root, "audio.h"), encoding="utf-8") as fh:
+            header = fh.read()
+        with open(os.path.join(root, "Makefile"), encoding="utf-8") as fh:
+            makefile = fh.read()
+        with open(os.path.join(root, "main.c"), encoding="utf-8") as fh:
+            main = fh.read()
+        self.assertIn("SifExecModuleBuffer(audsrv_irx", audio)
+        self.assertIn("audsrv_init()", audio)
+        self.assertIn("audsrv_set_format(&format)", audio)
+        self.assertIn("audsrv_wait_audio(", audio)
+        self.assertIn("audsrv_play_audio(", audio)
+        self.assertIn("audio_tick", header)
+        self.assertIn("audio.o audsrv_irx.o", makefile)
+        self.assertIn("-laudsrv", makefile)
+        self.assertIn("$(PS2SDK)/bin/bin2c", makefile)
+        self.assertIn("audio_init(graph_get_region())", main)
+        self.assertIn("audio_play_sfx(NOVA_SFX_FIRE)", main)
+        self.assertIn("audio_play_sfx(NOVA_SFX_EXPLOSION)", main)
+        self.assertIn("audio_play_sfx(NOVA_SFX_GAMEOVER)", main)
+        self.assertIn("audio_tick()", main)
 
     def test_license_credits_the_base_skill(self):
         with open(os.path.join(ROOT, "LICENSE"), encoding="utf-8") as fh:
