@@ -215,5 +215,13 @@ class Repo(unittest.TestCase):
                              "%s has extra or missing files in .agents/skills" % skill)
 
 
+    def test_codex_skill_paths_use_metadata_path_not_claude_env(self):
+        for skill in SKILLS:
+            _, text = frontmatter(os.path.join(ROOT, skill, "SKILL.md"))
+            self.assertIn("Codex does not document a corresponding skill-directory environment variable", text)
+            self.assertIn("parent directory of that provided path", text)
+            self.assertIn("${CLAUDE_SKILL_DIR}", text)
+
+
 if __name__ == "__main__":
     unittest.main()

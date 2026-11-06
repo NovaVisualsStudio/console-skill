@@ -28,6 +28,8 @@ play in the port yet (that is /console-backend work). Banks have no rate in the 
 
 `${CLAUDE_SKILL_DIR}` below is this skill's folder (where this SKILL.md lives).
 
+**Runner-specific path handling:** Claude Code expands `${CLAUDE_SKILL_DIR}` to this folder. Codex does not document a corresponding skill-directory environment variable; its skill context includes the path to this `SKILL.md`. In Codex, use the parent directory of that provided path wherever a command below contains `${CLAUDE_SKILL_DIR}`. Do not pass the Claude placeholder literally to the shell.
+
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/vag.py" info  console/disc/SOUND/BGM01.VAG          # rate, length, loop points, header
 python3 "${CLAUDE_SKILL_DIR}/vag.py" towav console/disc/SOUND/BGM01.VAG          # -> console/audio/BGM01.wav

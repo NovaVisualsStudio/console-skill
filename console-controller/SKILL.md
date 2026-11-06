@@ -28,6 +28,8 @@ pressed or not pressed, and touch zones on Android are invisible (the runtime dr
 
 `${CLAUDE_SKILL_DIR}` below is this skill's folder (where this SKILL.md lives).
 
+**Runner-specific path handling:** Claude Code expands `${CLAUDE_SKILL_DIR}` to this folder. Codex does not document a corresponding skill-directory environment variable; its skill context includes the path to this `SKILL.md`. In Codex, use the parent directory of that provided path wherever a command below contains `${CLAUDE_SKILL_DIR}`. Do not pass the Claude placeholder literally to the shell.
+
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/padmap.py" init --layout xbox          # writes console/controls.json
 python3 "${CLAUDE_SKILL_DIR}/padmap.py" check                       # every DS2 button bound, no clashes

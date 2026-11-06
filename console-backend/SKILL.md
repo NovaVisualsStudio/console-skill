@@ -27,6 +27,8 @@ missing piece, so expect one fix per run early on, and fix in order.
 
 `${CLAUDE_SKILL_DIR}` below is this skill's folder (where this SKILL.md lives).
 
+**Runner-specific path handling:** Claude Code expands `${CLAUDE_SKILL_DIR}` to this folder. Codex does not document a corresponding skill-directory environment variable; its skill context includes the path to this `SKILL.md`. In Codex, use the parent directory of that provided path wherever a command below contains `${CLAUDE_SKILL_DIR}`. Do not pass the Claude placeholder literally to the shell.
+
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/stubs.py" scan console/runs/latest.log --repo ../PS2Recomp   # ranked fixes
 python3 "${CLAUDE_SKILL_DIR}/stubs.py" scan console/runs/*.log --markdown                # table for STATE.md

@@ -30,6 +30,8 @@ own decompressor found in its code first.
 
 `${CLAUDE_SKILL_DIR}` below is this skill's folder (where this SKILL.md lives).
 
+**Runner-specific path handling:** Claude Code expands `${CLAUDE_SKILL_DIR}` to this folder. Codex does not document a corresponding skill-directory environment variable; its skill context includes the path to this `SKILL.md`. In Codex, use the parent directory of that provided path wherever a command below contains `${CLAUDE_SKILL_DIR}`. Do not pass the Claude placeholder literally to the shell.
+
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/datascan.py" scan console/disc/ --sort size --embedded     # map the disc
 python3 "${CLAUDE_SKILL_DIR}/datascan.py" files console/runs/<newest>.log       # files the port looked up
