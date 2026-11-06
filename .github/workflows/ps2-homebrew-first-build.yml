@@ -5,51 +5,55 @@ on:
   pull_request:
     paths:
       - ".github/workflows/ps2-homebrew-first-build.yml"
+      - "ps2-game/**"
   push:
     branches:
       - main
     paths:
       - ".github/workflows/ps2-homebrew-first-build.yml"
+      - "ps2-game/**"
 
 permissions:
   contents: read
 
 jobs:
-  build-dungeon-demo:
-    name: Build open-source PS2 dungeon demo
+  build-nova-dodge:
+    name: Build original Nova Dodge PS2 game
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/ps2dev/ps2sdk:latest
     steps:
       - name: Install host utilities
-        run: apk add --no-cache git make
+        run: apk add --no-cache git make gmp mpc1 mpfr4
 
-      - name: Fetch MIT-licensed PS2 homebrew source
-        run: |
-          git clone --depth 1 https://github.com/glampert/ps2-homebrew.git /tmp/ps2-homebrew
-          test -f /tmp/ps2-homebrew/LICENSE.txt
-          grep -q "MIT License" /tmp/ps2-homebrew/LICENSE.txt
-
-      - name: Build the Dungeon Game ELF
+      - name: Fetch this branch's game source
         shell: sh
         run: |
           set -eu
-          cd /tmp/ps2-homebrew/source/demos/dungeon_game
-          test -f Makefile
+          branch="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          git clone --depth 1 --branch "$branch" "https://github.com/${GITHUB_REPOSITORY}.git" /tmp/nova-console-skill
+          test -s /tmp/nova-console-skill/ps2-game/main.c
+          test -s /tmp/nova-console-skill/ps2-game/Makefile
+
+      - name: Build PS2 ELF
+        shell: sh
+        run: |
+          set -eu
+          cd /tmp/nova-console-skill/ps2-game
           test -d "$PS2SDK"
           test -f "$PS2SDK/samples/Makefile.pref"
-          make -j2 SOURCE_PATH=/tmp/ps2-homebrew/source EE_BIN=dungeon_game.elf
-          test -s dungeon_game.elf
+          make -j2
+          test -s nova_dodge.elf
           mkdir -p "$GITHUB_WORKSPACE/artifacts"
-          cp dungeon_game.elf "$GITHUB_WORKSPACE/artifacts/dungeon_game.elf"
+          cp nova_dodge.elf "$GITHUB_WORKSPACE/artifacts/nova_dodge.elf"
           cd "$GITHUB_WORKSPACE/artifacts"
-          sha256sum dungeon_game.elf > SHA256SUMS.txt
-          ls -lh dungeon_game.elf SHA256SUMS.txt
+          sha256sum nova_dodge.elf > SHA256SUMS.txt
+          ls -lh nova_dodge.elf SHA256SUMS.txt
 
-      - name: Upload bootable PS2 ELF
+      - name: Upload PS2 game ELF
         uses: actions/upload-artifact@v4
         with:
-          name: nova-ps2-dungeon-demo
+          name: nova-dodge-ps2-elf
           path: artifacts/
           if-no-files-found: error
           retention-days: 14
