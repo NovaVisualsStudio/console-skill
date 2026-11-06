@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
+from pathlib import Path
 
 from _load import load, ROOT
 
@@ -288,7 +289,7 @@ class TestPatch(Base):
 
     def apply(self, result):
         """Write the patched words into the ELF bytes and re-analyse: the round trip."""
-        data = bytearray(open(self.elf, "rb").read())
+        data = bytearray(Path(self.elf).read_bytes())
         e = tune.Elf(self.elf)
         for w in result["words"]:
             addr = int(w["addr"], 16)
@@ -412,7 +413,7 @@ class TestCli(Base):
             for f in files:
                 with open(os.path.join(dirpath, f), "rb") as fh:
                     self.assertNotIn(chr(0x2014).encode("utf-8"), fh.read(), f)
-        md = open(os.path.join(SKILL, "SKILL.md")).read()
+        md = Path(os.path.join(SKILL, "SKILL.md")).read_text(encoding="utf-8")
         self.assertTrue(md.startswith("---\nname: console-physics\n"))
         for ref in re.findall(r"`(?:\$\{CLAUDE_SKILL_DIR\}/)?((?:reference|templates)/[^`\s]+)`", md):
             self.assertTrue(os.path.isfile(os.path.join(SKILL, ref)), ref)
