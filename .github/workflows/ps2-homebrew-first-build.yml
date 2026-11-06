@@ -48,8 +48,8 @@ jobs:
           sed -i 's@rcast<uint32 \*>(qwordBuffer) = SCRATCH_PAD_ADDRESS;@qwordBuffer = rcast<qword_t *>(SCRATCH_PAD_ADDRESS);@' /tmp/ps2-homebrew/source/framework/renderer.cpp
           sed -i 's@rcast<uint32 \*>(qwordBuffer) = ucabAddr;@qwordBuffer = rcast<qword_t *>(ucabAddr);@g' /tmp/ps2-homebrew/source/framework/renderer.cpp
           sed -i 's/const float restrict (\*/const float (* __restrict__ /g' /tmp/ps2-homebrew/source/framework/renderer.cpp
-          grep -q 'qwordBuffer = rcast<qword_t *>(SCRATCH_PAD_ADDRESS)' /tmp/ps2-homebrew/source/framework/renderer.cpp
-          test "$(grep -c 'qwordBuffer = rcast<qword_t *>(ucabAddr)' /tmp/ps2-homebrew/source/framework/renderer.cpp)" -eq 2
+          grep -Fq 'qwordBuffer = rcast<qword_t *>(SCRATCH_PAD_ADDRESS)' /tmp/ps2-homebrew/source/framework/renderer.cpp
+          test "$(grep -Fc 'qwordBuffer = rcast<qword_t *>(ucabAddr)' /tmp/ps2-homebrew/source/framework/renderer.cpp)" -eq 2
           ! grep -q 'const float restrict (' /tmp/ps2-homebrew/source/framework/renderer.cpp
           sed -i 's/-Dnullptr=NULL//g' Makefile
           grep -q '#include <malloc.h>' /tmp/ps2-homebrew/source/framework/memory.cpp
