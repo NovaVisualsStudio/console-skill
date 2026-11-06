@@ -12,6 +12,7 @@ import tempfile
 import unittest
 import zlib
 from contextlib import redirect_stderr, redirect_stdout
+from pathlib import Path
 
 from _load import load, ROOT
 
@@ -671,7 +672,7 @@ class TestCommands(Fixture):
         out = os.path.join(self.d, "o", "patches.toml")
         code, _, err = run_main(pnach, ["toml", p, "--elf", self.elf, "--out", out])
         self.assertEqual(code, 0)
-        text = open(out).read()
+        text = Path(out).read_text(encoding="utf-8")
         self.assertIn("patch_syscalls = true", text)
         code, _, err = run_main(pnach, ["toml", p, "--elf", self.elf, "--out", out])
         self.assertEqual(code, 2)
@@ -740,8 +741,8 @@ class TestCommands(Fixture):
         self.assertTrue(os.path.isfile(out))
         cm = os.path.join(self.d, "console", "patches", "console_mods.cmake")
         self.assertTrue(os.path.isfile(cm))
-        self.assertEqual(open(cm).read(), open(os.path.join(SKILL, "templates", "console_mods.cmake")).read())
-        self.assertIn("namespace console_mod_infinite_things", open(out).read())
+        self.assertEqual(Path(cm).read_text(encoding="utf-8"), Path(os.path.join(SKILL, "templates", "console_mods.cmake")).read_text(encoding="utf-8"))
+        self.assertIn("namespace console_mod_infinite_things", Path(out).read_text(encoding="utf-8"))
         self.assertIn("install:", so)
         code, _, err = run_main(pnach, ["override", self.pn, "--elf", self.elf, "--out", out])
         self.assertEqual(code, 2)
@@ -794,7 +795,7 @@ class TestReachability(Fixture):
         code, so, _ = run_main(pnach, ["override", p, "--elf", self.elf, "--frame-hook", "0x00100024", "--out", out])
         self.assertEqual(code, 1)
         self.assertIn("one level up", so)
-        self.assertIn("0 jal and 1 j", open(out).read())
+        self.assertIn("0 jal and 1 j", Path(out).read_text(encoding="utf-8"))
         code, so, _ = run_main(pnach, ["override", p, "--elf", self.elf, "--frame-hook", "0x00100018",
                                        "--out", out, "--force"])
         self.assertEqual(code, 0)
@@ -811,7 +812,7 @@ class TestReachability(Fixture):
         code, so, _ = run_main(override, ["new", "--name", "r", "--elf", self.elf, "--replace", "0x00100018=r",
                                           "--out", os.path.join(self.d, "r.cpp")])
         self.assertEqual(code, 0, so)
-        self.assertIn("reached by 1 jal and 0 j", open(os.path.join(self.d, "r.cpp")).read())
+        self.assertIn("reached by 1 jal and 0 j", Path(os.path.join(self.d, "r.cpp")).read_text(encoding="utf-8"))
 
 
 class TestOverridePy(Fixture):
@@ -831,7 +832,7 @@ class TestOverridePy(Fixture):
         (code, so, _), out = self.new("--bind", "0x00100018=sceCdRead", "--replace", "0x00100000=gold_damage",
                                       "--wrap", "0x0010001C=gold_ammo", "--repo", self.repo())
         self.assertEqual(code, 0, so)
-        text = open(out).read()
+        text = Path(out).read_text(encoding="utf-8")
         e = pnach.Elf(self.elf)
         self.assertIn('PS2_REGISTER_GAME_OVERRIDE("Gold rifle", "SLUS_999.99", 0x00100000u, 0x%08Xu, &applyOverride)'
                       % e.crc32(), text)
@@ -852,13 +853,13 @@ class TestOverridePy(Fixture):
     def test_new_compiles_against_mock_headers(self):
         (code, so, _), out = self.new("--bind", "0x00100018=ret0", "--replace", "0x00100000=gold_damage",
                                       "--wrap", "0x0010001C=gold_ammo")
-        ok, err = compile_ok(self, open(out).read())
+        ok, err = compile_ok(self, Path(out).read_text(encoding="utf-8"))
         self.assertTrue(ok, err)
 
     def test_handler_alias_and_unknown(self):
         (code, so, _), out = self.new("--bind", "0x00100018=ResetEE", "--repo", self.repo())
         self.assertEqual(code, 0)
-        self.assertIn('"_ResetEE"', open(out).read())
+        self.assertIn('"_ResetEE"', Path(out).read_text(encoding="utf-8"))
         (code, _, err), _ = self.new("--bind", "0x00100018=NotAHandler", "--repo", self.repo(), "--force")
         self.assertEqual(code, 2)
         self.assertIn("PS2_SYSCALL_LIST", err)
@@ -917,7 +918,7 @@ class TestOverridePy(Fixture):
         self.assertEqual(override.c_string('a"b\\c'), 'a\\"b\\\\c')
 
     def test_template_fields_and_api(self):
-        tpl = open(os.path.join(SKILL, "templates", "override.cpp")).read()
+        tpl = Path(os.path.join(SKILL, "templates", "override.cpp")).read_text(encoding="utf-8")
         for k in override.PLACEHOLDERS:
             self.assertIn("@%s@" % k, tpl)
         self.assertEqual(set(re.findall(r"@([A-Z][A-Z0-9_]*)@", tpl)), set(override.PLACEHOLDERS))
@@ -973,7 +974,7 @@ class TestCli(Fixture):
                     self.assertNotIn(chr(0x2014).encode("utf-8"), fh.read(), f)
 
     def test_skill_md_links_exist(self):
-        md = open(os.path.join(SKILL, "SKILL.md")).read()
+        md = Path(os.path.join(SKILL, "SKILL.md")).read_text(encoding="utf-8")
         self.assertTrue(md.startswith("---\nname: console-mod\n"))
         for ref in re.findall(r"`(?:\$\{CLAUDE_SKILL_DIR\}/)?((?:reference|templates)/[^`\s]+)`", md):
             self.assertTrue(os.path.isfile(os.path.join(SKILL, ref)), ref)
