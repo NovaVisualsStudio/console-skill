@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import unittest
 
-from _load import load, ROOT
+from _load import load, ROOT, tracked_files_in
 
 padmap = load("console-controller", "padmap")
 SKILL = os.path.join(ROOT, "console-controller")
@@ -691,13 +691,12 @@ class TestDocs(unittest.TestCase):
         self.assertIn("padmap.py", refs)
         for rel in refs:
             self.assertTrue(os.path.exists(os.path.join(SKILL, rel)), rel)
-        for folder, dirs, files in os.walk(SKILL):
-            dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
-            for name in files:
-                if not name.endswith((".md", ".py", ".txt", ".json", ".toml", ".sh", ".csv")):
-                    continue
-                with open(os.path.join(folder, name), encoding="utf-8") as fh:
-                    self.assertNotIn("\u2014", fh.read(), name)
+        for path in tracked_files_in(SKILL):
+            name = os.path.basename(path)
+            if not name.endswith((".md", ".py", ".txt", ".json", ".toml", ".sh", ".csv")):
+                continue
+            with open(path, encoding="utf-8") as fh:
+                self.assertNotIn("\u2014", fh.read(), name)
         for sub in ("init", "check", "gen", "install", "restore", "presets", "table"):
             with self.assertRaises(SystemExit) as ctx:
                 with contextlib.redirect_stdout(io.StringIO()):
