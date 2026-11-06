@@ -204,6 +204,7 @@ class Repo(unittest.TestCase):
         with open(source_path, encoding="utf-8") as fh:
             source = fh.read()
         triangle_body = source.split("static qword_t *tri2", 1)[1].split("static int project", 1)[0]
+        self.assertIn("GIF_SET_TAG(1,0,0,0,0,1)", triangle_body)
         self.assertIn("GIF_SET_TAG(3,1,0,0,0,2)", triangle_body)
         self.assertNotIn("GIF_SET_TAG(6,1,0,0,0,2)", triangle_body)
         self.assertEqual(triangle_body.count("GIF_SET_XYZ("), 3)
