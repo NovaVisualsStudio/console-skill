@@ -41,8 +41,13 @@ jobs:
           # Compatibility fixes for this older upstream demo with the current PS2SDK GCC.
           # Keep these patches inside the temporary CI clone; do not alter upstream or vendor its source.
           sed -i '1i#include <malloc.h>' /tmp/ps2-homebrew/source/framework/memory.cpp
+          sed -i '/#include <loadfile.h>/a\\#define NEWLIB_PORT_AWARE\\n#include <fileio.h>' /tmp/ps2-homebrew/source/framework/common.cpp
+          sed -i 's/O_RDONLY/FIO_O_RDONLY/g' /tmp/ps2-homebrew/source/framework/common.cpp
           sed -i 's/-Dnullptr=NULL//g' Makefile
           grep -q '#include <malloc.h>' /tmp/ps2-homebrew/source/framework/memory.cpp
+          grep -q '#define NEWLIB_PORT_AWARE' /tmp/ps2-homebrew/source/framework/common.cpp
+          grep -q '#include <fileio.h>' /tmp/ps2-homebrew/source/framework/common.cpp
+          grep -q 'FIO_O_RDONLY' /tmp/ps2-homebrew/source/framework/common.cpp
           ! grep -q -- '-Dnullptr=NULL' Makefile
           make -j2 SOURCE_PATH=/tmp/ps2-homebrew/source EE_BIN=dungeon_game.elf
           test -s dungeon_game.elf
