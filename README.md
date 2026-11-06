@@ -207,6 +207,12 @@ that is kept. This pack adds:
 - **A design doc and a state file every skill shares**, kept in
   `console/STATE.md` and `console/design.md`.
 
+## Test the original PS2 homebrew game on Android
+
+This repository also contains **Nova Dodge**, an original PS2 homebrew test game. To test its PS2 ELF with the free, open-source [Play! emulator](https://github.com/jpd002/Play-), see the [Android testing guide](docs/ANDROID-PS2-TESTING.md).
+
+The emulator is maintained separately and is not bundled with this repository. Android ELF launching depends on the Play! Android build and must be verified on the target device; a PS2 ELF is not an Android APK.
+
 ## Fine print
 
 **Bring your own game.** Only port games you own, dumped from your own disc on
