@@ -20,6 +20,7 @@ The original Nova Dodge gameplay remains the source of reusable logic: pad input
 
 - **PS2SDK** supplies the native PS2 libraries and build environment: https://ps2dev.github.io/ps2sdk/
 - **gsKit** is the PS2 Graphics Synthesizer C interface. Its upstream cube example demonstrates the intended 3D matrix path using `math3d.h`, `draw3d.h`, local/world/view/screen matrices, transformed vertices, Z testing and Gouraud triangle lists: https://github.com/ps2dev/gsKit
+- **PS2SDK cube example**: https://github.com/ps2dev/ps2sdk/blob/master/ee/draw/samples/cube/cube.c (reference for GS Z-buffer allocation, `ZTEST_METHOD_GREATER_EQUAL`, and enabling/disabling pixel tests).
 - **gsKit cube example**: https://github.com/ps2dev/gsKit/blob/master/examples/cube/cube.c
 - **Demake Engine** is a useful external research reference for a glTF/GLB-to-PS2 asset pipeline, mesh conversion, texture atlasing, skeletal data, collision meshes and a PS2 runtime: https://github.com/snuri00/demake-engine
 - **Play! / RetroArch Play! core** lists ELF as a supported content extension, but actual compatibility must be tested on the target Android device: https://docs.libretro.com/library/play/
@@ -28,17 +29,18 @@ External projects are references, not copied game assets or unreviewed dependenc
 
 ## Current prototype status
 
-The current `ps2-game/main.c` is a first software-projected 3D prototype. It has XYZ scene data, perspective projection, low-poly aircraft meshes, depth-based enemy approach, projectiles and gameplay state. It is intentionally isolated in this branch.
+The current `ps2-game/main.c` remains an experimental software world-to-screen renderer, but the latest pass now configures a PS2SDK framebuffer plus a GS Z buffer (`GS_ZBUF_32`, greater-equal depth test), submits per-vertex depth values, seeds the depth buffer at frame start, clips triangles against the near plane, and uses XYZ movement with a fixed particle pool for hit bursts and exhaust. The implementation follows the same PS2SDK draw/depth concepts shown by the official PS2SDK cube sample; it does not yet use gsKit or VU1.
 
-It is **not yet a finished 3D renderer**: the current prototype still uses flat-shaded manual triangle submission and painter-style ordering; it does not yet have verified GS Z-buffering, texture mapping, VU1 geometry processing, skeletal animation, a glTF converter, full sound, missions or emulator runtime evidence.
+It is **not yet a finished 3D renderer or a proven build**: texture mapping, perspective-correct texture coordinates, back-face culling, VU1 geometry processing, a reproducible GLB asset converter, sound, missions and emulator runtime evidence remain outstanding. CI must confirm the current branch compiles before the ELF can be considered ready.
 
 ## Acceptance gates
 
 - [ ] Build the ELF with the PS2SDK toolchain.
 - [ ] Validate the actual compiler/linker output, not only source inspection.
 - [ ] Add unit/static tests for mesh bounds, projection edge cases, packet limits and asset conversion.
-- [ ] Integrate a reviewed gsKit-based matrix/Z-buffer path, or prove the equivalent low-level GS path.
-- [ ] Add near-plane clipping, back-face culling and depth-tested opaque geometry.
+- [x] Add a PS2SDK draw-library GS Z-buffer path and per-vertex depth values (build/runtime validation still required).
+- [x] Add near-plane clipping and depth-tested opaque geometry.
+- [ ] Add back-face culling and perspective-correct texture mapping.
 - [ ] Add original low-poly fighter, enemy, terrain and sky assets with a reproducible conversion pipeline.
 - [ ] Run in Play! Android or another PS2 emulator and capture screenshots/logs.
 - [ ] Tune performance on the user's actual phone/emulator; do not infer compatibility from a successful build.
