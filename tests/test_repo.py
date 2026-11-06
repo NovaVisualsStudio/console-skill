@@ -190,7 +190,10 @@ class Repo(unittest.TestCase):
 
             source_files = set()
             for base, dirs, files in os.walk(source):
+                dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
                 for filename in files:
+                    if filename.endswith(".pyc"):
+                        continue
                     source_path = os.path.join(base, filename)
                     relative = os.path.relpath(source_path, source)
                     source_files.add(relative)
@@ -203,8 +206,11 @@ class Repo(unittest.TestCase):
 
             target_files = set()
             for base, dirs, files in os.walk(target):
+                dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
                 for filename in files:
-                    target_files.add(os.path.relpath(os.path.join(base, filename), target))
+                    if filename.endswith(".pyc"):
+                        continue
+                    target_files.add(os.path.relpath(os.path.join(base, filename), target)
             self.assertEqual(target_files, source_files,
                              "%s has extra or missing files in .agents/skills" % skill)
 
