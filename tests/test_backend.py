@@ -16,7 +16,7 @@ import tempfile
 import time
 import unittest
 
-from _load import load, ROOT
+from _load import load, ROOT, tracked_files_in
 
 SKILL = "console-backend"
 stubs = load(SKILL, "stubs")
@@ -570,19 +570,18 @@ class SkillContract(unittest.TestCase):
             self.assertTrue(os.path.isfile(os.path.join(ROOT, SKILL, rel)), rel)
         for rel in re.findall(r"\$\{CLAUDE_SKILL_DIR\}/([A-Za-z0-9_./-]+)", self.text):
             self.assertTrue(os.path.exists(os.path.join(ROOT, SKILL, rel)), rel)
-        for f in os.listdir(os.path.join(ROOT, SKILL, "reference")):
-            self.assertIn("reference/" + f, self.text)
+        for path in tracked_files_in(os.path.join(ROOT, SKILL, "reference"), recursive=False):
+            self.assertIn("reference/" + os.path.basename(path), self.text)
 
     def test_guard_rails_and_no_em_dashes(self):
         low = self.text.lower()
         self.assertIn("guard rails", low)
         self.assertIn("own", low)
         self.assertIn("publish", low)
-        for base, _, files in os.walk(os.path.join(ROOT, SKILL)):
-            for f in files:
-                if f.endswith((".md", ".py")):
-                    with open(os.path.join(base, f), encoding="utf-8") as fh:
-                        self.assertNotIn("\u2014", fh.read(), f)
+        for path in tracked_files_in(os.path.join(ROOT, SKILL)):
+            if path.endswith((".md", ".py")):
+                with open(path, encoding="utf-8") as fh:
+                    self.assertNotIn("\u2014", fh.read(), os.path.basename(path))
         with open(__file__, encoding="utf-8") as fh:
             self.assertNotIn("\u2014", fh.read())
 

@@ -17,7 +17,7 @@ import tempfile
 import unittest
 import zlib
 
-from _load import load, ROOT
+from _load import load, ROOT, tracked_files_in
 
 SKILL = "console-reverse"
 iso = load(SKILL, "iso")
@@ -917,15 +917,14 @@ class SkillContract(unittest.TestCase):
         for rel in re.findall(r"\$\{CLAUDE_SKILL_DIR\}/([A-Za-z0-9_./-]+)", self.text):
             self.assertTrue(os.path.exists(os.path.join(ROOT, SKILL, rel)), rel)
         for sub in ("reference", "templates"):
-            for f in os.listdir(os.path.join(ROOT, SKILL, sub)):
-                self.assertIn("%s/%s" % (sub, f), self.text)
+            for path in tracked_files_in(os.path.join(ROOT, SKILL, sub), recursive=False):
+                self.assertIn("%s/%s" % (sub, os.path.basename(path)), self.text)
 
     def test_no_em_dashes_in_this_skill(self):
-        for base, _, files in os.walk(os.path.join(ROOT, SKILL)):
-            for f in files:
-                if f.endswith((".md", ".py")):
-                    with open(os.path.join(base, f), encoding="utf-8") as fh:
-                        self.assertNotIn("\u2014", fh.read(), f)
+        for path in tracked_files_in(os.path.join(ROOT, SKILL)):
+            if path.endswith((".md", ".py")):
+                with open(path, encoding="utf-8") as fh:
+                    self.assertNotIn("\u2014", fh.read(), os.path.basename(path))
         with open(__file__, encoding="utf-8") as fh:
             self.assertNotIn("\u2014", fh.read())
 
@@ -936,16 +935,14 @@ class SkillContract(unittest.TestCase):
                 self.assertIn(line, fh.read(), f)
 
     def test_no_dead_paths_from_the_base_skill(self):
-        for base, dirs, files in os.walk(os.path.join(ROOT, SKILL)):
-            dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
-            for f in files:
-                if not f.endswith((".md", ".py", ".txt", ".json", ".toml", ".sh", ".csv")):
-                    continue
-                with open(os.path.join(base, f), encoding="utf-8") as fh:
-                    text = fh.read()
-                for dead in ("scripts/vif_gif_surgeon.py", "scripts/install_ghydramcp.py", "Runtime::OverrideFunction",
-                             "PS2_PROJECT_STATE.md"):
-                    self.assertNotIn(dead, text, "%s mentions %s" % (f, dead))
+        for path in tracked_files_in(os.path.join(ROOT, SKILL)):
+            if not path.endswith((".md", ".py", ".txt", ".json", ".toml", ".sh", ".csv")):
+                continue
+            with open(path, encoding="utf-8") as fh:
+                text = fh.read()
+            for dead in ("scripts/vif_gif_surgeon.py", "scripts/install_ghydramcp.py", "Runtime::OverrideFunction",
+                         "PS2_PROJECT_STATE.md"):
+                self.assertNotIn(dead, text, "%s mentions %s" % (os.path.basename(path), dead))
 
     def test_every_subcommand_help_runs(self):
         for tool, subs in (("iso.py", ("info", "ls", "extract", "plain", "boot")),

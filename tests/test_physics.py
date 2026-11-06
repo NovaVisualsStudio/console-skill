@@ -13,7 +13,7 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
-from _load import load, ROOT
+from _load import load, ROOT, tracked_files_in
 
 tune = load("console-physics", "tune")
 SKILL = os.path.join(ROOT, "console-physics")
@@ -409,10 +409,9 @@ class TestCli(Base):
         self.assertNotIn("Traceback", r.stderr)
 
     def test_house_rules(self):
-        for dirpath, _, files in os.walk(SKILL):
-            for f in files:
-                with open(os.path.join(dirpath, f), "rb") as fh:
-                    self.assertNotIn(chr(0x2014).encode("utf-8"), fh.read(), f)
+        for path in tracked_files_in(SKILL):
+            with open(path, "rb") as fh:
+                self.assertNotIn(chr(0x2014).encode("utf-8"), fh.read(), os.path.basename(path))
         md = Path(os.path.join(SKILL, "SKILL.md")).read_text(encoding="utf-8")
         self.assertTrue(md.startswith("---\nname: console-physics\n"))
         for ref in re.findall(r"`(?:\$\{CLAUDE_SKILL_DIR\}/)?((?:reference|templates)/[^`\s]+)`", md):
