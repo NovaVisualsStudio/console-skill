@@ -1,5 +1,5 @@
 /*
- * Nova Dodge — original PS2 homebrew mini-game.
+ * Nova Dodge - original PS2 homebrew mini-game.
  * Controls: D-pad moves the green ship; avoid red blocks.
  * START restarts after game over.
  * Built against the open-source PS2SDK.
