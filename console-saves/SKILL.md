@@ -54,7 +54,7 @@ file not downloaded), 2 bad input (not a card, truncated, damaged directories, a
 | a PCSX2 folder card | read only; its `_pcsx2_*` metadata files are skipped |
 | `<elf dir>/mc0/<SAVE>/<file>` | the port's memory card slot 1 (slot 2: `<elf dir>/mc1`) |
 | `*.psu` | one save folder: written by `psu export`, read by `psu import` and `psu ls` |
-| `console/saves/backups/<game>-mc0-<UTC time>.zip` | backups; the newest 20 per card are kept |
+| `console/saves/backups/<game>-mc0-<UTC time>.zip` | backups; all are kept by default; `--keep N` opts into pruning |
 | `<elf dir>/.console-sync.json` | what the last sync saw, per mc0 and cloud folder (kept out of mc0) |
 | `<cloud>/.console-conflicts/<time>-<device>/` | both versions of every conflict (`here/` and `cloud/`) |
 
