@@ -45,7 +45,7 @@ def tracked_files():
             for filename in files:
                 paths.append(os.path.relpath(os.path.join(base, filename), ROOT))
         return sorted(paths)
-    return sorted(p.decode("utf-8") for p in raw.split(b"\\0") if p)
+    return sorted(p.decode("utf-8") for p in raw.split(b"\0") if p)
 
 
 def every_file():
