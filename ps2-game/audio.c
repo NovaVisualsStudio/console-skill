@@ -32,6 +32,11 @@ static audio_voice_t voices[AUDIO_VOICES];
 static u32 engine_phase;
 static u32 engine_harmonic_phase;
 static u32 engine_noise = 0x6D2B79F5u;
+static u32 music_phase;
+static u32 music_step;
+static int music_remaining;
+static int music_index;
+static const int music_notes[8] = {220, 262, 330, 294, 196, 220, 247, 165};
 static u32 engine_step;
 static int engine_throttle;
 static int samples_per_frame = AUDIO_NTSC_SAMPLES;
@@ -86,6 +91,10 @@ int audio_init(int video_region)
     for (i = 0; i < AUDIO_VOICES; ++i) voices[i].remaining = 0;
     engine_phase = 0;
     engine_harmonic_phase = 0;
+    music_phase = 0;
+    music_index = 0;
+    music_remaining = 0;
+    music_step = phase_step(music_notes[0]);
     engine_step = phase_step(58);
     engine_throttle = 0;
     audio_ready = 1;
@@ -173,14 +182,22 @@ void audio_tick(void)
     if (!audio_ready) return;
 
     for (n = 0; n < samples_per_frame; ++n) {
-        int sample, engine, noise;
+        int sample, engine, noise, music;
+        if (music_remaining <= 0) {
+            music_step = phase_step(music_notes[music_index]);
+            music_index = (music_index + 1) & 7;
+            music_remaining = AUDIO_RATE / 4;
+        }
+        music_phase += music_step;
+        music = (triangle(music_phase) * 520) / 32768;
+        music_remaining--;
         engine_phase += engine_step;
         engine_harmonic_phase += engine_step * 3u;
         engine_noise = (engine_noise >> 1) ^ (0xD0000001u & (0u - (engine_noise & 1u)));
         engine = (triangle(engine_phase) * (1800 + engine_throttle * 8)) / 32768;
         engine += (triangle(engine_harmonic_phase) * 360) / 32768;
         noise = ((int)(engine_noise & 0xffffu) - 32768) * (180 + engine_throttle * 2) / 32768;
-        sample = engine + noise;
+        sample = engine + noise + music;
 
         for (i = 0; i < AUDIO_VOICES; ++i) sample += voice_sample(&voices[i]);
         mix_buffer[n] = (s16)clamp_sample(sample);
