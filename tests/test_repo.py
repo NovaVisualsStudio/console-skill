@@ -14,6 +14,9 @@ SKILLS = ["console-reverse", "console-graphics", "console-backend", "console-con
 ABOUT = ("11 Claude skills that port PlayStation 2 games you own to PC: reverse engineer the code, "
          "rebuild the graphics and backend, any controller, play it anywhere, then mod it however "
          "you want.")
+README_ABOUT = ("11 agent skills for Claude and Codex that port PlayStation 2 games you own to PC: "
+                "reverse engineer the code, rebuild the graphics and backend, any controller, play it "
+                "anywhere, then mod it however you want.")
 # never in this repo: disc images, game binaries, Sony manuals
 GAME_EXT = (".iso", ".bin", ".img", ".mdf", ".mds", ".nrg", ".chd", ".cso", ".zso", ".elf",
             ".irx", ".tm2", ".vag", ".ps2", ".mcd", ".psu", ".pdf", ".pnach")
@@ -158,7 +161,7 @@ class Repo(unittest.TestCase):
     def test_readme_lists_the_eleven_and_the_fine_print(self):
         with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as fh:
             readme = fh.read()
-        self.assertIn(ABOUT, readme)
+        self.assertIn(README_ABOUT, readme)
         for s in SKILLS:
             self.assertIn("`/%s`" % s, readme)
         for must in ("hkmodd/ps2-recomp-Agent-SKILL", "ran-j/PS2Recomp", "own", "Sony"):
