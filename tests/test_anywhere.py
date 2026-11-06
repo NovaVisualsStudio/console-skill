@@ -381,6 +381,23 @@ class TestPackage(Tmp):
         dist = os.path.join(self.tmp, "console", "dist")
         return [n for n in os.listdir(dist) if ".staging-" in n] if os.path.isdir(dist) else []
 
+    def test_refuses_preexisting_staging_path_without_touching_it(self):
+        runner = self.put("build/ps2EntryRunner", elf_header(62, cls=2), executable=True)
+        out = self.out("protected")
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        staging = out + ".staging-%d" % os.getpid()
+        os.makedirs(staging)
+        sentinel = os.path.join(staging, "user-data.txt")
+        with open(sentinel, "w", encoding="utf-8") as fh:
+            fh.write("keep this data")
+
+        code, _text, err = cli("package", "--runner", runner, "--target", "linux", "--out", out)
+
+        self.assertEqual(code, 2)
+        self.assertIn("refusing to remove or overwrite", err)
+        with open(sentinel, encoding="utf-8") as fh:
+            self.assertEqual(fh.read(), "keep this data")
+
     def test_linux_package(self):
         runner = self.put("build/ps2EntryRunner", elf_header(62, cls=2) + b"\0libavcodec.so.61\0", executable=True)
         self.put("build/libextra.so.1", elf_header(62, cls=2))
