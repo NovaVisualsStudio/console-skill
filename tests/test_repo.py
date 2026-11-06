@@ -2,10 +2,11 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 import sys
 import unittest
 
-from _load import ROOT
+from _load import ROOT, tracked_paths, tracked_files_in
 
 # the eleven folders the reel's repo card shows
 SKILLS = ["console-reverse", "console-graphics", "console-backend", "console-controller",
@@ -30,27 +31,8 @@ def frontmatter(path):
     return (m.group(1) if m else ""), text
 
 
-def tracked_files():
-    """List Git-index files only; ignore Codespaces logs, backups and caches."""
-    try:
-        raw = subprocess.check_output(
-            ["git", "-C", ROOT, "ls-files", "-z"],
-            stderr=subprocess.DEVNULL,
-        )
-    except (OSError, subprocess.CalledProcessError):
-        # Support source archives that do not contain a .git directory.
-        paths = []
-        for base, dirs, files in os.walk(ROOT):
-            dirs[:] = [d for d in dirs if d not in (".git", "__pycache__")]
-            for filename in files:
-                paths.append(os.path.relpath(os.path.join(base, filename), ROOT))
-        return sorted(paths)
-    return sorted(p.decode("utf-8") for p in raw.split(b"\0") if p)
-
-
 def every_file():
-    for relpath in tracked_files():
-        path = os.path.join(ROOT, relpath)
+    for path in tracked_files_in(ROOT):
         if os.path.isfile(path):
             yield path
 
@@ -63,20 +45,21 @@ def every_text_file():
 
 
 def tools(skill):
-    d = os.path.join(ROOT, skill)
-    return sorted(f for f in os.listdir(d) if f.endswith(".py") and not f.startswith("_"))
+    return sorted(os.path.basename(path) for path in
+                  tracked_files_in(os.path.join(ROOT, skill), recursive=False)
+                  if path.endswith(".py") and not os.path.basename(path).startswith("_"))
 
 
 class Repo(unittest.TestCase):
     def test_eleven_skill_folders_at_the_root(self):
-        found = sorted(d for d in os.listdir(ROOT)
-                       if os.path.isfile(os.path.join(ROOT, d, "SKILL.md")))
+        found = sorted(path[:-len("/SKILL.md")] for path in tracked_paths()
+                       if path.endswith("/SKILL.md") and path.count("/") == 1)
         self.assertEqual(found, sorted(SKILLS))
 
     def test_root_matches_the_reel(self):
         # Check the published Git tree, not arbitrary local workspace files.
         root = set()
-        for relpath in tracked_files():
+        for relpath in tracked_paths():
             top = relpath.split("/", 1)[0]
             if not top.startswith(".git"):
                 root.add(top)
@@ -110,7 +93,8 @@ class Repo(unittest.TestCase):
                 d = os.path.join(ROOT, s, sub)
                 if not os.path.isdir(d):
                     continue
-                for f in os.listdir(d):
+                for path in tracked_files_in(d, recursive=False):
+                    f = os.path.basename(path)
                     self.assertIn("%s/%s" % (sub, f), text,
                                   "%s/%s/%s is never mentioned in SKILL.md" % (s, sub, f))
 
@@ -149,6 +133,11 @@ class Repo(unittest.TestCase):
             self.assertIn("guard rails", low, s)
             self.assertRegex(low, r"\bown\b", "%s: bring your own game" % s)
             self.assertIn("publish", low, "%s: nothing from the game gets published" % s)
+
+    def test_untracked_workspace_files_are_not_audited(self):
+        skill_dir = os.path.join(ROOT, "console-reverse")
+        with tempfile.NamedTemporaryFile(prefix=".workspace-noise-", dir=skill_dir) as scratch:
+            self.assertNotIn(scratch.name, tracked_files_in(skill_dir))
 
     def test_no_em_dashes_anywhere(self):
         for p in every_text_file():
@@ -216,28 +205,25 @@ class Repo(unittest.TestCase):
             self.assertTrue(os.path.isdir(target), "%s is missing from .agents/skills" % skill)
 
             source_files = set()
-            for base, dirs, files in os.walk(source):
-                dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
-                for filename in files:
-                    if filename.endswith(".pyc"):
-                        continue
-                    source_path = os.path.join(base, filename)
-                    relative = os.path.relpath(source_path, source)
-                    source_files.add(relative)
-                    target_path = os.path.join(target, relative)
-                    self.assertTrue(os.path.isfile(target_path),
-                                    "%s is missing from .agents/skills/%s" % (skill, relative))
-                    with open(source_path, "rb") as source_fh, open(target_path, "rb") as target_fh:
-                        self.assertEqual(source_fh.read(), target_fh.read(),
-                                         "%s/%s differs from its Codex copy" % (skill, relative))
+            for source_path in tracked_files_in(source):
+                relative = os.path.relpath(source_path, source)
+                if relative.endswith(".pyc"):
+                    continue
+                source_files.add(relative)
+                target_path = os.path.join(target, relative)
+                self.assertTrue(os.path.isfile(source_path),
+                                "%s is missing from canonical skill %s" % (relative, skill))
+                self.assertTrue(os.path.isfile(target_path),
+                                "%s is missing from .agents/skills/%s" % (skill, relative))
+                with open(source_path, "rb") as source_fh, open(target_path, "rb") as target_fh:
+                    self.assertEqual(source_fh.read(), target_fh.read(),
+                                     "%s/%s differs from its Codex copy" % (skill, relative))
 
             target_files = set()
-            for base, dirs, files in os.walk(target):
-                dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
-                for filename in files:
-                    if filename.endswith(".pyc"):
-                        continue
-                    target_files.add(os.path.relpath(os.path.join(base, filename), target))
+            for target_path in tracked_files_in(target):
+                if target_path.endswith(".pyc"):
+                    continue
+                target_files.add(os.path.relpath(target_path, target))
             self.assertEqual(target_files, source_files,
                              "%s has extra or missing files in .agents/skills" % skill)
 
