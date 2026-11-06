@@ -33,6 +33,7 @@ typedef struct { int x, y, speed; } Star;
 
 static char pad_dma_buffer[256] __attribute__((aligned(64)));
 static int pad_ready = 0;
+static int stick_x = 0, stick_y = 0;
 static u32 rng_state = 0x4E4F5641u;
 
 static int clamp_int(int v, int lo, int hi) {
@@ -65,10 +66,13 @@ static void init_pad(void) {
 static u32 read_pad(void) {
     struct padButtonStatus b;
     int state;
+    stick_x = 0; stick_y = 0;
     if (!pad_ready) return 0;
     state = padGetState(0, 0);
     if (state != PAD_STATE_STABLE && state != PAD_STATE_FINDCTP1) return 0;
     if (padRead(0, 0, &b) == 0) return 0;
+    stick_x = (int)b.ljoy_h - 128;
+    stick_y = (int)b.ljoy_v - 128;
     return (u32)(0xffffu ^ b.btns);
 }
 static int overlaps(int ax, int ay, int aw, int ah,
@@ -225,10 +229,15 @@ int main(void) {
             if(buttons & PAD_RIGHT) px+=5;
             if(buttons & PAD_UP) py-=5;
             if(buttons & PAD_DOWN) py+=5;
+            /* Also support the left virtual/physical analog stick. */
+            if(stick_x < -24) px-=5;
+            if(stick_x > 24) px+=5;
+            if(stick_y < -24) py-=5;
+            if(stick_y > 24) py+=5;
             px=clamp_int(px,8,SCREEN_W-PLAYER_W-8);
             py=clamp_int(py,48,SCREEN_H-PLAYER_H-8);
             /* Common Android/emulator mappings: any main face button or R1 fires. */
-            if((buttons & (PAD_CROSS|PAD_SQUARE|PAD_CIRCLE|PAD_R1)) && frame_no%7==0)
+            if((buttons & (PAD_TRIANGLE|PAD_CROSS|PAD_SQUARE|PAD_CIRCLE|PAD_R1|PAD_R2)) && frame_no%7==0)
                 fire_bullet(bullets,px,py);
             for(i=0;i<BULLET_COUNT;i++) if(bullets[i].active) {
                 bullets[i].y-=bullets[i].speed;
