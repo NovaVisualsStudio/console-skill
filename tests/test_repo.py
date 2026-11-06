@@ -30,11 +30,29 @@ def frontmatter(path):
     return (m.group(1) if m else ""), text
 
 
+def tracked_files():
+    """List Git-index files only; ignore Codespaces logs, backups and caches."""
+    try:
+        raw = subprocess.check_output(
+            ["git", "-C", ROOT, "ls-files", "-z"],
+            stderr=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        # Support source archives that do not contain a .git directory.
+        paths = []
+        for base, dirs, files in os.walk(ROOT):
+            dirs[:] = [d for d in dirs if d not in (".git", "__pycache__")]
+            for filename in files:
+                paths.append(os.path.relpath(os.path.join(base, filename), ROOT))
+        return sorted(paths)
+    return sorted(p.decode("utf-8") for p in raw.split(b"\\0") if p)
+
+
 def every_file():
-    for base, dirs, files in os.walk(ROOT):
-        dirs[:] = [d for d in dirs if d not in (".git", "__pycache__")]
-        for f in files:
-            yield os.path.join(base, f)
+    for relpath in tracked_files():
+        path = os.path.join(ROOT, relpath)
+        if os.path.isfile(path):
+            yield path
 
 
 def every_text_file():
@@ -56,8 +74,12 @@ class Repo(unittest.TestCase):
         self.assertEqual(found, sorted(SKILLS))
 
     def test_root_matches_the_reel(self):
-        root = sorted(d for d in os.listdir(ROOT) if not d.startswith(".git") and d != ".DS_Store")
-        self.assertEqual(root, sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "tests"] + SKILLS))
+        # Check the published Git tree, not arbitrary local workspace files.
+        root = set()
+        for relpath in tracked_files():
+            root.add(relpath.split("/", 1)[0])
+        self.assertEqual(sorted(root),
+                         sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "tests"] + SKILLS))
 
     def test_frontmatter_name_description_hint(self):
         for s in SKILLS:
