@@ -210,7 +210,7 @@ class Repo(unittest.TestCase):
                 for filename in files:
                     if filename.endswith(".pyc"):
                         continue
-                    target_files.add(os.path.relpath(os.path.join(base, filename), target)
+                    target_files.add(os.path.relpath(os.path.join(base, filename), target))
             self.assertEqual(target_files, source_files,
                              "%s has extra or missing files in .agents/skills" % skill)
 
