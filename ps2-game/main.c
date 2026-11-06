@@ -173,7 +173,6 @@ static void render(packet_t *packet, int px, int py, Enemy e[ENEMY_COUNT],
     for(i=0;i<lives;i++) {
         q=draw_triangle(q, 424+i*24,34, 430+i*24,19, 436+i*24,34, 255,85,95);
     }
-    for(i=0;i<ENEMY_COUNT;i++) draw_fighter; /* keep compiler diagnostics useful */
     for(i=0;i<ENEMY_COUNT;i++) q=draw_fighter(q,e[i].x,e[i].y,1);
     for(i=0;i<BULLET_COUNT;i++) if(b[i].active) {
         q=draw_rect(q,b[i].x+4,b[i].y,3,13, 255,235,120);
