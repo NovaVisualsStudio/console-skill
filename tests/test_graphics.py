@@ -14,6 +14,7 @@ import tempfile
 import unittest
 import zlib
 from contextlib import redirect_stderr, redirect_stdout
+from pathlib import Path
 
 from _load import load, ROOT
 
@@ -705,7 +706,7 @@ class TestWidescreen(Base):
         code, so, _ = run(ws, ["scan", self.elf, "--out", out])
         self.assertEqual(code, 0)
         self.assertIn("cannot know", so)
-        text = open(out).read()
+        text = Path(out).read_text(encoding="utf-8")
         self.assertEqual(text.count("gsaspectratio=16:9"), 6)
         pnach = load("console-mod", "pnach")
         res = pnach.parse_pnach_text(text)
@@ -772,7 +773,7 @@ class TestCli(Base):
             for f in files:
                 with open(os.path.join(dirpath, f), "rb") as fh:
                     self.assertNotIn(chr(0x2014).encode("utf-8"), fh.read(), f)
-        md = open(os.path.join(SKILL, "SKILL.md")).read()
+        md = Path(os.path.join(SKILL, "SKILL.md")).read_text(encoding="utf-8")
         self.assertTrue(md.startswith("---\nname: console-graphics\n"))
         for ref in re.findall(r"`(?:\$\{CLAUDE_SKILL_DIR\}/)?((?:reference|templates)/[^`\s]+)`", md):
             self.assertTrue(os.path.isfile(os.path.join(SKILL, ref)), ref)
