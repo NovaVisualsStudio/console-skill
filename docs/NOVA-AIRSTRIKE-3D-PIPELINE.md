@@ -31,7 +31,13 @@ External projects are references, not copied game assets or unreviewed dependenc
 
 The current `ps2-game/main.c` remains an experimental software world-to-screen renderer, but the latest pass now configures a PS2SDK framebuffer plus a GS Z buffer (`GS_ZBUF_32`, greater-equal depth test), submits per-vertex depth values, seeds the depth buffer at frame start, clips triangles against the near plane, and uses XYZ movement with a fixed particle pool for hit bursts and exhaust. The implementation follows the same PS2SDK draw/depth concepts shown by the official PS2SDK cube sample; it does not yet use gsKit or VU1.
 
-It is **not yet a finished 3D renderer or a proven build**: texture mapping, perspective-correct texture coordinates, back-face culling, VU1 geometry processing, a reproducible GLB asset converter, sound, missions and emulator runtime evidence remain outstanding. CI must confirm the current branch compiles before the ELF can be considered ready.
+It is **not yet a finished 3D renderer or a proven build**: texture mapping, perspective-correct texture coordinates, back-face culling, VU1 geometry processing, a reproducible GLB asset converter, full music arrangement, missions and emulator runtime evidence remain outstanding. CI must confirm the current branch compiles before the ELF can be considered ready.
+
+## Audio subsystem
+
+- PS2 SPU2 output uses PS2SDK audsrv, with the IOP audsrv IRX embedded into the ELF at build time via `bin2c`; no external IRX file is needed at runtime.
+- A region-matched 22.05 kHz mono stream is generated in bounded per-frame blocks. The synthesis layer provides a continuous engine tone with movement-dependent pitch, a low background chiptune motif, firing sweeps, explosion noise, impact sounds, and start/game-over cues.
+- Audio initialization is fail-soft: if the SPU2/audsrv path is unavailable, gameplay continues without blocking on a missing module. Emulator playback and mixer balance still require listening tests.
 
 ## Acceptance gates
 
@@ -42,7 +48,9 @@ It is **not yet a finished 3D renderer or a proven build**: texture mapping, per
 - [x] Add near-plane clipping and depth-tested opaque geometry.
 - [ ] Add back-face culling and perspective-correct texture mapping.
 - [ ] Add original low-poly fighter, enemy, terrain and sky assets with a reproducible conversion pipeline.
-- [ ] Run in Play! Android or another PS2 emulator and capture screenshots/logs.
+- [x] Add embedded audsrv/SPU2 initialization and procedural engine/combat sound synthesis (build and emulator audio playback still require validation).
+- [ ] Add authored VAG/ADPCM aircraft, weapon and explosion samples plus a full music track.
+- [ ] Run in Play! Android or another PS2 emulator and capture screenshots/logs and audio playback.
 - [ ] Tune performance on the user's actual phone/emulator; do not infer compatibility from a successful build.
 
 ## Performance rules for PS2
