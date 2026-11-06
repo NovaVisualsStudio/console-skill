@@ -1,0 +1,55 @@
+name: PS2 homebrew first build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/ps2-homebrew-first-build.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/ps2-homebrew-first-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-dungeon-demo:
+    name: Build open-source PS2 dungeon demo
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ps2dev/ps2sdk:latest
+    steps:
+      - name: Install host utilities
+        run: apk add --no-cache git make
+
+      - name: Fetch MIT-licensed PS2 homebrew source
+        run: |
+          git clone --depth 1 https://github.com/glampert/ps2-homebrew.git /tmp/ps2-homebrew
+          test -f /tmp/ps2-homebrew/LICENSE.txt
+          grep -q "MIT License" /tmp/ps2-homebrew/LICENSE.txt
+
+      - name: Build the Dungeon Game ELF
+        shell: sh
+        run: |
+          set -eu
+          cd /tmp/ps2-homebrew/source/demos/dungeon_game
+          test -f Makefile
+          test -d "$PS2SDK"
+          test -f "$PS2SDK/samples/Makefile.pref"
+          make -j2 SOURCE_PATH=/tmp/ps2-homebrew/source EE_BIN=dungeon_game.elf
+          test -s dungeon_game.elf
+          mkdir -p "$GITHUB_WORKSPACE/artifacts"
+          cp dungeon_game.elf "$GITHUB_WORKSPACE/artifacts/dungeon_game.elf"
+          cd "$GITHUB_WORKSPACE/artifacts"
+          sha256sum dungeon_game.elf > SHA256SUMS.txt
+          ls -lh dungeon_game.elf SHA256SUMS.txt
+
+      - name: Upload bootable PS2 ELF
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-ps2-dungeon-demo
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
