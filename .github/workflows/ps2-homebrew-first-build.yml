@@ -22,7 +22,7 @@ jobs:
       image: ghcr.io/ps2dev/ps2sdk:latest
     steps:
       - name: Install host utilities
-        run: apk add --no-cache git make
+        run: apk add --no-cache git make gmp mpc1 mpfr4
 
       - name: Fetch MIT-licensed PS2 homebrew source
         run: |
