@@ -185,6 +185,18 @@ class Repo(unittest.TestCase):
             self.assertIn(must, readme)
 
 
+    def test_nova_airstrike_has_a_perspective_3d_scene(self):
+        source_path = os.path.join(ROOT, "ps2-game", "main.c")
+        with open(source_path, encoding="utf-8") as fh:
+            source = fh.read()
+        # Guard the 3D milestone against silently regressing to the old 2D game.
+        self.assertIn("typedef struct { float x,y,z; } V3;", source)
+        self.assertIn("static int project(V3", source)
+        self.assertIn("static qword_t *tri3(", source)
+        self.assertIn("static qword_t *jet(", source)
+        self.assertIn("enemies[i].z-=", source)
+        self.assertIn("shots[i].z+=", source)
+
     def test_ps2_game_triangle_packet_declares_three_vertex_pairs(self):
         # A packed GIF tag with two registers (RGBAQ, XYZ2) needs one
         # register pair per vertex. A triangle therefore declares 3 loops.
