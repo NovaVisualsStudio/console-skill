@@ -249,10 +249,17 @@ int main(void){
   else{
    vx+=(buttons&PAD_LEFT)?-0.11f:0.0f;vx+=(buttons&PAD_RIGHT)?0.11f:0.0f;
    vy+=(buttons&PAD_UP)?0.09f:0.0f;vy+=(buttons&PAD_DOWN)?-0.09f:0.0f;
-   if(stick_x < -24)vx+=(float)stick_x*0.0009f;if(stick_x > 24)vx+=(float)stick_x*0.0009f;
-   if(stick_y < -24)vy+=(float)stick_y*0.0008f;if(stick_y > 24)vy+=(float)stick_y*0.0008f;
-   vx*=0.82f;vy*=0.82f;px=clampf(px+vx,-13.0f,13.0f);py=clampf(py+vy,-3.5f,3.5f);
-   if(px<=-13.0f||px>=13.0f)vx=0.0f;if(py<=-3.5f||py>=3.5f)vy=0.0f;
+   if (stick_x < -24) vx += (float)stick_x * 0.0009f;
+   if (stick_x > 24)  vx += (float)stick_x * 0.0009f;
+   if (stick_y < -24) vy += (float)stick_y * 0.0008f;
+   if (stick_y > 24)  vy += (float)stick_y * 0.0008f;
+
+   vx *= 0.82f;
+   vy *= 0.82f;
+   px = clampf(px + vx, -13.0f, 13.0f);
+   py = clampf(py + vy, -3.5f, 3.5f);
+   if (px <= -13.0f || px >= 13.0f) vx = 0.0f;
+   if (py <= -3.5f || py >= 3.5f) vy = 0.0f;
    if((buttons&(PAD_CROSS|PAD_SQUARE|PAD_CIRCLE|PAD_TRIANGLE|PAD_R1|PAD_R2))&&frame%7==0)fire(shots,px,py);
    for(i=0;i<SHOTS;i++)if(shots[i].active){
     shots[i].z+=2.6f;
