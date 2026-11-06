@@ -558,6 +558,13 @@ class BackupRestore(Base):
         self.assertEqual(len(mine), 2)
         self.assertTrue(os.path.exists(other))
 
+    def test_default_backup_retention_keeps_every_backup(self):
+        for _ in range(21):
+            code, _out, err = run(["backup", self.mc0, "--to", self.p("bk")])
+            self.assertEqual(code, 0, err)
+        mine = [f for f in os.listdir(self.p("bk")) if f.startswith("game-mc0-")]
+        self.assertEqual(len(mine), 21)
+
     def test_backup_inside_the_card_folder_refused(self):
         code, _, err = run(["backup", self.mc0, "--to", os.path.join(self.mc0, "bk")])
         self.assertEqual(code, 2)
