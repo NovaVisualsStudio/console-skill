@@ -21,6 +21,9 @@ jobs:
   validate:
     name: Validate Godot prototype (ten gates + six repeat stability passes)
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - name: Checkout source
         uses: actions/checkout@v7
@@ -49,7 +52,7 @@ jobs:
 
       - name: Install Android SDK packages
         run: |
-          "$HOME/.local/bin/android" --no-metrics --sdk="$ANDROID_HOME" sdk install platforms/android-34 build-tools/34.0.0 cmake/3.10.2.4988404 ndk/23.2.8568313
+          "$HOME/.local/bin/android" --no-metrics --sdk="$ANDROID_HOME" sdk install platform-tools platforms/android-34 build-tools/34.0.0 cmake/3.10.2.4988404 ndk/23.2.8568313
 
       - name: Configure Godot Android SDK paths
         run: |
