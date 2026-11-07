@@ -68,7 +68,8 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn("audio_fx", self.read("scripts/main.gd"))
 
     def test_no_external_or_proprietary_game_assets_are_bundled(self):
-        for current, _, filenames in os.walk(ROOT):
+        for current, directories, filenames in os.walk(ROOT):
+            directories[:] = [name for name in directories if name not in {".godot", "build"}]
             for filename in filenames:
                 self.assertFalse(filename.lower().endswith((".iso", ".elf", ".irx", ".exe", ".apk")))
         self.assertTrue(os.path.isfile(os.path.join(ROOT, "README.md")))
