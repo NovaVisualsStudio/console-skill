@@ -81,13 +81,16 @@ jobs:
       - name: Gate 4 - cinematic arena integration test
         run: godot --headless --path android-game --script res://tests/cinematic_smoke.gd
 
-      - name: Gate 5 - scene runtime smoke test
+      - name: Gate 5 - procedural audio smoke test
+        run: godot --headless --path android-game --script res://tests/audio_smoke.gd
+
+      - name: Gate 6 - scene runtime smoke test
         run: godot --headless --path android-game --quit-after 5
 
-      - name: Gate 6 - extended 300-frame runtime test
+      - name: Gate 7 - extended 300-frame runtime test
         run: godot --headless --path android-game --quit-after 300
 
-      - name: Gate 7 - source hygiene and expected scene files
+      - name: Gate 8 - source hygiene and expected scene files
         run: |
           test -s android-game/project.godot
           test -s android-game/export_presets.cfg
@@ -101,7 +104,7 @@ jobs:
         run: |
           keytool -genkeypair -v -keystore "$RUNNER_TEMP/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 
-      - name: Gate 8 - export Android debug APK
+      - name: Gate 9 - export Android debug APK
         env:
           GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ runner.temp }}/debug.keystore
           GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
@@ -113,13 +116,14 @@ jobs:
           godot --headless --path . --export-debug "Android" build/NovaAncientWarrior-debug.apk --verbose
           test -s build/NovaAncientWarrior-debug.apk
 
-      - name: Gate 9 - four repeated gameplay and runtime passes
+      - name: Gate 10 - four repeated gameplay and runtime passes
         run: |
           for pass in 1 2 3 4; do
             echo "===== STABILITY PASS $pass / 4 ====="
             python3 -m unittest discover -s tests -p 'test_godot_project.py' -v
             godot --headless --path android-game --script res://tests/combat_smoke.gd
             godot --headless --path android-game --script res://tests/cinematic_smoke.gd
+            godot --headless --path android-game --script res://tests/audio_smoke.gd
             godot --headless --path android-game --quit-after 300
           done
 
