@@ -27,6 +27,20 @@ The hero asset is not accepted as production-ready merely because it has a mesh.
 | Materials | Material Maker + Blender nodes | Original PBR textures/materials | Verify the licence of each community material separately |
 | Engine | Godot 4.7.2 | AnimationPlayer/AnimationTree, gameplay, Android export | MIT engine; game assets remain separately licensed |
 
+
+## Primary video-to-motion capture route: VideoIntoBlenderModel
+
+The repository `s0ck3t/VideoIntoBlenderModel` is now the preferred experimental route for this project because it accepts a single phone video, retargets the motion to a humanoid rig, and exports a GLB that targets Godot 4. Its code is Apache-2.0; its own asset register identifies `humanoid_articulated.fbx` and `humanoid_rig.fbx` as CC0-1.0, and its bundled kung-fu sample video as CC0-1.0. The pipeline is pinned to commit `c1f1fa8f01524d60197c4d65306349e266d339cb` rather than tracking a moving branch.
+
+- The 61-bone articulated rig includes core body bones, 30 finger phalanges and six twist helpers; the tool also supports 52 ARKit facial blendshapes.
+- MediaPipe-based markerless capture is not the same as calibrated optical motion capture. Occlusion, camera angle, fast weapon swings and foot sliding still need review and cleanup.
+- The capture engine is a desktop Python/Blender pipeline, not an Android app. The project now has a GitHub Actions workflow so the phone can record the video and GitHub's cloud runner can process it.
+- The manual workflow defaults to the upstream CC0 kung-fu demo. For a personal take, upload a short, full-body MP4 to `nova-ancient-warrior/mocap/` and run **Nova Warrior Motion Capture and Rigged Character** from GitHub Actions with that path.
+- The workflow exports `nova_mocap_candidate.glb`, imports it into Godot 4.7.2, checks for a real Skeleton3D with at least 20 bones and an AnimationPlayer, then publishes the GLB and run report as an artifact.
+- Use only the CC0 rig and CC0 demo unless a separate source licence is explicitly approved. Do not select Renderpeople or other non-CC0 assets for the automatic build without a separate licence review.
+
+This is an intake and retarget pipeline, not yet the final armoured hero. The generated rigged human is the deformation/animation base; original armour, weapon attachments, facial design, animation cleanup and in-game AnimationTree integration remain separate production tasks.
+
 ## FreeMoCap capture protocol
 
 1. Use two or more synchronized camera views where possible. A single phone video is a lower-confidence source and can lose depth/occluded joints.
