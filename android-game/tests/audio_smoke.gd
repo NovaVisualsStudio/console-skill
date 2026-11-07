@@ -31,11 +31,13 @@ func _run_tests() -> void:
         return
     if ambience.data.size() < 22050:
         push_error("Atmospheric bed sample data is unexpectedly short.")
-        quit(1)
+        ambience = null
+        await _finish(1, audio)
         return
     if audio.one_shot_players.size() != 5:
         push_error("Combat sound pool should have five reusable voices.")
-        quit(1)
+        ambience = null
+        await _finish(1, audio)
         return
 
     audio.start_ambience()
@@ -48,7 +50,8 @@ func _run_tests() -> void:
     audio.play_boss_phase()
     if audio._swing_light.data.is_empty() or audio._impact_heavy.data.is_empty() or audio._parry.data.is_empty():
         push_error("One or more procedural combat sound assets have no sample data.")
-        quit(1)
+        ambience = null
+        await _finish(1, audio)
         return
 
     print("AUDIO TESTS PASS: looping atmospheric drone, light/heavy swing and impact, parry, boss telegraph and phase burst.")
