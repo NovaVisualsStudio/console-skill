@@ -18,3 +18,7 @@ static func is_target_in_attack_arc(
 	if flat_target.length_squared() > max_distance * max_distance:
 		return false
 	return flat_facing.normalized().dot(flat_target.normalized()) >= dot_threshold
+
+
+static func can_receive_hit(invulnerability_remaining: float) -> bool:
+	return invulnerability_remaining <= 0.0

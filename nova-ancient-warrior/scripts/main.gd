@@ -16,6 +16,7 @@ var health := 100
 var score := 0
 var attack_ready := true
 var game_over := false
+var player_invulnerability_time := 0.0
 var hud: Label
 var status_label: Label
 var restart_button: Button
@@ -47,6 +48,7 @@ func _process(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if game_over or not is_instance_valid(player):
 		return
+	player_invulnerability_time = maxf(0.0, player_invulnerability_time - delta)
 	var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var camera_basis := camera.global_transform.basis
 	var camera_forward := -camera_basis.z
@@ -432,6 +434,9 @@ func _attack() -> void:
 
 
 func _damage_player(amount: int) -> void:
+	if not CombatRules.can_receive_hit(player_invulnerability_time):
+		return
+	player_invulnerability_time = 0.72
 	health = maxi(0, health - amount)
 	_update_hud()
 	if health <= 0:
