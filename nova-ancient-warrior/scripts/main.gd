@@ -6,6 +6,7 @@ const GRAVITY := 18.0
 const ENEMY_SPEED := 1.65
 const ATTACK_RANGE := 2.25
 const ARENA_LIMIT := 16.0
+const CombatRules = preload("res://scripts/combat_rules.gd")
 
 var player: CharacterBody3D
 var sword: MeshInstance3D
