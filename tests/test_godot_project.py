@@ -24,6 +24,9 @@ class GodotProjectIntegrity(unittest.TestCase):
             workflow = handle.read()
         self.assertIn("version: 4.7.2", workflow)
         self.assertIn("sdk install platform-tools", workflow)
+        self.assertIn("platforms/android-35", workflow)
+        self.assertIn("build-tools/35.0.1", workflow)
+        self.assertIn("ndk/28.1.13356709", workflow)
         self.assertNotIn("sdkmanager ", workflow)
         self.assertIn("pass in 1 2 3 4 5 6", workflow)
 
