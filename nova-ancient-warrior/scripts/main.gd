@@ -6,6 +6,7 @@ const GRAVITY := 18.0
 const ENEMY_SPEED := 1.65
 const ATTACK_RANGE := 2.25
 const ARENA_LIMIT := 16.0
+const CombatRules = preload("res://scripts/combat_rules.gd")
 
 var player: CharacterBody3D
 var sword: MeshInstance3D
@@ -37,7 +38,6 @@ func _process(delta: float) -> void:
 		var target := player.global_position + Vector3(0.0, 6.3, 9.0)
 		camera.global_position = camera.global_position.lerp(target, minf(delta * 4.5, 1.0))
 		camera.look_at(player.global_position + Vector3(0.0, 1.1, 0.0), Vector3.UP)
-	_update_enemies(delta)
 	if game_over and Input.is_action_just_pressed("restart"):
 		get_tree().reload_current_scene()
 	elif not game_over and Input.is_action_just_pressed("attack"):
@@ -78,6 +78,7 @@ func _physics_process(delta: float) -> void:
 	if not is_equal_approx(safe_position.z, previous_position.z):
 		player.velocity.z = 0.0
 	player.global_position = safe_position
+	_update_enemies(delta)
 
 
 func _setup_input() -> void:
@@ -368,21 +369,25 @@ func _button_style(color: Color) -> StyleBoxFlat:
 func _update_enemies(delta: float) -> void:
 	if game_over or not is_instance_valid(player):
 		return
-	for enemy in enemies.duplicate():
+	for index in range(enemies.size() - 1, -1, -1):
+		var enemy := enemies[index]
 		if not is_instance_valid(enemy):
-			enemies.erase(enemy)
+			enemies.remove_at(index)
 			continue
 		var offset: Vector3 = player.global_position - enemy.global_position
 		offset.y = 0.0
 		var distance: float = offset.length()
 		if distance > 1.55:
 			enemy.global_position += offset.normalized() * ENEMY_SPEED * delta
-		enemy.look_at(Vector3(player.global_position.x, enemy.global_position.y, player.global_position.z), Vector3.UP)
+		if distance > 0.001:
+			enemy.look_at(Vector3(player.global_position.x, enemy.global_position.y, player.global_position.z), Vector3.UP)
 		var cooldown := float(enemy.get_meta("cooldown", 0.0)) - delta
 		if distance <= 1.65 and cooldown <= 0.0:
 			enemy.set_meta("cooldown", 1.25)
 			_damage_player(9)
 			_play_tone(125.0, 0.12, 0.2)
+			if game_over:
+				break
 		else:
 			enemy.set_meta("cooldown", cooldown)
 
@@ -395,21 +400,22 @@ func _attack() -> void:
 	var tween := create_tween()
 	tween.tween_property(sword, "rotation:z", 1.25, 0.09)
 	tween.tween_property(sword, "rotation:z", -0.55, 0.16)
-	for enemy in enemies.duplicate():
+	for index in range(enemies.size() - 1, -1, -1):
+		var enemy := enemies[index]
 		if not is_instance_valid(enemy):
+			enemies.remove_at(index)
 			continue
 		var to_enemy: Vector3 = enemy.global_position - player.global_position
 		to_enemy.y = 0.0
-		var distance: float = to_enemy.length()
 		var facing := -player.global_transform.basis.z
 		facing.y = 0.0
-		if distance <= ATTACK_RANGE and distance > 0.001 and facing.normalized().dot(to_enemy.normalized()) >= 0.2:
+		if CombatRules.is_target_in_attack_arc(facing, to_enemy, ATTACK_RANGE):
 			var hp := int(enemy.get_meta("hp", 60)) - 40
 			enemy.set_meta("hp", hp)
 			_play_tone(260.0, 0.07, 0.2)
 			if hp <= 0:
 				enemy.queue_free()
-				enemies.erase(enemy)
+				enemies.remove_at(index)
 				score += 100
 				_update_hud()
 				if enemies.is_empty():
