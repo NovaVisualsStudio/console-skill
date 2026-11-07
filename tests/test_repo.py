@@ -289,6 +289,26 @@ class Repo(unittest.TestCase):
         self.assertIn("var to_enemy: Vector3 = enemy.global_position - player.global_position", script)
         self.assertIn("var distance: float = to_enemy.length()", script)
 
+    def test_player_is_clamped_to_arena_bounds(self):
+        script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
+        with open(script_path, encoding="utf-8") as fh:
+            script = fh.read()
+        self.assertIn("const ARENA_LIMIT := 16.0", script)
+        self.assertIn("safe_position.x = clampf(safe_position.x, -ARENA_LIMIT, ARENA_LIMIT)", script)
+        self.assertIn("safe_position.z = clampf(safe_position.z, -ARENA_LIMIT, ARENA_LIMIT)", script)
+        self.assertIn("player.global_position = safe_position", script)
+
+    def test_project_has_original_application_icon(self):
+        project_path = os.path.join(ROOT, "nova-ancient-warrior", "project.godot")
+        icon_path = os.path.join(ROOT, "nova-ancient-warrior", "icon.svg")
+        with open(project_path, encoding="utf-8") as fh:
+            project = fh.read()
+        with open(icon_path, encoding="utf-8") as fh:
+            icon = fh.read()
+        self.assertIn('config/icon="res://icon.svg"', project)
+        self.assertIn("<svg", icon)
+        self.assertIn("Nova", project)
+
 
 if __name__ == "__main__":
     unittest.main()
