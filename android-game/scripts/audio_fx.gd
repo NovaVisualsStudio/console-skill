@@ -10,6 +10,7 @@ var _swing_heavy: AudioStreamWAV
 var _impact_light: AudioStreamWAV
 var _impact_heavy: AudioStreamWAV
 var _parry: AudioStreamWAV
+var _dodge: AudioStreamWAV
 var _telegraph: AudioStreamWAV
 var _phase_burst: AudioStreamWAV
 
@@ -20,6 +21,7 @@ func _ready() -> void:
     _impact_light = _make_one_shot(128.0, 72.0, 0.52, 0.30, 0.20)
     _impact_heavy = _make_one_shot(78.0, 34.0, 0.66, 0.42, 0.48)
     _parry = _make_one_shot(920.0, 410.0, 0.36, 0.10, 0.35)
+    _dodge = _make_one_shot(520.0, 170.0, 0.28, 0.62, 0.22)
     _telegraph = _make_one_shot(72.0, 42.0, 0.72, 0.58, 0.25)
     _phase_burst = _make_one_shot(48.0, 28.0, 0.90, 0.54, 0.62)
 
@@ -48,6 +50,9 @@ func play_hit(heavy: bool = false) -> void:
 
 func play_parry() -> void:
     _play(_parry)
+
+func play_dodge() -> void:
+    _play(_dodge)
 
 func play_telegraph(boss: bool = false) -> void:
     _play(_phase_burst if boss else _telegraph)
