@@ -9,6 +9,10 @@ const DESKTOP_FPS_CAP := 60
 static func apply(is_android: bool, world_environment: Environment, key_light: DirectionalLight3D) -> void:
 	Engine.max_fps = ANDROID_FPS_CAP if is_android else DESKTOP_FPS_CAP
 	if not is_android:
+		if world_environment != null:
+			world_environment.glow_enabled = true
+		if key_light != null:
+			key_light.shadow_enabled = true
 		return
 	if world_environment != null:
 		world_environment.glow_enabled = false
