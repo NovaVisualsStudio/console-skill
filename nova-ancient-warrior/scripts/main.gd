@@ -56,6 +56,7 @@ func _ready() -> void:
 	var profile: Dictionary = SaveManager.profile
 	var chapter_start := (int(profile.get("unlocked_chapter", 1)) - 1) * 3 + 1
 	current_wave = 7 if bool(profile.get("campaign_complete", false)) else maxi(chapter_start, int(profile.get("highest_wave", 1)))
+	SaveManager.begin_run()
 	_build_world()
 	_build_player()
 	_build_enemies()
@@ -584,7 +585,7 @@ func _build_hud() -> void:
 	hint.offset_top = -34.0
 	hint.offset_bottom = -8.0
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.text = "MOVE  |  J ATTACK  |  SHIFT DODGE  |  SPACE JUMP"
+	hint.text = "MOVE  |  J ATTACK  |  H HEAVY  |  I BLOCK  |  TAB LOCK  |  SHIFT DODGE"
 	hint.add_theme_font_size_override("font_size", 14)
 	hint.add_theme_color_override("font_color", Color(0.72, 0.68, 0.61))
 	layer.add_child(hint)
@@ -667,7 +668,15 @@ func _update_enemies(delta: float) -> void:
 		var attack_timer := maxf(0.0, float(enemy.get_meta("attack_timer", 0.0)))
 		var attack_cooldown_value := maxf(0.0, float(enemy.get_meta("attack_cooldown", 0.0)) - delta)
 		if attack_state == "approach":
-			var desired_range := 2.1 if is_boss else 1.85
+			var desired_range := 1.85
+			if is_boss:
+				match boss_kind:
+					"ember_warlord":
+						desired_range = 5.0
+					"obsidian_sovereign":
+						desired_range = 4.8
+					_:
+						desired_range = 2.1
 			if distance > desired_range:
 				var chase_speed := enemy_speed
 				if is_boss and boss_kind == "ember_warlord":
@@ -675,7 +684,7 @@ func _update_enemies(delta: float) -> void:
 				enemy.global_position += offset.normalized() * chase_speed * delta
 				if visual != null:
 					visual.call("set_locomotion", 0.52, delta)
-			elif CombatRules.should_start_enemy_windup(distance, attack_cooldown_value):
+			elif CombatRules.should_start_enemy_windup(distance, attack_cooldown_value, desired_range):
 				attack_state = "windup"
 				var windup := float(enemy.get_meta("windup_duration", 0.42))
 				if is_boss and phase >= 2:
@@ -695,7 +704,7 @@ func _update_enemies(delta: float) -> void:
 						"ember_warlord":
 							hit_range = 5.0
 							if distance <= hit_range:
-								enemy.global_position -= offset.normalized() * minf(3.0, maxf(0.0, distance - 1.15))
+								enemy.global_position += offset.normalized() * minf(3.0, maxf(0.0, distance - 1.15))
 						"obsidian_sovereign":
 							hit_range = 5.8
 							damage += 8 if phase >= 2 else 0
