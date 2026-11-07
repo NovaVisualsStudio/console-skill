@@ -2,7 +2,7 @@ name: Nova Ancient Warrior Android debug APK
 
 on:
   push:
-    branches: [nova-android-vertical-slice, nova-gameplay-hardening]
+    branches: [nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean]
     paths:
       - "nova-ancient-warrior/**"
       - ".github/workflows/godot-android-apk.yml"
@@ -21,10 +21,10 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "17"
@@ -128,7 +128,7 @@ jobs:
             grep -F "package: name='com.novavisualsstudio.novaancientwarrior'"
 
       - name: Publish verified debug APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nova-ancient-warrior-android-debug
           path: artifacts/nova-ancient-warrior-debug.apk
