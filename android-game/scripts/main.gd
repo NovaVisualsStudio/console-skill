@@ -4,10 +4,12 @@ class_name NovaArenaController
 const PLAYER_SCRIPT = preload("res://scripts/player.gd")
 const ENEMY_SCRIPT = preload("res://scripts/enemy.gd")
 const CAMERA_SCRIPT = preload("res://scripts/camera_rig.gd")
+const AUDIO_SCRIPT = preload("res://scripts/audio_fx.gd")
 
 var player: NovaPlayer
 var boss: NovaEnemy
 var camera_rig: NovaCameraRig
+var audio_fx: NovaAudioFX
 var active_enemies: Array[NovaEnemy] = []
 var hud_label: Label
 var health_bar: ProgressBar
@@ -25,6 +27,9 @@ var lock_index := -1
 
 func _ready() -> void:
     _ensure_input_actions()
+    audio_fx = AUDIO_SCRIPT.new() as NovaAudioFX
+    add_child(audio_fx)
+    audio_fx.start_ambience()
     _build_world()
     _spawn_encounter()
     _build_hud()
@@ -248,6 +253,8 @@ func _spawn_encounter() -> void:
     player.stamina_changed.connect(_on_player_stamina_changed)
     player.defeated.connect(_on_player_defeated)
     player.hit_confirmed.connect(_on_player_hit_confirmed)
+    player.attack_started.connect(_on_player_attack_started)
+    player.dodge_started.connect(_on_player_dodge_started)
     player.parry_success.connect(_on_parry_success)
     add_child(player)
 
@@ -478,6 +485,7 @@ func _on_boss_health_changed(current: int, maximum: int) -> void:
         boss_bar.value = current
 
 func _on_boss_phase_changed(phase: int) -> void:
+    audio_fx.play_boss_phase()
     result_label.visible = true
     result_label.text = "PHASE %d — THE WARDEN ENRAGES" % phase
     camera_rig.shake(0.48, 0.42)
@@ -491,9 +499,17 @@ func _on_boss_phase_changed(phase: int) -> void:
 
 func _on_enemy_telegraph(is_boss_enemy: bool) -> void:
     camera_rig.shake(0.10 if not is_boss_enemy else 0.20, 0.12 if not is_boss_enemy else 0.22)
+    audio_fx.play_telegraph(is_boss_enemy)
+
+func _on_player_attack_started(heavy: bool, combo: int) -> void:
+    audio_fx.play_swing(heavy)
+
+func _on_player_dodge_started() -> void:
+    audio_fx.play_swing(false)
 
 func _on_player_hit_confirmed(target_position: Vector3, heavy: bool, combo: int) -> void:
     camera_rig.shake(0.16 if not heavy else 0.32, 0.12 if not heavy else 0.22)
+    audio_fx.play_hit(heavy)
     _spawn_hit_sparks(target_position, heavy)
 
 func _spawn_hit_sparks(position: Vector3, heavy: bool) -> void:
@@ -526,6 +542,7 @@ func _spawn_hit_sparks(position: Vector3, heavy: bool) -> void:
 
 func _on_parry_success() -> void:
     camera_rig.shake(0.34, 0.22)
+    audio_fx.play_parry()
     result_label.visible = true
     result_label.text = "PERFECT PARRY"
     var tween := create_tween()
