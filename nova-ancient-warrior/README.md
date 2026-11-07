@@ -50,7 +50,7 @@ See [the character and mocap production pipeline](../docs/NOVA_CHARACTER_MOCAP_P
 ## Known production boundaries
 
 - Stage geometry is procedural set dressing around the combat arena, not a complete traversal/exploration layout with authored collision puzzles.
-- The shipped game scene still uses procedural pivot/tween character motion. The separately validated mocap GLB is an asset candidate only; armour, weapon attachment, motion cleanup and AnimationTree integration remain to be completed.
+- CI now procedurally generates an original skinned low-poly armoured hero in Blender, including a weighted humanoid rig, hand-attached sword and shield, and Idle/Walk/Run/LightAttack/HeavyAttack/Dodge/Block/Parry/HitReact/Death clips. The runtime adapter selects this rigged GLB when present and preserves the procedural character as a fallback. The markerless mocap candidate remains separate research input, not the hero's final animation source. This generated-asset integration is pending the current branch's Blender-to-Godot CI validation.
 - Cinematic coverage includes chapter title cards and boss introduction camera moves; authored dialogue scenes, character voice acting, subtitles and final narrative audio remain to be produced.
 - Android export is checked in CI. On Android, the runtime applies a conservative 45 FPS cap, disables glow and key-light shadows, and halves decorative point lights; desktop preview restores the full lighting profile. Physical-device playtesting, frame-time capture, thermal behaviour and memory profiling are still required.
 - This Godot Android game is not a PS2 executable. A real PS2 port would require a separate PS2SDK implementation and its own memory, rendering and controller constraints.
