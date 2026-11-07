@@ -39,11 +39,17 @@ func _initialize() -> void:
 	failures += _expect_true(CombatRules.should_start_enemy_windup(1.5, 0.0), "enemy begins attack windup in range")
 	failures += _expect_false(CombatRules.should_start_enemy_windup(2.0, 0.0), "enemy does not begin attack windup outside range")
 	failures += _expect_false(CombatRules.should_start_enemy_windup(1.5, 0.4), "enemy respects attack cooldown")
+	failures += _expect_equal(CombatRules.wave_enemy_count(1), 4, "first wave has four sentinels")
+	failures += _expect_equal(CombatRules.wave_enemy_count(2), 5, "second wave adds one sentinel")
+	failures += _expect_equal(CombatRules.wave_enemy_health(3), 260, "boss has a larger health pool")
+	failures += _expect_equal(CombatRules.wave_enemy_damage(2), 11, "later wave increases enemy damage")
+	failures += _expect_true(CombatRules.is_boss_wave(3), "third wave is the boss encounter")
+	failures += _expect_false(CombatRules.is_boss_wave(2), "second wave is not the boss encounter")
 	if failures > 0:
 		push_error("Combat rules smoke test failed: %d assertion(s)" % failures)
 		quit(1)
 	else:
-		print("Combat rules smoke test passed: 16 assertions")
+		print("Combat rules smoke test passed: 22 assertions")
 		quit(0)
 
 
