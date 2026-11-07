@@ -406,7 +406,6 @@ func _attack() -> void:
 			continue
 		var to_enemy: Vector3 = enemy.global_position - player.global_position
 		to_enemy.y = 0.0
-		var distance: float = to_enemy.length()
 		var facing := -player.global_transform.basis.z
 		facing.y = 0.0
 		if CombatRules.is_target_in_attack_arc(facing, to_enemy, ATTACK_RANGE):
