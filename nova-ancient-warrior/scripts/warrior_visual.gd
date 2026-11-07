@@ -26,8 +26,10 @@ func set_locomotion(speed_ratio: float, delta: float) -> void:
 	if is_instance_valid(_left_leg):
 		_left_leg.rotation.x = swing
 		_right_leg.rotation.x = -swing
-		_left_arm.rotation.x = -swing * 0.72
-		_right_arm.rotation.x = swing * 0.72
+		var is_attacking := _attack_tween != null and _attack_tween.is_running()
+		if not is_attacking:
+			_left_arm.rotation.x = -swing * 0.72
+			_right_arm.rotation.x = swing * 0.72
 
 
 func play_attack(combo_step: int) -> void:
