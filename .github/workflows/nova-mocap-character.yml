@@ -98,7 +98,10 @@ jobs:
           test -n "$OUTPUT_GLB"
           test -s "$OUTPUT_GLB"
           mkdir -p "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters"
-          cp "$OUTPUT_GLB" "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate.glb"
+          python "$GITHUB_WORKSPACE/nova-ancient-warrior/tools/blender/optimize_mocap_glb.py" \
+            "$OUTPUT_GLB" \
+            "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate.glb" \
+            --max-mb 12 | tee "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate.optimize.json"
           cp "$(dirname "$OUTPUT_GLB")/run.json" "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate.run.json"
 
       - name: Download Godot 4.7.2
@@ -122,5 +125,6 @@ jobs:
           path: |
             nova-ancient-warrior/assets/characters/nova_mocap_candidate.glb
             nova-ancient-warrior/assets/characters/nova_mocap_candidate.run.json
+            nova-ancient-warrior/assets/characters/nova_mocap_candidate.optimize.json
           if-no-files-found: error
           retention-days: 14
