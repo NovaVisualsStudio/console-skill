@@ -13,6 +13,7 @@ const CinematicDirector = preload("res://scripts/cinematic_director.gd")
 const LevelCatalog = preload("res://scripts/level_catalog.gd")
 const StageBuilder = preload("res://scripts/stage_builder.gd")
 const CampaignLayout = preload("res://scripts/campaign_layout.gd")
+const MobileRenderProfile = preload("res://scripts/mobile_render_profile.gd")
 const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 
 var player: CharacterBody3D
@@ -307,6 +308,7 @@ func _build_world() -> void:
 	sun.light_energy = 1.25
 	sun.shadow_enabled = true
 	add_child(sun)
+	MobileRenderProfile.apply(OS.get_name() == "Android", env, sun)
 
 	var floor_body := StaticBody3D.new()
 	floor_body.name = "ArenaFloor"
@@ -349,12 +351,13 @@ func _build_world() -> void:
 		brazier.position = Vector3(cos(angle) * 9.0, 0.45, sin(angle) * 9.0)
 		brazier.material_override = _material(Color(0.16, 0.14, 0.13), 0.0, 0.85)
 		add_child(brazier)
-		var fire_light := OmniLight3D.new()
-		fire_light.position = brazier.position + Vector3(0.0, 0.8, 0.0)
-		fire_light.light_color = Color(1.0, 0.29, 0.075)
-		fire_light.light_energy = 1.2
-		fire_light.omni_range = 5.5
-		add_child(fire_light)
+		if OS.get_name() != "Android" or i % 2 == 0:
+			var fire_light := OmniLight3D.new()
+			fire_light.position = brazier.position + Vector3(0.0, 0.8, 0.0)
+			fire_light.light_color = Color(1.0, 0.29, 0.075)
+			fire_light.light_energy = 1.2
+			fire_light.omni_range = 5.5
+			add_child(fire_light)
 
 	for i in range(34):
 		var rock := MeshInstance3D.new()
