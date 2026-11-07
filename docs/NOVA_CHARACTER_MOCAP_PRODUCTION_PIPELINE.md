@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — Character, Mocap and Asset Pipeline
+# Nova Ancient Warrior : Character, Mocap and Asset Pipeline
 
 This pipeline is designed around the Android-first Godot 4.7.2 game and a low-cost production stack. The project must keep a clear distinction between open-source tools, licensed third-party assets, and original game content.
 
