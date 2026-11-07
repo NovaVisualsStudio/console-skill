@@ -114,6 +114,10 @@ jobs:
             --script res://tests/save_manager_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/level_catalog_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/campaign_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/stage_builder_smoke.gd
           smoke_log="$(mktemp)"
           if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
               --quit-after 120 >"$smoke_log" 2>&1; then
