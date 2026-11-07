@@ -11,8 +11,10 @@ func _run_rigged_hero_smoke() -> void:
 	var visual := RiggedWarriorVisual.new()
 	get_root().add_child(visual)
 	await process_frame
-	var skeleton := visual.find_child("Skeleton3D", true, false) as Skeleton3D
-	var animation_player := visual.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	var skeleton_nodes := visual.find_children("*", "Skeleton3D", true, false)
+	var animation_nodes := visual.find_children("*", "AnimationPlayer", true, false)
+	var skeleton := skeleton_nodes[0] as Skeleton3D if not skeleton_nodes.is_empty() else null
+	var animation_player := animation_nodes[0] as AnimationPlayer if not animation_nodes.is_empty() else null
 	if skeleton == null or skeleton.get_bone_count() < 16:
 		_fail(visual, "Generated Nova hero has no valid humanoid skeleton")
 		return
