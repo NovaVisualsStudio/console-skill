@@ -9,6 +9,7 @@ func _finish(exit_code: int, arena: Node) -> void:
     if is_instance_valid(arena):
         if arena is NovaArenaController and is_instance_valid(arena.audio_fx):
             arena.audio_fx.shutdown()
+            arena.audio_fx = null
         arena.free()
     await create_timer(0.5).timeout
     await process_frame
@@ -31,9 +32,7 @@ func _run() -> void:
         return
     if arena.active_enemies.size() != 3:
         push_error("Runtime smoke test: encounter population changed unexpectedly.")
-        arena.free()
-        await process_frame
-        quit(1)
+        await _finish(1, arena)
         return
     print("RUNTIME TEST PASS: 300 frames, arena alive, cinematic handoff complete, player enabled and three enemies present.")
     await _finish(0, arena)
