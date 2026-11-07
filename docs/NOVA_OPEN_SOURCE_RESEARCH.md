@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — open-source research register
+# Nova Ancient Warrior - open-source research register
 
 Date: 2026-11-07  
 Engine: Godot 4.7.2 · target: Android ARM64 · renderer: Compatibility  
