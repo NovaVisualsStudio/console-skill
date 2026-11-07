@@ -28,20 +28,37 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn('package/unique_name="com.novavisuals.ancientwarrior"', preset)
         self.assertIn("architectures/arm64-v8a=true", preset)
 
-    def test_combat_actions_exist(self):
+    def test_cinematic_camera_and_arena_modules_exist(self):
+        camera = self.read("scripts/camera_rig.gd")
+        arena = self.read("scripts/main.gd")
+        for token in ("start_intro", "set_lock_target", "shake", "camera.look_at"):
+            self.assertIn(token, camera)
+        for token in ("THE ASHEN GATE", "THE WARDEN AWAKENS", "_add_dust_motes", "_add_ritual_ring"):
+            self.assertIn(token, arena)
+
+    def test_combat_actions_and_states_exist(self):
         player = self.read("scripts/player.gd")
         main = self.read("scripts/main.gd")
-        for action in ("perform_attack", "perform_dodge", "take_damage"):
-            self.assertIn(action, player)
-        for action in ("move_forward", "move_back", "move_left", "move_right", "guard"):
-            self.assertIn(action, main)
+        for token in ("perform_light_attack", "perform_heavy_attack", "perform_dodge", "set_guard", "parry_success"):
+            self.assertIn(token, player)
+        for token in ("move_forward", "move_back", "move_left", "move_right", "heavy_attack", "lock_on"):
+            self.assertIn(token, main)
 
-    def test_boss_and_enemy_ai_exist(self):
+    def test_enemy_telegraph_and_two_phase_boss_exist(self):
         enemy = self.read("scripts/enemy.gd")
-        main = self.read("scripts/main.gd")
-        self.assertIn("is_boss", enemy)
-        self.assertIn("attack_damage", enemy)
-        self.assertIn("_make_enemy(Vector3(0, 0.05, -10.0), true)", main)
+        for token in ("BrainState.TELEGRAPH", "attack_telegraph", "phase_changed", "telegraph_mesh.visible = true", "phase = 2"):
+            self.assertIn(token, enemy)
+        self.assertIn("_make_enemy(Vector3(0.0, 0.05, -10.5), true)", self.read("scripts/main.gd"))
+
+    def test_combat_and_cinematic_runtime_tests_exist(self):
+        self.assertTrue(os.path.isfile(os.path.join(ROOT, "tests", "combat_smoke.gd")))
+        self.assertTrue(os.path.isfile(os.path.join(ROOT, "tests", "cinematic_smoke.gd")))
+        combat = self.read("tests/combat_smoke.gd")
+        cinematic = self.read("tests/cinematic_smoke.gd")
+        self.assertIn("Perfect parry", combat)
+        self.assertIn("Boss phase 2", combat)
+        self.assertIn("THE ASHEN GATE", cinematic)
+        self.assertIn("combat_started", cinematic)
 
     def test_no_external_or_proprietary_game_assets_are_bundled(self):
         for current, _, filenames in os.walk(ROOT):
