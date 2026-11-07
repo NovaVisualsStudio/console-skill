@@ -75,7 +75,7 @@ The first slice should contain one arena, one playable warrior, two basic enemy 
 - Touch controls usable in landscape without blocking the combat view.
 - A stable Android debug APK and a physical-device test report.
 
-The current scaffold is an early mechanics foundation. It uses primitive meshes and a simple arena; it does not yet meet the acceptance scope above.
+The current cinematic slice now includes an original procedural warrior/axe model, shoulder follow camera with cinematic intro, lock-on and impact shake, three-hit light combo, stamina heavy attack, dodge i-frames, timed parry/guard, two telegraphing guardians, an Ashen Warden two-phase boss, a fog-lit temple arena, generated ambience/combat sound effects, touch HUD and retry flow. Its models and attack animations are still procedural primitives and tweens; it does not yet meet full production art/animation quality or full-game scope.
 
 ## Full game feature roadmap
 
@@ -116,6 +116,21 @@ For a solo developer learning while building:
 
 Cash cost can remain near zero with self-made assets and free/open-source tools, but time is the main cost. Paid professional animation, sound, QA or commissioned art would change the budget materially.
 
+## Expanded CI test protocol: ten gates
+
+1. Python source and project integrity (9 tests), including generated build/cache exclusion.
+2. Godot 4.4.1 headless editor import and script parsing.
+3. Deterministic combat behaviour tests: combo chain, heavy attack, boss threshold/phase, parry, guard reduction, dodge i-frames, enemy telegraph/strike.
+4. Cinematic scene integration: arena nodes, player/boss/camera, intro lock, camera lock-on/shake, combat handoff and boss HUD/phase.
+5. Procedural audio smoke test: ambience stream, sample data, pooled voices and combat effect playback calls.
+6. Scene runtime smoke test.
+7. Extended 300-frame scene runtime test.
+8. Source hygiene checks.
+9. Android ARM64 debug APK export.
+10. Four repeated stability passes; each pass re-runs the Python, combat, cinematic, audio and 300-frame runtime checks.
+
+The latest run succeeded across all ten gates. This proves repeatable headless gameplay logic, scene initialisation and APK packaging. It is not a physical-device acceptance test.
+
 ## Test protocol: minimum five gates
 
 1. Python integrity tests: expected project files, scripts and licence hygiene.
@@ -149,4 +164,4 @@ The first four can run in CI. The fifth requires an actual Android device and mu
 
 ## Current verified delivery state
 
-The Android ARM64 debug APK has now been exported successfully by GitHub Actions and uploaded as the `nova-ancient-warrior-android-debug` artifact. Its ZIP archive passed integrity checking after download. This verifies export and packaging only; physical-device installation, touch usability, sustained performance, thermal behaviour and battery usage remain unverified until tested on an actual phone.
+The current cinematic Android ARM64 debug APK was exported successfully by GitHub Actions in run #79 and uploaded as `nova-ancient-warrior-android-debug`. The downloaded artifact archive passed ZIP integrity checks; the extracted APK is recognised as an Android package and contains the `arm64-v8a/libgodot_android.so` native runtime. This verifies export and packaging only; physical-device installation, touch ergonomics, sustained performance, thermal behaviour and battery usage remain unverified until tested on an actual phone.
