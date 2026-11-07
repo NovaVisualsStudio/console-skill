@@ -7,6 +7,7 @@ signal defeated
 signal parry_success
 signal hit_confirmed(target_position: Vector3, heavy: bool, combo_step: int)
 signal attack_started(heavy: bool, combo_step: int)
+signal dodge_started
 
 enum CombatState { IDLE, MOVE, ATTACK, DODGE, GUARD, STAGGER, DEAD }
 
@@ -311,6 +312,7 @@ func perform_dodge() -> bool:
     dodge_timer = DODGE_DURATION
     invulnerable = true
     current_state = CombatState.DODGE
+    dodge_started.emit()
     return true
 
 func take_damage(amount: int, source_position: Vector3 = Vector3.ZERO, heavy: bool = false) -> bool:
