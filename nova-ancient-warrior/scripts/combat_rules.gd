@@ -22,3 +22,31 @@ static func is_target_in_attack_arc(
 
 static func can_receive_hit(invulnerability_remaining: float) -> bool:
 	return invulnerability_remaining <= 0.0
+
+
+static func combo_damage(step: int) -> int:
+	match clampi(step, 0, 2):
+		0:
+			return 24
+		1:
+			return 30
+		_:
+			return 48
+
+
+static func combo_range(step: int) -> float:
+	return 2.8 if clampi(step, 0, 2) == 2 else 2.35
+
+
+static func combo_cooldown(step: int) -> float:
+	match clampi(step, 0, 2):
+		0:
+			return 0.30
+		1:
+			return 0.34
+		_:
+			return 0.55
+
+
+static func should_start_enemy_windup(distance: float, cooldown: float) -> bool:
+	return distance <= 1.85 and cooldown <= 0.0
