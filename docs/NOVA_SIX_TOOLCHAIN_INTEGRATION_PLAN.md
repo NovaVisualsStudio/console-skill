@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — Six-tool production integration plan
+# Nova Ancient Warrior - Six-tool production integration plan
 
 Status: research-backed integration plan only. No external account has been authenticated, no desktop application has been installed, and no third-party asset/plugin has been copied into the game. This document deliberately separates verified product facts from project-specific compatibility gates.
 
