@@ -50,6 +50,12 @@ class GodotProjectIntegrity(unittest.TestCase):
             self.assertIn(token, enemy)
         self.assertIn("_make_enemy(Vector3(0.0, 0.05, -10.5), true)", self.read("scripts/main.gd"))
 
+    def test_audio_fx_module_and_audio_test_exist(self):
+        audio = self.read("scripts/audio_fx.gd")
+        self.assertTrue(os.path.isfile(os.path.join(ROOT, "tests", "audio_smoke.gd")))
+        for token in ("_make_ambience", "_make_one_shot", "play_hit", "play_parry", "play_telegraph"):
+            self.assertIn(token, audio)
+
     def test_combat_and_cinematic_runtime_tests_exist(self):
         self.assertTrue(os.path.isfile(os.path.join(ROOT, "tests", "combat_smoke.gd")))
         self.assertTrue(os.path.isfile(os.path.join(ROOT, "tests", "cinematic_smoke.gd")))
@@ -59,6 +65,7 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn("Boss phase transition", combat)
         self.assertIn("camera_rig.start_intro", cinematic)
         self.assertIn("combat_started", cinematic)
+        self.assertIn("audio_fx", self.read("scripts/main.gd"))
 
     def test_no_external_or_proprietary_game_assets_are_bundled(self):
         for current, _, filenames in os.walk(ROOT):
