@@ -16,7 +16,7 @@ An original third-person 3D action game prototype built with Godot 4.7.2 and GDS
 - Three-hit sword combo, heavy attack, directional dodge with invulnerability frames, hold-to-guard, timed perfect parry, and target lock-on.
 - Enemies have readable approach, telegraph, strike and recovery phases.
 - Three enemy archetypes by speed/health/damage profile; bosses have different attack ranges and health-triggered phases.
-- Chapter title cards, boss reveal camera sequence, procedural ambient soundtrack, procedural combat tones and impact feedback.
+- Chapter title cards, boss reveal camera sequence and original procedural ambient soundtrack. A deterministic Python generator creates 13 original WAV effects for sword swings, impacts, parries, footsteps, dodges, jumps, boss roars, hazard alerts, victory and upgrades; CI generates and imports them before APK export.
 - Touch buttons: movement pad, Attack, Heavy, Jump, Lock-on, Dodge and Block.
 - Keyboard: WASD/arrows move, J/Enter attack, H heavy, I block, Tab lock-on, Shift/K dodge, Space jump, R restart.
 
@@ -41,7 +41,7 @@ A successful cloud export is not device certification. Install on the target pho
 
 ## Automated validation
 
-CI imports the project, strictly parses the main script, runs combat and visual smoke tests, verifies save/currency/upgrade persistence, validates chapter metadata, checks all nine encounter definitions, builds all three chapter dressings, tests timed hazard windows and safe lanes, and performs a headless main-scene smoke run before exporting Android.
+CI generates and validates the 13 original sound effects, imports the project, strictly parses the main script, runs combat and visual smoke tests, verifies save/currency/upgrade persistence, validates chapter metadata, checks all nine encounter definitions, builds all three chapter dressings, tests timed hazard windows and safe lanes, and performs a headless main-scene smoke run before exporting Android.
 
 ## Character and motion-capture pipeline
 
