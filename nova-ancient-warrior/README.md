@@ -27,6 +27,16 @@ An original third-person 3D action game prototype built with Godot 4.7.2 and GDS
 - The Soul Forge offers permanent Blade (+4 damage), Vitality (+15 max HP) and Guard (reduced incoming damage) upgrades, each with three levels.
 - Audio preference values are stored in the profile and applied to the procedural soundtrack and effects buses.
 
+## Generate the original skinned hero
+
+With Blender 4.2 or newer installed, run:
+
+```bash
+blender --background --python tools/blender/generate_nova_hero.py -- --output assets/characters/nova_hero.glb
+```
+
+The Android and Godot CI workflows run this generator automatically before importing the project. The generated model is a stylized original prototype; final art direction, animation polish and device playtesting remain necessary.
+
 ## Run in Godot
 
 1. Install Godot 4.7.2 from https://godotengine.org/download/.
