@@ -36,7 +36,7 @@ This remains a gameplay prototype, not a finished game. Godot headless validatio
 
 ## Character and mocap pipeline
 
-See [`docs/NOVA_CHARACTER_MOCAP_PRODUCTION_PIPELINE.md`](../docs/NOVA_CHARACTER_MOCAP_PRODUCTION_PIPELINE.md) for the open-source-first production stack, capture protocol, licensing rules and Godot humanoid retargeting contract. The Blender packaging validator is [`tools/blender/export_humanoid_for_godot.py`](../tools/blender/export_humanoid_for_godot.py); it requires a source FBX/GLB with a skinned humanoid, records asset provenance, checks the skeleton/weights/actions, and exports a Godot-ready GLB. No external hero model or mocap take has been imported yet. FreeMoCap requires a desktop capture workstation; the current Android-only target cannot run its full capture pipeline locally.
+See [`docs/NOVA_CHARACTER_MOCAP_PRODUCTION_PIPELINE.md`](../docs/NOVA_CHARACTER_MOCAP_PRODUCTION_PIPELINE.md) for the open-source-first production stack, capture protocol, licensing rules and Godot humanoid retargeting contract. The Blender packaging validator is [`tools/blender/export_humanoid_for_godot.py`](tools/blender/export_humanoid_for_godot.py); it requires a source FBX/GLB with a skinned humanoid, records asset provenance, checks the skeleton/weights/actions, and exports a Godot-ready GLB. No external hero model or mocap take has been imported yet. FreeMoCap requires a desktop capture workstation; the current Android-only target cannot run its full capture pipeline locally.
 
 ## Production milestones
 1. Validate import and scene execution in Godot 4.7.2.
