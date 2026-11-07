@@ -13,6 +13,8 @@ var player: CharacterBody3D
 var hero_visual: Node3D
 var camera: Camera3D
 var enemies: Array[Node3D] = []
+var current_wave := 1
+var wave_transitioning := false
 var health := 100
 var score := 0
 var attack_cooldown := 0.0
@@ -255,21 +257,70 @@ func _build_player() -> void:
 
 
 func _build_enemies() -> void:
-	for i in range(4):
-		var angle := TAU * float(i) / 4.0 + 0.4
+	_spawn_wave()
+
+
+func _spawn_wave() -> void:
+	var enemy_count := CombatRules.wave_enemy_count(current_wave)
+	var boss_wave := CombatRules.is_boss_wave(current_wave)
+	for i in range(enemy_count):
+		var angle := TAU * float(i) / float(enemy_count) + 0.4
 		var enemy := Node3D.new()
-		enemy.name = "AshSentinel_%d" % i
-		enemy.position = Vector3(cos(angle) * 6.0, 0.0, sin(angle) * 6.0)
-		enemy.set_meta("hp", 60)
+		enemy.name = "AshTitan" if boss_wave else "AshSentinel_W%d_%d" % [current_wave, i + 1]
+		var spawn_radius := 7.8 if boss_wave else 6.2 + float(current_wave - 1) * 0.7
+		enemy.position = Vector3(cos(angle) * spawn_radius, 0.0, sin(angle) * spawn_radius)
+		enemy.set_meta("hp", CombatRules.wave_enemy_health(current_wave))
+		enemy.set_meta("speed", 1.35 if boss_wave else ENEMY_SPEED + float(current_wave - 1) * 0.12)
+		enemy.set_meta("damage", CombatRules.wave_enemy_damage(current_wave))
+		enemy.set_meta("boss", boss_wave)
+		enemy.set_meta("windup_duration", 0.64 if boss_wave else 0.42 - float(current_wave - 1) * 0.04)
+		enemy.set_meta("recovery_duration", 1.0 if boss_wave else 0.78)
 		enemy.set_meta("attack_state", "approach")
 		enemy.set_meta("attack_timer", 0.0)
 		enemy.set_meta("attack_cooldown", randf_range(0.25, 0.85))
 		var enemy_visual := WarriorVisual.new()
 		enemy_visual.name = "WarriorVisual"
 		enemy_visual.set("is_enemy", true)
+		enemy_visual.set("is_boss", boss_wave)
 		enemy.add_child(enemy_visual)
+		if boss_wave:
+			enemy.scale = Vector3.ONE * 1.42
+			var title := Label3D.new()
+			title.text = "ASH TITAN"
+			title.position = Vector3(0.0, 3.15, 0.0)
+			title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			title.font_size = 40
+			title.outline_size = 8
+			title.modulate = Color(1.0, 0.64, 0.36)
+			enemy.add_child(title)
 		add_child(enemy)
 		enemies.append(enemy)
+	_update_hud()
+
+
+func _handle_wave_cleared() -> void:
+	if wave_transitioning or game_over:
+		return
+	if current_wave >= 3:
+		game_over = true
+		status_label.text = "ASH TITAN DEFEATED | ARENA RESTORED"
+		restart_button.visible = true
+		_play_tone(880.0, 0.3, 0.22)
+		return
+	wave_transitioning = true
+	status_label.text = "WAVE %d CLEARED | PREPARE FOR THE NEXT ATTACK" % current_wave
+	_play_tone(660.0, 0.18, 0.18)
+	var transition := get_tree().create_timer(1.35)
+	transition.timeout.connect(func():
+		if game_over or not is_inside_tree():
+			return
+		current_wave += 1
+		_spawn_wave()
+		wave_transitioning = false
+		status_label.text = "WAVE %d / 3 | DEFEAT THE ASH SENTINELS" % current_wave
+		_update_hud()
+		_play_tone(520.0 + float(current_wave) * 80.0, 0.14, 0.18)
+	)
 
 
 func _build_hud() -> void:
@@ -289,6 +340,7 @@ func _build_hud() -> void:
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.add_theme_font_size_override("font_size", 20)
 	status_label.add_theme_color_override("font_color", Color(0.92, 0.84, 0.72))
+	status_label.text = "WAVE 1 / 3 | DEFEAT THE ASH SENTINELS"
 	layer.add_child(status_label)
 	_add_touch_button(layer, "↑", "move_forward", Vector2(112.0, -190.0))
 	_add_touch_button(layer, "↓", "move_back", Vector2(112.0, -88.0))
@@ -386,6 +438,7 @@ func _update_enemies(delta: float) -> void:
 		var offset: Vector3 = player.global_position - enemy.global_position
 		offset.y = 0.0
 		var distance: float = offset.length()
+		var enemy_speed := float(enemy.get_meta("speed", ENEMY_SPEED))
 		if distance > 0.001:
 			enemy.look_at(Vector3(player.global_position.x, enemy.global_position.y, player.global_position.z), Vector3.UP)
 		var visual := enemy.get_node_or_null("WarriorVisual")
@@ -395,12 +448,12 @@ func _update_enemies(delta: float) -> void:
 
 		if attack_state == "approach":
 			if distance > 1.85:
-				enemy.global_position += offset.normalized() * ENEMY_SPEED * delta
+				enemy.global_position += offset.normalized() * enemy_speed * delta
 				if visual != null:
 					visual.call("set_locomotion", 0.46, delta)
 			elif CombatRules.should_start_enemy_windup(distance, attack_cooldown_value):
 				attack_state = "windup"
-				attack_timer = 0.42
+				attack_timer = float(enemy.get_meta("windup_duration", 0.42))
 				if visual != null:
 					visual.call("telegraph", true)
 			else:
@@ -410,10 +463,10 @@ func _update_enemies(delta: float) -> void:
 			attack_timer = maxf(0.0, attack_timer - delta)
 			if attack_timer <= 0.0:
 				if distance <= 2.0:
-					_damage_player(9)
-					_play_tone(125.0, 0.12, 0.2)
+					_damage_player(int(enemy.get_meta("damage", 9)))
+					_play_tone(125.0 if not bool(enemy.get_meta("boss", false)) else 85.0, 0.12, 0.2)
 				attack_state = "recovery"
-				attack_timer = 0.78
+				attack_timer = float(enemy.get_meta("recovery_duration", 0.78))
 				if visual != null:
 					visual.call("telegraph", false)
 				if game_over:
@@ -467,13 +520,10 @@ func _attack() -> void:
 			if hp <= 0:
 				enemy.queue_free()
 				enemies.remove_at(index)
-				score += 100
+				score += 500 if bool(enemy.get_meta("boss", false)) else 100
 				_update_hud()
 				if enemies.is_empty():
-					status_label.text = "ARENA CLEARED | TAP RESTART OR PRESS R"
-					game_over = true
-					restart_button.visible = true
-					_play_tone(880.0, 0.3, 0.22)
+					_handle_wave_cleared()
 	if is_instance_valid(hud):
 		_update_hud()
 
@@ -496,7 +546,7 @@ func _damage_player(amount: int) -> void:
 func _update_hud() -> void:
 	if is_instance_valid(hud):
 		var combo_display := combo_display_step + 1 if combo_timer > 0.0 else 1
-		hud.text = "NOVA  |  VITALITY %d%%  |  SOULS %d  |  COMBO x%d" % [health, score, combo_display]
+		hud.text = "NOVA  |  WAVE %d/3  |  VITALITY %d%%  |  SOULS %d  |  COMBO x%d" % [current_wave, health, score, combo_display]
 
 
 func _build_audio() -> void:
