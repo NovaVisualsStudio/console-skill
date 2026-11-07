@@ -1,0 +1,122 @@
+name: Nova Warrior Motion Capture and Rigged Character
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_path:
+        description: "Use demo, or a repository path under nova-ancient-warrior/mocap/"
+        required: true
+        default: "demo"
+        type: string
+      rig_profile:
+        description: "CC0 humanoid rig from the pinned VideoIntoBlenderModel release"
+        required: true
+        default: "humanoid_articulated"
+        type: choice
+        options:
+          - humanoid_articulated
+          - humanoid_rig
+          - attractor_mechanic_tpose
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nova-mocap-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  capture-and-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out Nova game
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install video runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libgl1 libglib2.0-0
+
+      - name: Fetch pinned open-source motion capture pipeline
+        run: |
+          git clone https://github.com/s0ck3t/VideoIntoBlenderModel.git .v2bm
+          git -C .v2bm checkout c1f1fa8f01524d60197c4d65306349e266d339cb
+          python -m pip install --upgrade pip
+          python -m pip install -e ./.v2bm
+
+      - name: Select CC0 demo or uploaded phone recording
+        id: input
+        env:
+          REQUESTED_VIDEO: ${{ inputs.video_path }}
+          REQUESTED_RIG: ${{ inputs.rig_profile }}
+        run: |
+          set -euo pipefail
+          case "$REQUESTED_RIG" in
+            humanoid_articulated|humanoid_rig|attractor_mechanic_tpose) ;;
+            *) echo "Unsupported rig profile"; exit 2 ;;
+          esac
+          if [ "$REQUESTED_VIDEO" = "demo" ]; then
+            VIDEO_PATH="$GITHUB_WORKSPACE/.v2bm/assets/video/kung_fu_haikou.mp4"
+            VIDEO_LICENCE="CC0-1.0"
+          else
+            case "$REQUESTED_VIDEO" in
+              nova-ancient-warrior/mocap/*) ;;
+              *) echo "Custom video must be stored under nova-ancient-warrior/mocap/"; exit 2 ;;
+            esac
+            VIDEO_PATH="$GITHUB_WORKSPACE/$REQUESTED_VIDEO"
+            test -s "$VIDEO_PATH"
+            VIDEO_LICENCE="user-supplied; confirm performer rights before commercial release"
+          fi
+          RIG_PATH="$GITHUB_WORKSPACE/.v2bm/assets/rigs/$REQUESTED_RIG.fbx"
+          test -s "$VIDEO_PATH"
+          test -s "$RIG_PATH"
+          echo "video_path=$VIDEO_PATH" >> "$GITHUB_OUTPUT"
+          echo "rig_path=$RIG_PATH" >> "$GITHUB_OUTPUT"
+          echo "video_licence=$VIDEO_LICENCE" >> "$GITHUB_OUTPUT"
+          echo "rig_profile=$REQUESTED_RIG" >> "$GITHUB_OUTPUT"
+
+      - name: Run markerless video-to-character motion retargeting
+        working-directory: .v2bm
+        env:
+          VIDEO_PATH: ${{ steps.input.outputs.video_path }}
+          RIG_PATH: ${{ steps.input.outputs.rig_path }}
+        run: |
+          set -euo pipefail
+          v2bm run --video "$VIDEO_PATH" --rig "$RIG_PATH" --device cpu --no-preview
+          OUTPUT_GLB="$(find outputs -type f -name character_animation.glb -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)"
+          test -n "$OUTPUT_GLB"
+          test -s "$OUTPUT_GLB"
+          mkdir -p "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters"
+          cp "$OUTPUT_GLB" "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate.glb"
+          cp "$(dirname "$OUTPUT_GLB")/run.json" "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate.run.json"
+
+      - name: Download Godot 4.7.2
+        run: |
+          curl -L --fail --retry 3 -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+
+      - name: Import the generated rigged GLB into Godot
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path nova-ancient-warrior --import
+
+      - name: Verify imported skeleton and animation library
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/character_asset_smoke.gd
+
+      - name: Publish retargeted character and report
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-warrior-mocap-character
+          path: |
+            nova-ancient-warrior/assets/characters/nova_mocap_candidate.glb
+            nova-ancient-warrior/assets/characters/nova_mocap_candidate.run.json
+          if-no-files-found: error
+          retention-days: 14
