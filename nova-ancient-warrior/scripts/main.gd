@@ -14,6 +14,7 @@ const LevelCatalog = preload("res://scripts/level_catalog.gd")
 const StageBuilder = preload("res://scripts/stage_builder.gd")
 const CampaignLayout = preload("res://scripts/campaign_layout.gd")
 const MobileRenderProfile = preload("res://scripts/mobile_render_profile.gd")
+const RiggedWarriorVisual = preload("res://scripts/rigged_warrior_visual.gd")
 const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 
 var player: CharacterBody3D
@@ -393,7 +394,10 @@ func _build_player() -> void:
 	collision.shape = capsule
 	collision.position.y = 0.9
 	player.add_child(collision)
-	hero_visual = WarriorVisual.new()
+	if ResourceLoader.exists("res://assets/characters/nova_hero.glb"):
+		hero_visual = RiggedWarriorVisual.new()
+	else:
+		hero_visual = WarriorVisual.new()
 	hero_visual.name = "WarriorVisual"
 	hero_visual.set("blade_upgrade", int(_save_profile().get("upgrade_blade", 0)))
 	player.add_child(hero_visual)
