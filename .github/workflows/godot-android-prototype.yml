@@ -87,12 +87,20 @@ jobs:
           test -s android-game/scripts/enemy.gd
           ! find android-game -type f \( -name '*.elf' -o -name '*.iso' \) | grep .
 
+      - name: Create temporary Android debug signing key
+        run: |
+          keytool -genkeypair -v -keystore "$RUNNER_TEMP/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+
       - name: Gate 7 - export Android debug APK
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ runner.temp }}/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           cd android-game
           mkdir -p build
           godot --headless --editor --path . --quit
-          godot --headless --path . --export-debug "Android" build/NovaAncientWarrior-debug.apk
+          godot --headless --path . --export-debug "Android" build/NovaAncientWarrior-debug.apk --verbose
           test -s build/NovaAncientWarrior-debug.apk
 
       - name: Upload Android debug APK
