@@ -64,8 +64,8 @@ static func heavy_attack_cooldown() -> float:
 	return 0.82
 
 
-static func should_start_enemy_windup(distance: float, cooldown: float) -> bool:
-	return distance <= 1.85 and cooldown <= 0.0
+static func should_start_enemy_windup(distance: float, cooldown: float, windup_range: float = 1.85) -> bool:
+	return distance <= maxf(0.0, windup_range) and cooldown <= 0.0
 
 
 static func is_boss_wave(wave: int) -> bool:
