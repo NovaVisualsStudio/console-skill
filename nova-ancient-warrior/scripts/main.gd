@@ -336,7 +336,7 @@ func _handle_wave_cleared() -> void:
 		_play_tone(880.0, 0.3, 0.22)
 		return
 	wave_transitioning = true
-	SaveManager.record_run(current_wave, score, souls_earned, false)
+	SaveManager.record_checkpoint(current_wave, score)
 	status_label.text = "WAVE %d CLEARED | PREPARE FOR THE NEXT ATTACK" % current_wave
 	_play_tone(660.0, 0.18, 0.18)
 	var transition := get_tree().create_timer(1.35)
