@@ -12,6 +12,7 @@ const MusicDirector = preload("res://scripts/music_director.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
 const LevelCatalog = preload("res://scripts/level_catalog.gd")
 const StageBuilder = preload("res://scripts/stage_builder.gd")
+const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 
 var player: CharacterBody3D
 var hero_visual: Node3D
@@ -45,6 +46,9 @@ var locked_target: Node3D
 var player_blocking := false
 var block_window_remaining := 0.0
 var built_stage_index := -1
+var hazard_elapsed := 0.0
+var hazard_damage_cooldown := 0.0
+var hazard_warning_cooldown := 0.0
 var blade_damage_bonus := 0
 var guard_damage_scale := 1.0
 var upgrade_panel: PanelContainer
@@ -162,7 +166,25 @@ func _physics_process(delta: float) -> void:
 	if is_instance_valid(hero_visual):
 		var planar_speed := Vector2(player.velocity.x, player.velocity.z).length()
 		hero_visual.call("set_locomotion", planar_speed / PLAYER_SPEED, delta)
+	_update_stage_hazards(delta)
 	_update_enemies(delta)
+
+
+func _update_stage_hazards(delta: float) -> void:
+	if game_over or not is_instance_valid(player):
+		return
+	hazard_elapsed += delta
+	hazard_damage_cooldown = maxf(0.0, hazard_damage_cooldown - delta)
+	hazard_warning_cooldown = maxf(0.0, hazard_warning_cooldown - delta)
+	var hazard := StageHazardRules.query(LevelCatalog.stage_index(current_wave), player.global_position, hazard_elapsed)
+	if bool(hazard.get("warning", false)) and hazard_warning_cooldown <= 0.0:
+		status_label.text = "%s CHARGING - MOVE!" % str(hazard.get("label", "ARENA HAZARD"))
+		hazard_warning_cooldown = 1.0
+	if bool(hazard.get("active", false)) and hazard_damage_cooldown <= 0.0:
+		_damage_player(int(hazard.get("damage", 10)))
+		if not game_over:
+			status_label.text = "%s HIT - GET CLEAR!" % str(hazard.get("label", "ARENA HAZARD"))
+		hazard_damage_cooldown = 1.12
 
 
 func _is_lock_target_valid() -> bool:
@@ -390,6 +412,9 @@ func _apply_level_theme(wave: int) -> void:
 	if next_stage_index != built_stage_index:
 		StageBuilder.build_stage(self, next_stage_index)
 		built_stage_index = next_stage_index
+		hazard_elapsed = 0.0
+		hazard_damage_cooldown = 0.0
+		hazard_warning_cooldown = 0.0
 
 
 func _spawn_wave() -> void:
