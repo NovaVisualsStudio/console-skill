@@ -240,13 +240,14 @@ func _build_leg(part_name: String, side: float, dark: Material, cloth: Material,
 	return pivot
 
 
-func _add_box(parent: Node3D, part_name: String, size: Vector3, offset: Vector3, material: Material) -> MeshInstance3D:
+func _add_box(parent: Node3D, part_name: String, size: Vector3, offset: Vector3, material: Material, rotation: Vector3 = Vector3.ZERO) -> MeshInstance3D:
 	var mesh := BoxMesh.new()
 	mesh.size = size
 	var instance := MeshInstance3D.new()
 	instance.name = part_name
 	instance.mesh = mesh
 	instance.position = offset
+	instance.rotation = rotation
 	instance.material_override = material
 	parent.add_child(instance)
 	return instance
