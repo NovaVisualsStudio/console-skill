@@ -38,7 +38,7 @@ func _ready() -> void:
         add_child(player)
         one_shot_players.append(player)
 
-func _exit_tree() -> void:
+func shutdown() -> void:
     if is_instance_valid(ambience_player):
         ambience_player.stop()
         ambience_player.stream = null
@@ -46,6 +46,19 @@ func _exit_tree() -> void:
         if is_instance_valid(voice):
             voice.stop()
             voice.stream = null
+    one_shot_players.clear()
+    ambience_player = null
+    _swing_light = null
+    _swing_heavy = null
+    _impact_light = null
+    _impact_heavy = null
+    _parry = null
+    _dodge = null
+    _telegraph = null
+    _phase_burst = null
+
+func _exit_tree() -> void:
+    shutdown()
 
 func start_ambience() -> void:
     if is_instance_valid(ambience_player) and not ambience_player.playing:
