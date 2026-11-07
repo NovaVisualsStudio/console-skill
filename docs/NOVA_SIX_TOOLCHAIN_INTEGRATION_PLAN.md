@@ -8,12 +8,12 @@ Target project: Godot 4.7.2, Compatibility renderer, Android ARM64 first. Keep t
 
 Adopt a staged content-production pipeline, not six runtime dependencies:
 
-1. AccuRIG — prepare humanoid skeletons.
-2. Mixamo — prototype humanoid animation clips.
-3. Cascadeur — optional animation polish only if a paid export licence is justified; the Free plan is not suitable for shipping FBX/DAE or commercial production.
-4. Material Maker — first-choice procedural PBR authoring tool.
-5. FMOD Studio + Godot FMOD GDExtension — optional audio middleware, behind a separate integration branch and Android build gate.
-6. Substance 3D Painter — optional paid texture-authoring upgrade; do not make it a project requirement.
+1. AccuRIG - prepare humanoid skeletons.
+2. Mixamo - prototype humanoid animation clips.
+3. Cascadeur - optional animation polish only if a paid export licence is justified; the Free plan is not suitable for shipping FBX/DAE or commercial production.
+4. Material Maker - first-choice procedural PBR authoring tool.
+5. FMOD Studio + Godot FMOD GDExtension - optional audio middleware, behind a separate integration branch and Android build gate.
+6. Substance 3D Painter - optional paid texture-authoring upgrade; do not make it a project requirement.
 
 The first production pass should use AccuRIG + Mixamo + Material Maker. Continue using Godot's built-in animation and audio systems until an asset or profiling result proves an external runtime dependency is needed.
 
@@ -46,7 +46,7 @@ The first production pass should use AccuRIG + Mixamo + Material Maker. Continue
 
 ## Integration pipeline
 
-### Phase A — animation content (no runtime plugin)
+### Phase A - animation content (no runtime plugin)
 1. Select one existing hero mesh and one humanoid enemy mesh. Preserve original source files and create copies for export experiments.
 2. Prepare neutral A/T pose meshes with applied transforms, clean topology around shoulders/hips/knees/elbows, and sensible scale.
 3. Rig the hero in AccuRIG. Export FBX. Keep a source copy and record software version, skeleton name, scale and licence evidence.
@@ -54,14 +54,14 @@ The first production pass should use AccuRIG + Mixamo + Material Maker. Continue
 5. In Godot, test skeleton import and retargeting. Separate root motion from in-place clips; standardize clip names and loop flags. Build AnimationTree state transitions with interruptible attack/hit states. Avoid importing unused clips.
 6. Do not add animation files to the shipping project until scale, skeleton mapping, weapon hand socket, foot contact and mobile performance pass.
 
-### Phase B — materials
+### Phase B - materials
 1. Use Material Maker to create four reusable master materials: stone, worn metal, leather and earth.
 2. Export albedo/base colour, normal, roughness and ambient-occlusion maps only when useful. Avoid maps the target shader does not consume.
 3. Start at 512 px for small props and 1024 px for hero/boss assets; increase only when a device capture proves a visible benefit.
 4. Prefer tiling materials and shared atlases. Avoid unique 2K/4K maps for ordinary environment props.
 5. Validate in the existing Compatibility renderer and inspect on the target Android device. Record GPU memory, frame-time and APK-size deltas.
 
-### Phase C — audio decision
+### Phase C - audio decision
 1. First implement/verify combat audio with Godot AudioStreamPlayer/AudioStreamPlayer3D, buses, attenuation and pooled one-shots.
 2. Create a separate experimental branch for FMOD; never replace the working audio system in-place.
 3. Confirm plugin release notes, licence, Godot 4.7.2 compatibility and Android ARM64 binaries. Confirm Gradle build integration and Android plugin packaging.
@@ -69,7 +69,7 @@ The first production pass should use AccuRIG + Mixamo + Material Maker. Continue
 5. Test install, launch, audio focus, pause/resume, repeated scene transitions, device rotation if supported, and 15-minute playback on a physical Android device.
 6. Compare CPU, memory, APK size, latency, crackles and reliability against native Godot audio. Adopt FMOD only if it clearly improves the game.
 
-### Phase D — texture painting
+### Phase D - texture painting
 1. Do not buy Painter yet. Use Material Maker and Blender-compatible workflows first.
 2. If the art direction later requires hand-painted wear, layered masks or advanced baking, trial Painter on one hero sword and one armour plate.
 3. Verify export preset, texture channel packing, colour space and asset terms before importing any Painter/Assets output.
