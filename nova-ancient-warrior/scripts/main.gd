@@ -98,6 +98,7 @@ func _process(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if game_over or not is_instance_valid(player):
 		return
+	footstep_timer = maxf(0.0, footstep_timer - delta)
 	player_invulnerability_time = maxf(0.0, player_invulnerability_time - delta)
 	attack_cooldown = maxf(0.0, attack_cooldown - delta)
 	dodge_cooldown = maxf(0.0, dodge_cooldown - delta)
@@ -864,7 +865,7 @@ func _update_enemies(delta: float) -> void:
 							hit_range = 6.5
 				if distance <= hit_range:
 					_damage_player(damage, enemy)
-					_play_tone(125.0 if not is_boss else (78.0 if boss_kind == "obsidian_sovereign" else 92.0), 0.16, 0.22)
+					_play_sfx_or_tone("heavy_swing" if is_boss else "sword_swing", 125.0 if not is_boss else (78.0 if boss_kind == "obsidian_sovereign" else 92.0), 0.16, 0.22)
 				attack_state = "recovery"
 				attack_timer = float(enemy.get_meta("recovery_duration", 0.78))
 				if is_boss and phase >= 2:
