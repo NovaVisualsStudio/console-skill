@@ -79,13 +79,13 @@ jobs:
         run: godot --headless --path android-game --script res://tests/combat_smoke.gd
 
       - name: Gate 4 - cinematic arena integration test
-        run: godot --headless --path android-game --script res://tests/cinematic_smoke.gd
+        run: godot --headless --verbose --path android-game --script res://tests/cinematic_smoke.gd
 
       - name: Gate 5 - procedural audio smoke test
-        run: godot --headless --path android-game --script res://tests/audio_smoke.gd
+        run: godot --headless --verbose --path android-game --script res://tests/audio_smoke.gd
 
       - name: Gate 6 - scene runtime smoke test
-        run: godot --headless --path android-game --script res://tests/runtime_smoke.gd
+        run: godot --headless --verbose --path android-game --script res://tests/runtime_smoke.gd
 
       - name: Gate 7 - extended 300-frame runtime test
         run: godot --headless --path android-game --script res://tests/runtime_smoke.gd
