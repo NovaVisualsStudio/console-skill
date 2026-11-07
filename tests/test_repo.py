@@ -287,7 +287,7 @@ class Repo(unittest.TestCase):
         with open(script_path, encoding="utf-8") as fh:
             script = fh.read()
         self.assertIn("var to_enemy: Vector3 = enemy.global_position - player.global_position", script)
-        self.assertIn("var distance: float = to_enemy.length()", script)
+        self.assertIn("CombatRules.is_target_in_attack_arc(facing, to_enemy, ATTACK_RANGE)", script)
 
     def test_player_is_clamped_to_arena_bounds(self):
         script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
