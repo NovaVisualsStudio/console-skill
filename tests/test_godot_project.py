@@ -23,6 +23,7 @@ class GodotProjectIntegrity(unittest.TestCase):
         project = self.read("project.godot")
         preset = self.read("export_presets.cfg")
         self.assertIn("window/handheld/orientation=0", project)
+        self.assertIn("textures/vram_compression/import_etc2_astc=true", project)
         self.assertIn('name="Android"', preset)
         self.assertIn('package/unique_name="com.novavisuals.ancientwarrior"', preset)
         self.assertIn("architectures/arm64-v8a=true", preset)
