@@ -108,6 +108,9 @@ func _play_loop(fragment: String) -> void:
 	var animation_name := _find_animation(fragment)
 	if animation_name.is_empty() or _animation_player == null:
 		return
+	var animation := _animation_player.get_animation(animation_name)
+	if animation != null:
+		animation.loop_mode = Animation.LOOP_LINEAR
 	if _active_animation == animation_name and _animation_player.is_playing():
 		return
 	_active_animation = animation_name
@@ -118,6 +121,9 @@ func _play_action(fragment: String) -> void:
 	var animation_name := _find_animation(fragment)
 	if animation_name.is_empty() or _animation_player == null:
 		return
+	var animation := _animation_player.get_animation(animation_name)
+	if animation != null:
+		animation.loop_mode = Animation.LOOP_NONE
 	_one_shot = true
 	_active_animation = animation_name
 	_animation_player.play(animation_name, 0.06)
@@ -127,5 +133,7 @@ func _on_animation_finished(animation_name: StringName) -> void:
 	if str(animation_name) != _active_animation:
 		return
 	_one_shot = false
-	if not _blocking:
+	if _blocking:
+		_play_loop("block")
+	else:
 		_play_loop("idle")
