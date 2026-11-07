@@ -98,6 +98,8 @@ jobs:
           test -s android-game/scripts/main.gd
           test -s android-game/scripts/player.gd
           test -s android-game/scripts/enemy.gd
+          test -s android-game/icon.svg
+          test -s android-game/tests/runtime_smoke.gd
           ! find android-game -type f \( -name '*.elf' -o -name '*.iso' \) | grep .
 
       - name: Create temporary Android debug signing key
@@ -116,6 +118,9 @@ jobs:
           godot --headless --editor --path . --quit
           godot --headless --path . --export-debug "Android" build/NovaAncientWarrior-debug.apk --verbose
           test -s build/NovaAncientWarrior-debug.apk
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose build/NovaAncientWarrior-debug.apk
+          "$ANDROID_HOME/build-tools/34.0.0/aapt" dump badging build/NovaAncientWarrior-debug.apk | grep -F "package: name='com.novavisuals.ancientwarrior'"
+          unzip -l build/NovaAncientWarrior-debug.apk | grep -F "lib/arm64-v8a/libgodot_android.so"
 
       - name: Gate 10 - six repeated gameplay and runtime passes
         run: |
