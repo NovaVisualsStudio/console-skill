@@ -49,6 +49,7 @@ var built_stage_index := -1
 var hazard_elapsed := 0.0
 var hazard_damage_cooldown := 0.0
 var hazard_warning_cooldown := 0.0
+var rune_hazard_lit := false
 var blade_damage_bonus := 0
 var guard_damage_scale := 1.0
 var upgrade_panel: PanelContainer
@@ -176,7 +177,12 @@ func _update_stage_hazards(delta: float) -> void:
 	hazard_elapsed += delta
 	hazard_damage_cooldown = maxf(0.0, hazard_damage_cooldown - delta)
 	hazard_warning_cooldown = maxf(0.0, hazard_warning_cooldown - delta)
-	var hazard := StageHazardRules.query(LevelCatalog.stage_index(current_wave), player.global_position, hazard_elapsed)
+	var stage_index := LevelCatalog.stage_index(current_wave)
+	var hazard := StageHazardRules.query(stage_index, player.global_position, hazard_elapsed)
+	var rune_pulse := stage_index == 2 and (bool(hazard.get("warning", false)) or bool(hazard.get("active", false)))
+	if rune_pulse != rune_hazard_lit:
+		rune_hazard_lit = rune_pulse
+		StageBuilder.set_rune_intensity(self, 1.0 if rune_hazard_lit else 0.0)
 	if bool(hazard.get("warning", false)) and hazard_warning_cooldown <= 0.0:
 		status_label.text = "%s CHARGING - MOVE!" % str(hazard.get("label", "ARENA HAZARD"))
 		hazard_warning_cooldown = 1.0
@@ -415,6 +421,8 @@ func _apply_level_theme(wave: int) -> void:
 		hazard_elapsed = 0.0
 		hazard_damage_cooldown = 0.0
 		hazard_warning_cooldown = 0.0
+		rune_hazard_lit = false
+		StageBuilder.set_rune_intensity(self, 0.0)
 
 
 func _spawn_wave() -> void:
