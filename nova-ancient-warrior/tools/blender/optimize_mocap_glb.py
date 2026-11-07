@@ -6,7 +6,7 @@ import struct
 from pathlib import Path
 
 JSON_CHUNK = b"JSON"
-BIN_CHUNK = b"BIN\\0"
+BIN_CHUNK = b"BIN\0"
 
 
 def read_glb(path):
@@ -29,7 +29,7 @@ def read_glb(path):
     bin_chunks = [value for kind, value in chunks if kind == BIN_CHUNK]
     if len(json_chunks) != 1 or len(bin_chunks) != 1:
         raise ValueError("Expected one JSON and one BIN chunk")
-    document = json.loads(json_chunks[0].decode("utf-8").rstrip(" \\t\\r\\n\\0"))
+    document = json.loads(json_chunks[0].decode("utf-8").rstrip(" \t\r\n\0"))
     return document, bin_chunks[0]
 
 
@@ -156,7 +156,7 @@ def repack(document, source_bin):
 
 def write_glb(document, binary, output):
     while len(binary) % 4:
-        binary += b"\\0"
+        binary += b"\0"
     document["buffers"][0]["byteLength"] = len(binary)
     json_data = json.dumps(document, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     json_data += b" " * ((-len(json_data)) % 4)
