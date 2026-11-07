@@ -8,7 +8,8 @@ An original third-person 3D action game prototype built with Godot 4.7.2 and GDS
 - **Chapter II - The Ember Causeway:** faster and heavier enemy variants, a lunge-based boss encounter, and **The Ember Warlord**.
 - **Chapter III - The Obsidian Throne:** the hardest regular waves, an area-attack boss, and **The Obsidian Sovereign**.
 - Nine waves total, with boss encounters at waves 3, 6 and 9.
-- Three procedural stage dressings with different architectural silhouettes, palette, light and emissive accents. The campaign currently reuses one arena scene and swaps its chapter dressing; it is not yet three separately authored exploration levels.
+- Three procedural chapter environments with distinct silhouettes and palettes: Sunken Ruins spike traps, Ember Causeway lava channels with a central safe bridge, and Obsidian Throne runes that telegraph before timed pulses.
+- Chapter hazards have deterministic damage windows and tested safe routes; visual indicators are synchronized with the warning/active phases. The campaign currently reuses one arena scene and swaps its chapter dressing; it is not yet three separately authored exploration levels.
 
 ## Combat systems
 
