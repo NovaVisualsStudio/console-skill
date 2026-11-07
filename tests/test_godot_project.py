@@ -19,6 +19,14 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn('renderer/rendering_method="gl_compatibility"', project)
         self.assertIn('renderer/rendering_method.mobile="gl_compatibility"', project)
 
+    def test_android_export_preset_and_landscape(self):
+        project = self.read("project.godot")
+        preset = self.read("export_presets.cfg")
+        self.assertIn("window/handheld/orientation=0", project)
+        self.assertIn('name="Android"', preset)
+        self.assertIn('package/unique_name="com.novavisuals.ancientwarrior"', preset)
+        self.assertIn("architectures/arm64-v8a=true", preset)
+
     def test_combat_actions_exist(self):
         player = self.read("scripts/player.gd")
         main = self.read("scripts/main.gd")
