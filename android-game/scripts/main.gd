@@ -402,6 +402,7 @@ func _build_hud() -> void:
 
 func _add_control_button(layer: CanvasLayer, button_text: String, offset: Vector2, action: String) -> void:
     var button := Button.new()
+    button.name = action
     button.text = button_text
     button.custom_minimum_size = Vector2(58, 58)
     button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
