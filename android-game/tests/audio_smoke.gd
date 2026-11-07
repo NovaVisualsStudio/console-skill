@@ -42,6 +42,7 @@ func _run_tests() -> void:
         return
 
     print("AUDIO TESTS PASS: looping atmospheric drone, light/heavy swing and impact, parry, boss telegraph and phase burst.")
-    audio.queue_free()
+    audio.free()
+    await process_frame
     await process_frame
     quit(0)
