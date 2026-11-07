@@ -1,4 +1,4 @@
-# NOVA — Ancient Warrior: technical production plan
+# NOVA - Ancient Warrior: technical production plan
 
 ## Product target
 
@@ -157,8 +157,8 @@ The first four can run in CI. The fifth requires an actual Android device and mu
 - Krita (2D concepts and UI art): https://krita.org/
 - GIMP (texture and image editing): https://www.gimp.org/
 - Audacity (audio editing): https://www.audacityteam.org/
-- Kenney asset library: https://kenney.nl/assets — verify the licence on each pack page; many packs are CC0.
-- OpenGameArt: https://opengameart.org/ — licences vary by asset; review each entry.
+- Kenney asset library: https://kenney.nl/assets - verify the licence on each pack page; many packs are CC0.
+- OpenGameArt: https://opengameart.org/ - licences vary by asset; review each entry.
 - PS2SDK: https://github.com/ps2dev/ps2sdk
 - PCSX2 emulator: https://github.com/PCSX2/pcsx2
 
