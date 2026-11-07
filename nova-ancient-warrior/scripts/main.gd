@@ -8,6 +8,8 @@ const ATTACK_RANGE := 2.25
 const ARENA_LIMIT := 16.0
 const CombatRules = preload("res://scripts/combat_rules.gd")
 const WarriorVisual = preload("res://scripts/warrior_visual.gd")
+const MusicDirector = preload("res://scripts/music_director.gd")
+const CinematicDirector = preload("res://scripts/cinematic_director.gd")
 
 var player: CharacterBody3D
 var hero_visual: Node3D
@@ -31,6 +33,9 @@ var status_label: Label
 var restart_button: Button
 var sound_players: Array[AudioStreamPlayer] = []
 var sound_cursor := 0
+var souls_earned := 0
+var cinematic_active := false
+var music_director: Node
 
 
 func _ready() -> void:
@@ -44,7 +49,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if is_instance_valid(player) and is_instance_valid(camera):
+	if not cinematic_active and is_instance_valid(player) and is_instance_valid(camera):
 		var target := player.global_position + Vector3(0.0, 6.3, 9.0)
 		camera.global_position = camera.global_position.lerp(target, minf(delta * 4.5, 1.0))
 		camera.look_at(player.global_position + Vector3(0.0, 1.1, 0.0), Vector3.UP)
@@ -297,6 +302,27 @@ func _spawn_wave() -> void:
 		add_child(enemy)
 		enemies.append(enemy)
 	_update_hud()
+	if boss_wave:
+		call_deferred("_start_boss_intro", get_node_or_null("AshTitan"))
+
+
+func _start_boss_intro(boss: Node3D) -> void:
+	if cinematic_active or not is_instance_valid(boss) or not is_instance_valid(player) or not is_instance_valid(camera):
+		return
+	cinematic_active = true
+	if is_instance_valid(music_director):
+		music_director.call("set_intensity", 0.9)
+	var return_position := player.global_position + Vector3(0.0, 6.3, 9.0)
+	var return_target := player.global_position + Vector3(0.0, 1.1, 0.0)
+	var reveal := CinematicDirector.play_camera_reveal(camera, boss, return_position, return_target, 3.0)
+	if reveal == null:
+		cinematic_active = false
+		return
+	reveal.finished.connect(func():
+		cinematic_active = false
+		if is_instance_valid(music_director):
+			music_director.call("set_intensity", 0.35)
+	)
 
 
 func _handle_wave_cleared() -> void:
@@ -304,11 +330,13 @@ func _handle_wave_cleared() -> void:
 		return
 	if current_wave >= 3:
 		game_over = true
-		status_label.text = "ASH TITAN DEFEATED | ARENA RESTORED"
+		SaveManager.record_run(current_wave, score, souls_earned, true)
+		status_label.text = "ASH TITAN DEFEATED | CHAPTER 2 UNLOCKED"
 		restart_button.visible = true
 		_play_tone(880.0, 0.3, 0.22)
 		return
 	wave_transitioning = true
+	SaveManager.record_run(current_wave, score, souls_earned, false)
 	status_label.text = "WAVE %d CLEARED | PREPARE FOR THE NEXT ATTACK" % current_wave
 	_play_tone(660.0, 0.18, 0.18)
 	var transition := get_tree().create_timer(1.35)
@@ -523,6 +551,7 @@ func _attack() -> void:
 				enemy.queue_free()
 				enemies.remove_at(index)
 				score += 500 if bool(enemy.get_meta("boss", false)) else 100
+				souls_earned += 1
 				_update_hud()
 				if enemies.is_empty():
 					_handle_wave_cleared()
@@ -541,6 +570,7 @@ func _damage_player(amount: int) -> void:
 	_update_hud()
 	if health <= 0:
 		game_over = true
+		SaveManager.record_run(current_wave, score, souls_earned, false)
 		status_label.text = "YOU FELL | TAP RESTART OR PRESS R"
 		restart_button.visible = true
 
@@ -552,6 +582,9 @@ func _update_hud() -> void:
 
 
 func _build_audio() -> void:
+	music_director = MusicDirector.new()
+	music_director.name = "MusicDirector"
+	add_child(music_director)
 	for i in range(4):
 		var voice := AudioStreamPlayer.new()
 		voice.volume_db = -7.0
