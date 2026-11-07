@@ -57,7 +57,7 @@ def normalized_bone_name(name):
 def import_source(path):
     extension = os.path.splitext(path)[1].lower()
     if extension == ".fbx":
-        bpy.ops.import_scene.fbx(filepath=path, automatic_bone_orientation=False)
+        bpy.ops.import_scene.fbx(filepath=path)
     elif extension in (".glb", ".gltf"):
         bpy.ops.import_scene.gltf(filepath=path)
     else:
@@ -148,7 +148,7 @@ def main():
     report["passed"] = not failures
     report["failures"] = failures
     report_path = os.path.abspath(args.report) if args.report else output + ".report.json"
-    os.makedirs(os.path.dirname(report_path), exist_ok=True)
+    os.makedirs(os.path.dirname(report_path) or ".", exist_ok=True)
     with open(report_path, "w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2)
         handle.write("\n")
