@@ -21,6 +21,15 @@ func _run_tests() -> void:
     _ensure_actions()
     var test_root := Node3D.new()
     root.add_child(test_root)
+    var floor_body := StaticBody3D.new()
+    floor_body.position = Vector3(0.0, -0.55, 0.0)
+    var floor_collision := CollisionShape3D.new()
+    var floor_shape := BoxShape3D.new()
+    floor_shape.size = Vector3(30.0, 1.0, 30.0)
+    floor_collision.shape = floor_shape
+    floor_body.add_child(floor_collision)
+    test_root.add_child(floor_body)
+
     var player := PLAYER_SCRIPT.new() as NovaPlayer
     player.position = Vector3.ZERO
     test_root.add_child(player)
