@@ -63,7 +63,7 @@ class GodotProjectIntegrity(unittest.TestCase):
         cinematic = self.read("tests/cinematic_smoke.gd")
         self.assertIn("Perfect parry", combat)
         self.assertIn("Boss phase transition", combat)
-        self.assertIn("camera_rig.start_intro", cinematic)
+        self.assertIn("arena.camera_rig.set_lock_target", cinematic)
         self.assertIn("combat_started", cinematic)
         self.assertIn("audio_fx", self.read("scripts/main.gd"))
 
