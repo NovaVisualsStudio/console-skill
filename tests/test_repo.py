@@ -239,6 +239,14 @@ class Repo(unittest.TestCase):
             self.assertIn("parent directory of that provided path", text)
             self.assertIn("${CLAUDE_SKILL_DIR}", text)
 
+    def test_android_orientation_matches_landscape_viewport(self):
+        project_path = os.path.join(ROOT, "nova-ancient-warrior", "project.godot")
+        with open(project_path, encoding="utf-8") as fh:
+            project = fh.read()
+        self.assertIn("window/size/viewport_width=1280", project)
+        self.assertIn("window/size/viewport_height=720", project)
+        self.assertIn("window/handheld/orientation=0", project)
+
 
 if __name__ == "__main__":
     unittest.main()
