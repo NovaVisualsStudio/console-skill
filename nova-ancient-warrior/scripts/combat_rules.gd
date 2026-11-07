@@ -1,5 +1,9 @@
 extends RefCounted
+## Deterministic combat and campaign rules shared by gameplay and tests.
 
+const CAMPAIGN_CHAPTERS := 3
+const WAVES_PER_CHAPTER := 3
+const CAMPAIGN_WAVES := CAMPAIGN_CHAPTERS * WAVES_PER_CHAPTER
 const DEFAULT_ATTACK_DOT_THRESHOLD := 0.2
 
 
@@ -48,40 +52,86 @@ static func combo_cooldown(step: int) -> float:
 			return 0.55
 
 
+static func heavy_attack_damage() -> int:
+	return 68
+
+
+static func heavy_attack_range() -> float:
+	return 3.15
+
+
+static func heavy_attack_cooldown() -> float:
+	return 0.82
+
+
 static func should_start_enemy_windup(distance: float, cooldown: float) -> bool:
 	return distance <= 1.85 and cooldown <= 0.0
 
 
+static func is_boss_wave(wave: int) -> bool:
+	var safe_wave := clampi(wave, 1, CAMPAIGN_WAVES)
+	return safe_wave % WAVES_PER_CHAPTER == 0
+
+
+static func chapter_for_wave(wave: int) -> int:
+	return clampi(int((clampi(wave, 1, CAMPAIGN_WAVES) - 1) / WAVES_PER_CHAPTER) + 1, 1, CAMPAIGN_CHAPTERS)
+
+
+static func boss_kind_for_wave(wave: int) -> String:
+	match chapter_for_wave(wave):
+		1:
+			return "ash_titan"
+		2:
+			return "ember_warlord"
+		_:
+			return "obsidian_sovereign"
+
+
+static func boss_display_name(wave: int) -> String:
+	match boss_kind_for_wave(wave):
+		"ash_titan":
+			return "THE ASH TITAN"
+		"ember_warlord":
+			return "THE EMBER WARLORD"
+		_:
+			return "THE OBSIDIAN SOVEREIGN"
+
+
+static func boss_phase(current_hp: int, maximum_hp: int) -> int:
+	if maximum_hp <= 0:
+		return 3
+	var ratio := float(maxi(0, current_hp)) / float(maximum_hp)
+	if ratio > 0.66:
+		return 1
+	if ratio > 0.33:
+		return 2
+	return 3
+
 
 static func wave_enemy_count(wave: int) -> int:
-	match clampi(wave, 1, 3):
-		1:
-			return 4
-		2:
-			return 5
-		_:
-			return 1
+	var safe_wave := clampi(wave, 1, CAMPAIGN_WAVES)
+	if is_boss_wave(safe_wave):
+		return 1
+	var chapter_offset := chapter_for_wave(safe_wave) - 1
+	var position_in_chapter := (safe_wave - 1) % WAVES_PER_CHAPTER
+	return 4 + chapter_offset + (1 if position_in_chapter == 1 else 0)
 
 
 static func wave_enemy_health(wave: int) -> int:
-	match clampi(wave, 1, 3):
-		1:
-			return 60
-		2:
-			return 78
-		_:
-			return 260
+	var safe_wave := clampi(wave, 1, CAMPAIGN_WAVES)
+	var chapter_offset := chapter_for_wave(safe_wave) - 1
+	if is_boss_wave(safe_wave):
+		return 300 + chapter_offset * 130
+	return 58 + chapter_offset * 18 + ((safe_wave - 1) % WAVES_PER_CHAPTER) * 8
 
 
 static func wave_enemy_damage(wave: int) -> int:
-	match clampi(wave, 1, 3):
-		1:
-			return 9
-		2:
-			return 11
-		_:
-			return 20
+	var safe_wave := clampi(wave, 1, CAMPAIGN_WAVES)
+	var chapter_offset := chapter_for_wave(safe_wave) - 1
+	if is_boss_wave(safe_wave):
+		return 20 + chapter_offset * 7
+	return 8 + chapter_offset * 3 + ((safe_wave - 1) % WAVES_PER_CHAPTER)
 
 
-static func is_boss_wave(wave: int) -> bool:
-	return wave >= 3
+static func is_final_boss_wave(wave: int) -> bool:
+	return clampi(wave, 1, CAMPAIGN_WAVES) == CAMPAIGN_WAVES
