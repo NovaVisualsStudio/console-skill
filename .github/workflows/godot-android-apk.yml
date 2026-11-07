@@ -53,6 +53,15 @@ jobs:
           python3 -m py_compile nova-ancient-warrior/tools/generate_game_audio.py
           python3 nova-ancient-warrior/tools/generate_game_audio.py --output nova-ancient-warrior/audio/generated
 
+      - name: Generate original skinned Nova hero and animation library
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y blender
+          python3 -m py_compile nova-ancient-warrior/tools/blender/generate_nova_hero.py
+          blender --background --python nova-ancient-warrior/tools/blender/generate_nova_hero.py -- --output nova-ancient-warrior/assets/characters/nova_hero.glb
+
       - name: Download Godot 4.7.2 editor and export templates
         shell: bash
         run: |
@@ -111,6 +120,8 @@ jobs:
           export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
           export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
           "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/rigged_warrior_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/audio_assets_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
