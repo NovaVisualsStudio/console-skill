@@ -34,15 +34,26 @@ jobs:
           python3 -m py_compile \
             nova-ancient-warrior/tools/blender/export_humanoid_for_godot.py \
             nova-ancient-warrior/tools/blender/optimize_mocap_glb.py \
+            nova-ancient-warrior/tools/blender/generate_nova_hero.py \
             nova-ancient-warrior/tools/generate_game_audio.py
 
       - name: Generate original game sound effects
         run: |
           python3 nova-ancient-warrior/tools/generate_game_audio.py --output nova-ancient-warrior/audio/generated
 
+      - name: Generate original skinned Nova hero and animation library
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender
+          blender --background --python nova-ancient-warrior/tools/blender/generate_nova_hero.py -- --output nova-ancient-warrior/assets/characters/nova_hero.glb
+
       - name: Import project resources
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path nova-ancient-warrior --quit
+
+      - name: Verify generated rigged hero and animation library
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/rigged_warrior_smoke.gd
 
       - name: Validate imported original sound effects
         run: |
