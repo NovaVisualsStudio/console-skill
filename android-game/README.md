@@ -1,4 +1,4 @@
-# NOVA — Ancient Warrior (cinematic vertical slice)
+# NOVA - Ancient Warrior (cinematic vertical slice)
 
 An original Godot 4 action-adventure prototype for Android ARM64, built as a separate project from the PS2SDK homebrew target in `ps2-game/`.
 
