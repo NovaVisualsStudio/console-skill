@@ -282,6 +282,13 @@ class Repo(unittest.TestCase):
         self.assertIn("var distance: float = offset.length()", script)
         self.assertIn("textures/vram_compression/import_etc2_astc=true", project)
 
+    def test_android_attack_arc_uses_explicit_vector_types(self):
+        script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
+        with open(script_path, encoding="utf-8") as fh:
+            script = fh.read()
+        self.assertIn("var to_enemy: Vector3 = enemy.global_position - player.global_position", script)
+        self.assertIn("var distance: float = to_enemy.length()", script)
+
 
 if __name__ == "__main__":
     unittest.main()
