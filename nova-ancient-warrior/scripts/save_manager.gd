@@ -4,7 +4,7 @@ const SAVE_PATH := "user://nova_profile.cfg"
 const SCHEMA_VERSION := 1
 
 var file_path := SAVE_PATH
-var profile: Dictionary = _default_profile()
+var profile: Dictionary = {}
 
 
 func _ready() -> void:
