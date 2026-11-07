@@ -13,7 +13,7 @@ func _run_stage_smoke() -> void:
 	get_root().add_child(root)
 	StageBuilder.build_stage(root, 0)
 	var dressing := root.get_node_or_null("GeneratedStageDressing")
-	if dressing == null or dressing.get_child_count() < 15 or dressing.get_node_or_null("DistantGate") == null:
+	if dressing == null or dressing.get_child_count() < 20 or dressing.get_node_or_null("DistantGate") == null or dressing.get_node_or_null("SpikeTrapPlate") == null or dressing.get_node_or_null("RuinSpike") == null:
 		_fail(root, "Sunken Ruins did not build its distant gate and stone dressing")
 		return
 	StageBuilder.build_stage(root, 1)
@@ -26,7 +26,7 @@ func _run_stage_smoke() -> void:
 		return
 	StageBuilder.build_stage(root, 2)
 	dressing = root.get_node_or_null("GeneratedStageDressing")
-	if dressing == null or dressing.get_child_count() < 12 or dressing.get_node_or_null("ThroneBack") == null:
+	if dressing == null or dressing.get_child_count() < 20 or dressing.get_node_or_null("ThroneBack") == null or dressing.get_node_or_null("RunicFloorLine") == null:
 		_fail(root, "Obsidian Throne did not build the throne geometry")
 		return
 	root.queue_free()
