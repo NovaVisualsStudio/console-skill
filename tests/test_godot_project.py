@@ -14,6 +14,12 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn('run/main_scene="res://scenes/main.tscn"', project)
         self.assertIn('res://scripts/main.gd', scene)
 
+    def test_icon_and_runtime_smoke_are_configured(self):
+        project = self.read("project.godot")
+        self.assertIn('config/icon="res://icon.svg"', project)
+        self.assertTrue(os.path.isfile(os.path.join(ROOT, "icon.svg")))
+        self.assertTrue(os.path.isfile(os.path.join(ROOT, "tests", "runtime_smoke.gd")))
+
     def test_mobile_renderer_is_compatibility(self):
         project = self.read("project.godot")
         self.assertIn('renderer/rendering_method="gl_compatibility"', project)
@@ -64,6 +70,7 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn("Perfect parry", combat)
         self.assertIn("Boss phase transition", combat)
         self.assertIn("arena.camera_rig.set_lock_target", cinematic)
+        self.assertIn("Player lock-on did not rotate", cinematic)
         self.assertIn("combat_started", cinematic)
         self.assertIn("audio_fx", self.read("scripts/main.gd"))
 
