@@ -31,7 +31,7 @@ jobs:
 
       - name: Syntax-check the Blender character packaging tool
         run: |
-          python3 -m py_compile tools/blender/export_humanoid_for_godot.py
+          python3 -m py_compile nova-ancient-warrior/tools/blender/export_humanoid_for_godot.py
 
       - name: Import project resources
         run: |
