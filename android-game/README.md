@@ -23,7 +23,7 @@ Android: left directional pad; right LIGHT, HEAVY, DODGE, GUARD and LOCK control
 
 ## Open in Godot
 
-Open this folder in Godot 4.4.1 or newer and run the project. The CI pipeline runs editor import, combat tests, cinematic integration tests, procedural audio checks, headless runtime tests, four repeat stability passes and Android ARM64 debug export.
+Open this folder in Godot 4.4.1 or newer and run the project. The CI pipeline runs editor import, combat tests, cinematic integration tests, procedural audio checks, headless runtime tests, six repeat stability passes and Android ARM64 debug export.
 
 ## Android APK
 
