@@ -38,7 +38,7 @@ func _process(_delta: float) -> void:
 	for i in range(frames):
 		var time := float(_sample_cursor) / SAMPLE_RATE
 		var bar := int(floor(time / (BEAT_SECONDS * 4.0)))
-		var chord := ROOT_NOTES[bar % ROOT_NOTES.size()]
+		var chord: float = float(ROOT_NOTES[bar % ROOT_NOTES.size()])
 		var beat_phase := fposmod(time, BEAT_SECONDS)
 		var pad := sin(TAU * chord * time) * 0.105
 		pad += sin(TAU * chord * 1.5 * time) * 0.052
