@@ -2,7 +2,7 @@ name: Nova Ancient Warrior Android debug APK
 
 on:
   push:
-    branches: [nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean]
+    branches: [nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean, nova-open-source-research]
     paths:
       - "nova-ancient-warrior/**"
       - ".github/workflows/godot-android-apk.yml"
