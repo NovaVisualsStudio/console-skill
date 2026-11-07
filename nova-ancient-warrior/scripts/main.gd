@@ -385,7 +385,7 @@ func _update_enemies(delta: float) -> void:
 			continue
 		var offset: Vector3 = player.global_position - enemy.global_position
 		offset.y = 0.0
-		var distance := offset.length()
+		var distance: float = offset.length()
 		if distance > 0.001:
 			enemy.look_at(Vector3(player.global_position.x, enemy.global_position.y, player.global_position.z), Vector3.UP)
 		var visual := enemy.get_node_or_null("WarriorVisual")
@@ -451,7 +451,10 @@ func _attack() -> void:
 		to_enemy.y = 0.0
 		var facing := -player.global_transform.basis.z
 		facing.y = 0.0
-		if CombatRules.is_target_in_attack_arc(facing, to_enemy, attack_range_value):
+		var in_attack_arc := CombatRules.is_target_in_attack_arc(facing, to_enemy, ATTACK_RANGE)
+		if current_step > 0:
+			in_attack_arc = CombatRules.is_target_in_attack_arc(facing, to_enemy, attack_range_value)
+		if in_attack_arc:
 			var hp := int(enemy.get_meta("hp", 60)) - damage
 			enemy.set_meta("hp", hp)
 			var enemy_visual := enemy.get_node_or_null("WarriorVisual")
