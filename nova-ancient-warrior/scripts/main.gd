@@ -12,6 +12,7 @@ const MusicDirector = preload("res://scripts/music_director.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
 const LevelCatalog = preload("res://scripts/level_catalog.gd")
 const StageBuilder = preload("res://scripts/stage_builder.gd")
+const CampaignLayout = preload("res://scripts/campaign_layout.gd")
 const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 
 var player: CharacterBody3D
@@ -428,6 +429,7 @@ func _apply_level_theme(wave: int) -> void:
 	var next_stage_index := LevelCatalog.stage_index(wave)
 	if next_stage_index != built_stage_index:
 		StageBuilder.build_stage(self, next_stage_index)
+		CampaignLayout.build_stage(self, next_stage_index)
 		built_stage_index = next_stage_index
 		hazard_elapsed = 0.0
 		hazard_damage_cooldown = 0.0
