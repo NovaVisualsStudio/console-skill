@@ -46,6 +46,13 @@ jobs:
             "cmake;3.10.2.4988404" \
             "ndk;28.1.13356709"
 
+      - name: Generate original game sound effects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile nova-ancient-warrior/tools/generate_game_audio.py
+          python3 nova-ancient-warrior/tools/generate_game_audio.py --output nova-ancient-warrior/audio/generated
+
       - name: Download Godot 4.7.2 editor and export templates
         shell: bash
         run: |
@@ -105,11 +112,23 @@ jobs:
           export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
           "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/audio_assets_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --check-only --script res://scripts/main.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/combat_rules_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/warrior_visual_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/save_manager_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/level_catalog_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/campaign_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/stage_builder_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/stage_hazard_rules_smoke.gd
           smoke_log="$(mktemp)"
           if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
               --quit-after 120 >"$smoke_log" 2>&1; then

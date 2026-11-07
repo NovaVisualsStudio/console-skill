@@ -1,0 +1,2 @@
+asset_id,asset_name,asset_type,creator,source_url,license,license_version,download_date,modifications,commercial_use_verified,notes
+nova_procedural_score,Procedural ambient score,audio,NovaVisualsStudio,https://github.com/NovaVisualsStudio/console-skill,Original procedural audio code,N/A,2026-11-07,Generated at runtime,yes,No third-party samples or recordings used
