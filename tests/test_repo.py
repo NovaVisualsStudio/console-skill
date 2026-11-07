@@ -256,6 +256,21 @@ class Repo(unittest.TestCase):
         self.assertIn("var sound_players: Array[AudioStreamPlayer] = []", script)
         self.assertNotIn(chr(0x2014), script)
 
+    def test_android_debug_export_preset_and_workflow(self):
+        preset_path = os.path.join(ROOT, "nova-ancient-warrior", "export_presets.cfg")
+        workflow_path = os.path.join(ROOT, ".github", "workflows", "godot-android-apk.yml")
+        with open(preset_path, encoding="utf-8") as fh:
+            preset = fh.read()
+        with open(workflow_path, encoding="utf-8") as fh:
+            workflow = fh.read()
+        self.assertIn('name="Android Debug"', preset)
+        self.assertIn('platform="Android"', preset)
+        self.assertIn('architectures/arm64-v8a=true', preset)
+        self.assertIn('package/unique_name="com.novavisualsstudio.novaancientwarrior"', preset)
+        self.assertIn('Godot_v4.7.2-stable_export_templates.tpz', workflow)
+        self.assertIn('--export-debug "Android Debug"', workflow)
+        self.assertIn('apksigner', workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
