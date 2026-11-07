@@ -55,7 +55,7 @@ static func _build_ember_layout(root: Node3D) -> void:
 	var basalt := _material(Color(0.105, 0.075, 0.07), 0.24, 0.72)
 	var ember := _material(Color(0.62, 0.13, 0.035), 0.12, 0.5, Color(0.95, 0.08, 0.015))
 	# A broad safe central spine separates the lava channels already evaluated by StageHazardRules.
-	_solid_block(root, "EmberCauseway", Vector3(3.3, 0.18, 25.0), Vector3(0.0, 0.09, -0.2), basalt)
+	_solid_block(root, "EmberCauseway", Vector3(3.3, 0.06, 25.0), Vector3(0.0, 0.03, -0.2), basalt)
 	for side in [-1.0, 1.0]:
 		for index in range(3):
 			var z := -10.0 + float(index) * 9.0
