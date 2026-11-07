@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Gate 1 - repository integrity tests
-        run: python3 -m unittest tests.test_godot_project -v
+        run: python3 -m unittest discover -s tests -p 'test_godot_project.py' -v
 
       - name: Gate 2 - Godot editor import and script parse
         run: godot --headless --editor --path android-game --quit
