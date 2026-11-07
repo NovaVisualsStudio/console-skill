@@ -2,7 +2,7 @@ name: Nova Ancient Warrior — Godot validation
 
 on:
   push:
-    branches: [main, nova-android-vertical-slice, nova-gameplay-hardening]
+    branches: [main, nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean]
     paths:
       - "nova-ancient-warrior/**"
       - ".github/workflows/godot-prototype-validation.yml"
@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download Godot 4.7.2
         run: |
