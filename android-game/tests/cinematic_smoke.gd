@@ -9,6 +9,7 @@ func _finish(exit_code: int, arena: Node) -> void:
     if is_instance_valid(arena):
         if arena is NovaArenaController and is_instance_valid(arena.audio_fx):
             arena.audio_fx.shutdown()
+            arena.audio_fx = null
         arena.free()
     await create_timer(0.5).timeout
     await process_frame
