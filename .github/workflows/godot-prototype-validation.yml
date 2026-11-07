@@ -2,7 +2,7 @@ name: Nova Ancient Warrior — Godot validation
 
 on:
   push:
-    branches: [main, nova-android-vertical-slice]
+    branches: [main, nova-android-vertical-slice, nova-gameplay-hardening]
     paths:
       - "nova-ancient-warrior/**"
       - ".github/workflows/godot-prototype-validation.yml"
@@ -29,10 +29,24 @@ jobs:
           unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
           chmod +x Godot_v4.7.2-stable_linux.x86_64
 
-      - name: Import and parse project
+      - name: Import project resources
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path nova-ancient-warrior --quit
 
-      - name: Smoke-run main scene
+      - name: Strictly parse the gameplay script
         run: |
-          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --quit-after 120
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --check-only --script res://scripts/main.gd
+
+      - name: Smoke-run main scene and reject script errors
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          if ! ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --quit-after 120 >"$log_file" 2>&1; then
+            cat "$log_file"
+            exit 1
+          fi
+          cat "$log_file"
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$log_file"; then
+            exit 1
+          fi
