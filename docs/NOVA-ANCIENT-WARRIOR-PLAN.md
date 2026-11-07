@@ -118,7 +118,7 @@ Cash cost can remain near zero with self-made assets and free/open-source tools,
 
 ## Expanded CI test protocol: ten gates
 
-1. Python source and project integrity (9 tests), including generated build/cache exclusion.
+1. Python source and project integrity (10 tests), including generated build/cache exclusion.
 2. Godot 4.4.1 headless editor import and script parsing.
 3. Deterministic combat behaviour tests: combo chain, heavy attack, boss threshold/phase, parry, guard reduction, dodge i-frames, enemy telegraph/strike.
 4. Cinematic scene integration: arena nodes, player/boss/camera, intro lock, camera lock-on/shake, combat handoff and boss HUD/phase.
