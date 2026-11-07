@@ -1,6 +1,11 @@
 name: Nova Warrior Motion Capture and Rigged Character
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/nova-mocap-character.yml"
+      - "nova-ancient-warrior/tools/blender/**"
+      - "nova-ancient-warrior/mocap/**"
   workflow_dispatch:
     inputs:
       video_path:
@@ -54,8 +59,8 @@ jobs:
       - name: Select CC0 demo or uploaded phone recording
         id: input
         env:
-          REQUESTED_VIDEO: ${{ inputs.video_path }}
-          REQUESTED_RIG: ${{ inputs.rig_profile }}
+          REQUESTED_VIDEO: ${{ inputs.video_path || 'demo' }}
+          REQUESTED_RIG: ${{ inputs.rig_profile || 'humanoid_articulated' }}
         run: |
           set -euo pipefail
           case "$REQUESTED_RIG" in
