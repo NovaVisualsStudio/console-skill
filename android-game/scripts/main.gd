@@ -385,11 +385,11 @@ func _build_hud() -> void:
     _add_control_button(layer, "↓", Vector2(94, -78), "move_back")
     _add_control_button(layer, "←", Vector2(27, -143), "move_left")
     _add_control_button(layer, "→", Vector2(160, -143), "move_right")
-    _add_action_button(layer, "LIGHT", Vector2(-204, -142), "light_attack")
-    _add_action_button(layer, "HEAVY", Vector2(-104, -218), "heavy_attack")
-    _add_action_button(layer, "DODGE", Vector2(-104, -66), "dodge")
-    _add_action_button(layer, "GUARD", Vector2(-204, -66), "guard")
-    _add_action_button(layer, "LOCK", Vector2(-154, -218), "lock_on")
+    _add_action_button(layer, "LIGHT", Vector2(-210, -155), "light_attack")
+    _add_action_button(layer, "HEAVY", Vector2(-110, -240), "heavy_attack")
+    _add_action_button(layer, "DODGE", Vector2(-110, -75), "dodge")
+    _add_action_button(layer, "GUARD", Vector2(-210, -75), "guard")
+    _add_action_button(layer, "LOCK", Vector2(-210, -240), "lock_on")
 
     retry_button = Button.new()
     retry_button.text = "RETRY"
@@ -413,6 +413,7 @@ func _add_control_button(layer: CanvasLayer, button_text: String, offset: Vector
 
 func _add_action_button(layer: CanvasLayer, button_text: String, offset: Vector2, action: String) -> void:
     var button := Button.new()
+    button.name = action
     button.text = button_text
     button.custom_minimum_size = Vector2(84, 60)
     button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -505,7 +506,7 @@ func _on_player_attack_started(heavy: bool, combo: int) -> void:
     audio_fx.play_swing(heavy)
 
 func _on_player_dodge_started() -> void:
-    audio_fx.play_swing(false)
+    audio_fx.play_dodge()
 
 func _on_player_hit_confirmed(target_position: Vector3, heavy: bool, combo: int) -> void:
     camera_rig.shake(0.16 if not heavy else 0.32, 0.12 if not heavy else 0.22)
