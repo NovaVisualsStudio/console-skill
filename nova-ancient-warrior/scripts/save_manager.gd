@@ -54,6 +54,12 @@ func save_profile() -> bool:
 	return config.save(file_path) == OK
 
 
+func record_checkpoint(wave: int, run_score: int) -> bool:
+	profile["best_score"] = maxi(int(profile["best_score"]), run_score)
+	profile["highest_wave"] = maxi(int(profile["highest_wave"]), clampi(wave, 1, 3))
+	return save_profile()
+
+
 func record_run(wave: int, run_score: int, souls_earned: int, defeated_boss: bool = false) -> bool:
 	profile["best_score"] = maxi(int(profile["best_score"]), run_score)
 	profile["total_souls"] = maxi(0, int(profile["total_souls"]) + maxi(0, souls_earned))
