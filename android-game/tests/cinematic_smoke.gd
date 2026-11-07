@@ -67,6 +67,7 @@ func _run_tests() -> void:
         return
 
     print("CINEMATIC TESTS PASS: Ashen Gate environment, shoulder camera, intro lock, camera shake, lock-on, combat handoff, enemy activation and boss HUD/phase.")
-    arena.queue_free()
+    arena.free()
+    await process_frame
     await process_frame
     quit(0)
