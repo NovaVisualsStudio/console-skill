@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate Godot prototype (five gates)
+    name: Validate Godot prototype (seven gates)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
@@ -87,10 +87,11 @@ jobs:
 
       - name: Gate 7 - export Android debug APK
         run: |
-          mkdir -p android-game/build
-          godot --headless --editor --path android-game --quit
-          godot --headless --path android-game --export-debug "Android" build/NovaAncientWarrior-debug.apk
-          test -s android-game/build/NovaAncientWarrior-debug.apk
+          cd android-game
+          mkdir -p build
+          godot --headless --editor --path . --quit
+          godot --headless --path . --export-debug "Android" build/NovaAncientWarrior-debug.apk
+          test -s build/NovaAncientWarrior-debug.apk
 
       - name: Upload Android debug APK
         uses: actions/upload-artifact@v4
