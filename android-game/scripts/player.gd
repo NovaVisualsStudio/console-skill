@@ -157,6 +157,13 @@ func _physics_process(delta: float) -> void:
         move_and_slide()
         return
 
+    # Lock-on must orient the warrior even while standing still.
+    if is_instance_valid(lock_target):
+        var lock_offset := lock_target.global_position - global_position
+        lock_offset.y = 0.0
+        if lock_offset.length_squared() > 0.01:
+            rotation.y = lerp_angle(rotation.y, atan2(-lock_offset.x, -lock_offset.z), delta * 10.0)
+
     if Input.is_action_just_pressed("attack"):
         perform_light_attack()
     if Input.is_action_just_pressed("heavy_attack"):
@@ -179,12 +186,7 @@ func _physics_process(delta: float) -> void:
         var move_direction := Vector3(input_vector.x, 0.0, input_vector.y)
         if move_direction.length_squared() > 0.01:
             move_direction = move_direction.normalized()
-            if is_instance_valid(lock_target):
-                var to_target := lock_target.global_position - global_position
-                to_target.y = 0.0
-                if to_target.length_squared() > 0.01:
-                    rotation.y = lerp_angle(rotation.y, atan2(-to_target.x, -to_target.z), delta * 10.0)
-            else:
+            if not is_instance_valid(lock_target):
                 rotation.y = lerp_angle(rotation.y, atan2(-move_direction.x, -move_direction.z), delta * 10.0)
         var movement_speed := WALK_SPEED * (0.48 if current_state == CombatState.ATTACK else 1.0)
         velocity.x = move_direction.x * movement_speed
