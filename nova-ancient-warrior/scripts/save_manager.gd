@@ -13,6 +13,11 @@ func _ready() -> void:
 	load_profile()
 
 
+func begin_run() -> bool:
+	profile["pending_souls"] = 0
+	return save_profile()
+
+
 func _default_profile() -> Dictionary:
 	return {
 		"schema_version": SCHEMA_VERSION,
