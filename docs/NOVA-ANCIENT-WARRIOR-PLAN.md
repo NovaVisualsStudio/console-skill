@@ -75,7 +75,7 @@ The first slice should contain one arena, one playable warrior, two basic enemy 
 - Touch controls usable in landscape without blocking the combat view.
 - A stable Android debug APK and a physical-device test report.
 
-The current cinematic slice now includes an original procedural warrior/axe model, shoulder follow camera with cinematic intro, lock-on and impact shake, three-hit light combo, stamina heavy attack, dodge i-frames, timed parry/guard, two telegraphing guardians, an Ashen Warden two-phase boss, a fog-lit temple arena, generated ambience/combat sound effects, touch HUD and retry flow. Its models and attack animations are still procedural primitives and tweens; it does not yet meet full production art/animation quality or full-game scope.
+The current cinematic slice now includes an original procedural warrior/axe model, shoulder follow camera with cinematic intro, lock-on and impact shake, three-hit light combo, stamina heavy attack, dodge i-frames, timed parry/guard, two telegraphing guardians, an Ashen Warden two-phase boss, a fog-lit temple arena, generated ambience/combat sound effects, touch HUD and retry flow. Lock-on now turns the warrior toward the target even while stationary; automated integration checks verify this and the nine Android touch controls. Its models and attack animations are still procedural primitives and tweens; it does not yet meet full production art/animation quality or full-game scope.
 
 ## Full game feature roadmap
 
@@ -127,7 +127,7 @@ Cash cost can remain near zero with self-made assets and free/open-source tools,
 7. Extended 300-frame scene runtime test.
 8. Source hygiene checks.
 9. Android ARM64 debug APK export.
-10. Four repeated stability passes; each pass re-runs the Python, combat, cinematic, audio and 300-frame runtime checks.
+10. Six repeated stability passes; each pass re-runs the Python, combat, cinematic, audio and 300-frame runtime checks.
 
 The latest run succeeded across all ten gates. This proves repeatable headless gameplay logic, scene initialisation and APK packaging. It is not a physical-device acceptance test.
 
