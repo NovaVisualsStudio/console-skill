@@ -33,6 +33,9 @@ var game_over := false
 var player_invulnerability_time := 0.0
 var hud: Label
 var status_label: Label
+var chapter_intro_title: Label
+var chapter_intro_subtitle: Label
+var chapter_intro_tween: Tween
 var restart_button: Button
 var sound_players: Array[AudioStreamPlayer] = []
 var sound_cursor := 0
@@ -427,6 +430,8 @@ func _apply_level_theme(wave: int) -> void:
 
 func _spawn_wave() -> void:
 	_apply_level_theme(current_wave)
+	if current_wave == 1 or current_wave == 4 or current_wave == 7:
+		_play_chapter_intro(CombatRules.chapter_for_wave(current_wave))
 	var enemy_count := CombatRules.wave_enemy_count(current_wave)
 	var boss_wave := CombatRules.is_boss_wave(current_wave)
 	var boss_kind := CombatRules.boss_kind_for_wave(current_wave)
@@ -486,6 +491,45 @@ func _spawn_wave() -> void:
 	_update_hud()
 	if boss_wave and is_instance_valid(boss_to_intro):
 		call_deferred("_start_boss_intro", boss_to_intro)
+
+
+func _play_chapter_intro(chapter: int) -> void:
+	if not is_instance_valid(chapter_intro_title) or not is_instance_valid(chapter_intro_subtitle):
+		return
+	var titles := [
+		"",
+		"CHAPTER I  |  THE SUNKEN RUINS",
+		"CHAPTER II  |  THE EMBER CAUSEWAY",
+		"CHAPTER III  |  THE OBSIDIAN THRONE"
+	]
+	var subtitles := [
+		"",
+		"The first seal lies beneath the drowned temple. Break the Ash Titan's guard.",
+		"Cross the burning causeway. The Ember Warlord protects the second seal.",
+		"The last seal waits in the frozen throne room. End the Obsidian Sovereign."
+	]
+	var safe_chapter := clampi(chapter, 1, 3)
+	if chapter_intro_tween != null and chapter_intro_tween.is_running():
+		chapter_intro_tween.kill()
+	chapter_intro_title.text = titles[safe_chapter]
+	chapter_intro_subtitle.text = subtitles[safe_chapter]
+	chapter_intro_title.visible = true
+	chapter_intro_subtitle.visible = true
+	chapter_intro_title.modulate.a = 0.0
+	chapter_intro_subtitle.modulate.a = 0.0
+	chapter_intro_tween = create_tween()
+	chapter_intro_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	chapter_intro_tween.tween_property(chapter_intro_title, "modulate:a", 1.0, 0.45)
+	chapter_intro_tween.parallel().tween_property(chapter_intro_subtitle, "modulate:a", 1.0, 0.55)
+	chapter_intro_tween.tween_interval(2.0)
+	chapter_intro_tween.tween_property(chapter_intro_title, "modulate:a", 0.0, 0.65)
+	chapter_intro_tween.parallel().tween_property(chapter_intro_subtitle, "modulate:a", 0.0, 0.65)
+	chapter_intro_tween.finished.connect(func():
+		if is_instance_valid(chapter_intro_title):
+			chapter_intro_title.visible = false
+		if is_instance_valid(chapter_intro_subtitle):
+			chapter_intro_subtitle.visible = false
+	)
 
 
 func _start_boss_intro(boss: Node3D) -> void:
@@ -565,6 +609,43 @@ func _build_hud() -> void:
 	status_label.add_theme_color_override("font_color", Color(0.92, 0.84, 0.72))
 	status_label.text = LevelCatalog.wave_title(current_wave)
 	layer.add_child(status_label)
+	chapter_intro_title = Label.new()
+	chapter_intro_title.name = "ChapterIntroTitle"
+	chapter_intro_title.anchor_left = 0.5
+	chapter_intro_title.anchor_right = 0.5
+	chapter_intro_title.anchor_top = 0.29
+	chapter_intro_title.anchor_bottom = 0.29
+	chapter_intro_title.offset_left = -360.0
+	chapter_intro_title.offset_right = 360.0
+	chapter_intro_title.offset_top = 0.0
+	chapter_intro_title.offset_bottom = 54.0
+	chapter_intro_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	chapter_intro_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	chapter_intro_title.add_theme_font_size_override("font_size", 31)
+	chapter_intro_title.add_theme_color_override("font_color", Color(1.0, 0.82, 0.55))
+	chapter_intro_title.add_theme_color_override("font_shadow_color", Color(0.01, 0.01, 0.015, 0.95))
+	chapter_intro_title.add_theme_constant_override("shadow_offset_x", 2)
+	chapter_intro_title.add_theme_constant_override("shadow_offset_y", 2)
+	chapter_intro_title.visible = false
+	layer.add_child(chapter_intro_title)
+	chapter_intro_subtitle = Label.new()
+	chapter_intro_subtitle.name = "ChapterIntroSubtitle"
+	chapter_intro_subtitle.anchor_left = 0.5
+	chapter_intro_subtitle.anchor_right = 0.5
+	chapter_intro_subtitle.anchor_top = 0.29
+	chapter_intro_subtitle.anchor_bottom = 0.29
+	chapter_intro_subtitle.offset_left = -390.0
+	chapter_intro_subtitle.offset_right = 390.0
+	chapter_intro_subtitle.offset_top = 58.0
+	chapter_intro_subtitle.offset_bottom = 105.0
+	chapter_intro_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	chapter_intro_subtitle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	chapter_intro_subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	chapter_intro_subtitle.add_theme_font_size_override("font_size", 17)
+	chapter_intro_subtitle.add_theme_color_override("font_color", Color(0.91, 0.85, 0.76))
+	chapter_intro_subtitle.visible = false
+	layer.add_child(chapter_intro_subtitle)
+
 	_add_touch_button(layer, "↑", "move_forward", Vector2(112.0, -190.0))
 	_add_touch_button(layer, "↓", "move_back", Vector2(112.0, -88.0))
 	_add_touch_button(layer, "←", "move_left", Vector2(10.0, -139.0))
