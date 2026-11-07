@@ -16,7 +16,8 @@ func _ready() -> void:
 	stream.buffer_length = 0.65
 	_player = AudioStreamPlayer.new()
 	_player.stream = stream
-	_player.volume_db = -8.0
+	var music_level := float(SaveManager.profile.get("music_volume", 0.72))
+	_player.volume_db = linear_to_db(maxf(music_level, 0.0001)) - 8.0
 	add_child(_player)
 	_player.play()
 	_playback = _player.get_stream_playback() as AudioStreamGeneratorPlayback
