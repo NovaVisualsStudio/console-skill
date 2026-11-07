@@ -27,7 +27,7 @@ Open this folder in Godot 4.7.2 or newer and run the project. The CI pipeline ru
 
 ## Android APK
 
-The workflow uploads `nova-ancient-warrior-android-debug` as a 14-day artifact after a successful build. It is a debug APK, not a store-signed release. Keep production signing keys outside Git. Physical-device install, touch ergonomics, thermal behaviour, sustained FPS and battery use still require a real Android acceptance test.
+The workflow uploads `nova-ancient-warrior-android-debug` as a 14-day artifact after a successful build. It is a debug APK, not a store-signed release. Each CI run uses a temporary debug signing key, so uninstall an older debug build before installing a newer artifact; in-place upgrades require a persistent private signing key configured outside Git. Keep production signing keys outside Git. Physical-device install, touch ergonomics, thermal behaviour, sustained FPS and battery use still require a real Android acceptance test.
 
 ## Performance baseline
 
