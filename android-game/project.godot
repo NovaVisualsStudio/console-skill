@@ -1,0 +1,27 @@
+; Engine configuration file.
+; Nova - Ancient Warrior (original prototype)
+config_version=5
+
+[application]
+config/name="Nova - Ancient Warrior"
+run/main_scene="res://scenes/main.tscn"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+environment/defaults/default_clear_color=Color(0.025, 0.035, 0.055, 1)
+
+[physics]
+3d/default_gravity=24.0
+3d/default_gravity_vector=Vector3(0, -1, 0)
+
+[application]
+config/features=PackedStringArray("4.4", "GL Compatibility")
