@@ -7,7 +7,10 @@ func _initialize() -> void:
 
 func _finish(exit_code: int, arena: Node) -> void:
     if is_instance_valid(arena):
+        if arena is NovaArenaController and is_instance_valid(arena.audio_fx):
+            arena.audio_fx.shutdown()
         arena.free()
+    await create_timer(0.5).timeout
     await process_frame
     await process_frame
     quit(exit_code)
@@ -70,7 +73,7 @@ func _run_tests() -> void:
     for enemy in arena.active_enemies:
         if is_instance_valid(enemy) and not enemy.active:
             push_error("An enemy was not activated after the cinematic handoff.")
-            quit(1)
+            await _finish(1, arena)
             return
 
     arena.player.rotation.y = 0.0
