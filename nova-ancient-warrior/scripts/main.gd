@@ -485,6 +485,7 @@ func _handle_wave_cleared() -> void:
 		if game_over or not is_inside_tree():
 			return
 		current_wave += 1
+		_save_checkpoint()
 		_spawn_wave()
 		wave_transitioning = false
 		status_label.text = LevelCatalog.wave_title(current_wave)
@@ -697,6 +698,11 @@ func _update_enemies(delta: float) -> void:
 		elif attack_state == "windup":
 			attack_timer = maxf(0.0, attack_timer - delta)
 			if attack_timer <= 0.0:
+				if visual != null:
+					if is_boss:
+						visual.call("play_heavy_attack")
+					else:
+						visual.call("play_attack", 0)
 				var damage := int(enemy.get_meta("damage", 9))
 				var hit_range := 2.0
 				if is_boss:
@@ -881,9 +887,11 @@ func _build_audio() -> void:
 	music_director = MusicDirector.new()
 	music_director.name = "MusicDirector"
 	add_child(music_director)
+	var sfx_level := float(SaveManager.profile.get("sfx_volume", 0.85))
+	var sfx_gain_db := linear_to_db(maxf(sfx_level, 0.0001)) - 5.0
 	for i in range(4):
 		var voice := AudioStreamPlayer.new()
-		voice.volume_db = -7.0
+		voice.volume_db = sfx_gain_db
 		add_child(voice)
 		sound_players.append(voice)
 
