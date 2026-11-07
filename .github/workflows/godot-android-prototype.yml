@@ -1,0 +1,49 @@
+name: Godot Android prototype validation
+
+on:
+  push:
+    branches: [main, "feature/**"]
+    paths:
+      - "android-game/**"
+      - "tests/test_godot_project.py"
+      - ".github/workflows/godot-android-prototype.yml"
+  pull_request:
+    paths:
+      - "android-game/**"
+      - "tests/test_godot_project.py"
+      - ".github/workflows/godot-android-prototype.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Godot prototype (five gates)
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.4.1
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Gate 1 - repository integrity tests
+        run: python3 -m unittest tests.test_godot_project -v
+
+      - name: Gate 2 - Godot editor import and script parse
+        run: godot --headless --editor --path android-game --quit
+
+      - name: Gate 3 - scene runtime smoke test
+        run: godot --headless --path android-game --quit-after 5
+
+      - name: Gate 4 - extended 300-frame runtime test
+        run: godot --headless --path android-game --quit-after 300
+
+      - name: Gate 5 - source hygiene and expected scene files
+        run: |
+          test -s android-game/project.godot
+          test -s android-game/scenes/main.tscn
+          test -s android-game/scripts/main.gd
+          test -s android-game/scripts/player.gd
+          test -s android-game/scripts/enemy.gd
+          ! find android-game -type f \( -name '*.elf' -o -name '*.iso' -o -name '*.apk' \) | grep .
