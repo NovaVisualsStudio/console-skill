@@ -42,7 +42,9 @@ jobs:
         run: |
           curl -fsSL https://dl.google.com/android/cli/latest/linux_x86_64/install.sh | bash
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           test -x "$HOME/.local/bin/android"
+          test -x "$ANDROID_HOME/platform-tools/adb"
           "$HOME/.local/bin/android" --no-metrics --version
 
       - name: Install Android SDK packages
@@ -91,7 +93,7 @@ jobs:
         run: godot --headless --verbose --path android-game --script res://tests/runtime_smoke.gd
 
       - name: Gate 7 - extended 300-frame runtime test
-        run: godot --headless --path android-game --script res://tests/runtime_smoke.gd
+        run: godot --headless --verbose --path android-game --script res://tests/runtime_smoke.gd
 
       - name: Gate 8 - source hygiene and expected scene files
         run: |
@@ -131,8 +133,8 @@ jobs:
             echo "===== STABILITY PASS $pass / 6 ====="
             python3 -m unittest discover -s tests -p 'test_godot_project.py' -v
             godot --headless --path android-game --script res://tests/combat_smoke.gd
-            godot --headless --path android-game --script res://tests/cinematic_smoke.gd
-            godot --headless --path android-game --script res://tests/audio_smoke.gd
+            godot --headless --verbose --path android-game --script res://tests/cinematic_smoke.gd
+            godot --headless --verbose --path android-game --script res://tests/audio_smoke.gd
             godot --headless --path android-game --script res://tests/runtime_smoke.gd
           done
 
