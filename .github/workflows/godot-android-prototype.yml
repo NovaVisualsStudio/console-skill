@@ -81,7 +81,10 @@ jobs:
         run: python3 -m unittest discover -s tests -p 'test_godot_project.py' -v
 
       - name: Gate 2 - Godot editor import and script parse
-        run: godot --headless --editor --path android-game --quit
+        run: |
+          adb start-server
+          adb devices
+          godot --headless --editor --path android-game --quit
 
       - name: Gate 3 - deterministic combat behaviour tests
         run: godot --headless --path android-game --script res://tests/combat_smoke.gd
@@ -123,7 +126,7 @@ jobs:
           cd android-game
           mkdir -p build
           adb start-server
-          godot --headless --editor --path . --quit
+          adb devices
           godot --headless --path . --export-debug "Android" build/NovaAncientWarrior-debug.apk --verbose
           test -s build/NovaAncientWarrior-debug.apk
           "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose build/NovaAncientWarrior-debug.apk
