@@ -90,10 +90,12 @@ func take_damage(amount: int) -> void:
         return
     health = maxi(0, health - amount)
     if is_instance_valid(body_mesh):
-        var original: Color = body_mesh.material_override.albedo_color
-        body_mesh.material_override.albedo_color = Color(1.0, 0.72, 0.35)
-        var tween := create_tween()
-        tween.tween_property(body_mesh.material_override, "albedo_color", original, 0.16)
+        var material := body_mesh.material_override as StandardMaterial3D
+        if material != null:
+            var original: Color = material.albedo_color
+            material.albedo_color = Color(1.0, 0.72, 0.35)
+            var tween := create_tween()
+            tween.tween_property(material, "albedo_color", original, 0.16)
     if health == 0:
         defeated.emit(is_boss)
         queue_free()
