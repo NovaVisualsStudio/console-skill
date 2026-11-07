@@ -38,14 +38,16 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: ""
+      - name: Install Android CLI
+        run: |
+          curl -fsSL https://dl.google.com/android/cli/latest/linux_x86_64/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          test -x "$HOME/.local/bin/android"
+          "$HOME/.local/bin/android" --no-metrics --version
 
       - name: Install Android SDK packages
         run: |
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "cmake;3.10.2.4988404" "ndk;23.2.8568313"
+          "$HOME/.local/bin/android" --no-metrics --sdk="$ANDROID_HOME" sdk install platforms/android-34 build-tools/34.0.0 cmake/3.10.2.4988404 ndk/23.2.8568313
 
       - name: Configure Godot Android SDK paths
         run: |
@@ -66,6 +68,7 @@ jobs:
           echo "---- Android export templates ----"
           find "$HOME/.local/share/godot/export_templates" -maxdepth 2 -type f -name 'android_*' -print
           test -d "$ANDROID_HOME/platforms/android-34"
+          test -x "$HOME/.local/bin/android"
           test -d "$ANDROID_HOME/build-tools/34.0.0"
           test -x "$JAVA_HOME/bin/java"
 
