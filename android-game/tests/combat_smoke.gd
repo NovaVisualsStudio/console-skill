@@ -29,17 +29,23 @@ func _run_tests() -> void:
         quit(1)
         return
 
-    if not player.perform_light_attack() or grunt.health != 48 or player.combo_step != 1:
+    var first_ok := player.perform_light_attack()
+    print("COMBO DEBUG 1 accepted=%s hp=%d step=%d cooldown=%.3f" % [str(first_ok), grunt.health, player.combo_step, player.attack_cooldown])
+    if not first_ok or grunt.health != 48 or player.combo_step != 1:
         push_error("Light attack combo step 1 failed.")
         quit(1)
         return
     await create_timer(0.41).timeout
-    if not player.perform_light_attack() or grunt.health != 9 or player.combo_step != 2:
+    var second_ok := player.perform_light_attack()
+    print("COMBO DEBUG 2 accepted=%s hp=%d step=%d cooldown=%.3f chain=%.3f" % [str(second_ok), grunt.health, player.combo_step, player.attack_cooldown, player.combo_chain_timer])
+    if not second_ok or grunt.health != 9 or player.combo_step != 2:
         push_error("Light attack combo step 2 failed.")
         quit(1)
         return
     await create_timer(0.41).timeout
-    if not player.perform_light_attack() or grunt.health != 0 or player.combo_step != 3:
+    var third_ok := player.perform_light_attack()
+    print("COMBO DEBUG 3 accepted=%s hp=%d step=%d cooldown=%.3f chain=%.3f" % [str(third_ok), grunt.health, player.combo_step, player.attack_cooldown, player.combo_chain_timer])
+    if not third_ok or grunt.health != 0 or player.combo_step != 3:
         push_error("Light attack combo finisher failed.")
         quit(1)
         return
