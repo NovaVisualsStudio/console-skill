@@ -38,6 +38,15 @@ func _ready() -> void:
         add_child(player)
         one_shot_players.append(player)
 
+func _exit_tree() -> void:
+    if is_instance_valid(ambience_player):
+        ambience_player.stop()
+        ambience_player.stream = null
+    for voice in one_shot_players:
+        if is_instance_valid(voice):
+            voice.stop()
+            voice.stream = null
+
 func start_ambience() -> void:
     if is_instance_valid(ambience_player) and not ambience_player.playing:
         ambience_player.play()
