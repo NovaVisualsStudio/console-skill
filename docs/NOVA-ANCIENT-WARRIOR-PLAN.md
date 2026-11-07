@@ -119,7 +119,7 @@ Cash cost can remain near zero with self-made assets and free/open-source tools,
 ## Expanded CI test protocol: ten gates
 
 1. Python source and project integrity (10 tests), including generated build/cache exclusion.
-2. Godot 4.4.1 headless editor import and script parsing.
+2. Godot 4.7.2 headless editor import and script parsing.
 3. Deterministic combat behaviour tests: combo chain, heavy attack, boss threshold/phase, parry, guard reduction, dodge i-frames, enemy telegraph/strike.
 4. Cinematic scene integration: arena nodes, player/boss/camera, intro lock, camera lock-on/shake, combat handoff and boss HUD/phase.
 5. Procedural audio smoke test: ambience stream, sample data, pooled voices and combat effect playback calls.
@@ -152,7 +152,7 @@ The first four can run in CI. The fifth requires an actual Android device and mu
 
 ## Open-source resource directory
 
-- Godot Engine and Android export documentation: https://godotengine.org/ and https://docs.godotengine.org/en/4.4/tutorials/export/exporting_for_android.html
+- Godot Engine and Android export documentation: https://godotengine.org/ and https://docs.godotengine.org/en/4.7/tutorials/export/exporting_for_android.html
 - Blender (3D modelling, rigging and animation): https://www.blender.org/
 - Krita (2D concepts and UI art): https://krita.org/
 - GIMP (texture and image editing): https://www.gimp.org/
