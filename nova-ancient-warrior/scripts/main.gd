@@ -10,6 +10,7 @@ const CombatRules = preload("res://scripts/combat_rules.gd")
 const WarriorVisual = preload("res://scripts/warrior_visual.gd")
 const MusicDirector = preload("res://scripts/music_director.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
+const LevelCatalog = preload("res://scripts/level_catalog.gd")
 
 var player: CharacterBody3D
 var hero_visual: Node3D
@@ -36,6 +37,9 @@ var sound_cursor := 0
 var souls_earned := 0
 var cinematic_active := false
 var music_director: Node
+var arena_environment: Environment
+var arena_floor_material: StandardMaterial3D
+var arena_sun: DirectionalLight3D
 
 
 func _ready() -> void:
@@ -153,6 +157,7 @@ func _add_key_action(action_name: String, key: Key) -> void:
 func _build_world() -> void:
 	var world := WorldEnvironment.new()
 	var env := Environment.new()
+	arena_environment = env
 	env.background_mode = Environment.BG_SKY
 	var sky := Sky.new()
 	var sky_material := ProceduralSkyMaterial.new()
@@ -172,6 +177,7 @@ func _build_world() -> void:
 	add_child(world)
 
 	var sun := DirectionalLight3D.new()
+	arena_sun = sun
 	sun.rotation_degrees = Vector3(-48.0, -32.0, 0.0)
 	sun.light_color = Color(1.0, 0.72, 0.48)
 	sun.light_energy = 1.25
@@ -186,7 +192,8 @@ func _build_world() -> void:
 	var floor_instance := MeshInstance3D.new()
 	floor_instance.mesh = floor_mesh
 	floor_instance.position.y = -0.3
-	floor_instance.material_override = _material(Color(0.22, 0.19, 0.17), 0.0, 0.9)
+	arena_floor_material = _material(Color(0.22, 0.19, 0.17), 0.0, 0.9)
+	floor_instance.material_override = arena_floor_material
 	floor_body.add_child(floor_instance)
 	var floor_collision := CollisionShape3D.new()
 	var floor_shape := BoxShape3D.new()
@@ -265,7 +272,24 @@ func _build_enemies() -> void:
 	_spawn_wave()
 
 
+func _apply_level_theme(wave: int) -> void:
+	var level := LevelCatalog.get_level(wave)
+	if is_instance_valid(arena_floor_material):
+		arena_floor_material.albedo_color = level["floor"]
+	if is_instance_valid(arena_sun):
+		arena_sun.light_color = level["sun"]
+		arena_sun.light_energy = float(level["sun_energy"])
+	if arena_environment != null:
+		arena_environment.ambient_light_color = level["ambient"]
+		var sky := arena_environment.sky
+		if sky != null and sky.sky_material is ProceduralSkyMaterial:
+			var sky_material := sky.sky_material as ProceduralSkyMaterial
+			sky_material.sky_top_color = level["sky_top"]
+			sky_material.sky_horizon_color = level["sky_horizon"]
+
+
 func _spawn_wave() -> void:
+	_apply_level_theme(current_wave)
 	var enemy_count := CombatRules.wave_enemy_count(current_wave)
 	var boss_wave := CombatRules.is_boss_wave(current_wave)
 	for i in range(enemy_count):
@@ -292,7 +316,7 @@ func _spawn_wave() -> void:
 		if boss_wave:
 			enemy.scale = Vector3.ONE * 1.42
 			var title := Label3D.new()
-			title.text = "ASH TITAN"
+			title.text = str(LevelCatalog.get_level(current_wave).get("boss_name", "ASH TITAN"))
 			title.position = Vector3(0.0, 3.15, 0.0)
 			title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 			title.font_size = 40
@@ -346,7 +370,7 @@ func _handle_wave_cleared() -> void:
 		current_wave += 1
 		_spawn_wave()
 		wave_transitioning = false
-		status_label.text = "WAVE %d / 3 | DEFEAT THE ASH SENTINELS" % current_wave
+		status_label.text = "%s | DEFEAT THE ENEMIES" % str(LevelCatalog.get_level(current_wave).get("title", "ARENA"))
 		_update_hud()
 		_play_tone(520.0 + float(current_wave) * 80.0, 0.14, 0.18)
 	)
