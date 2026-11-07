@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Godot 4.4.1 headless
         uses: chickensoft-games/setup-godot@v2
@@ -33,19 +33,19 @@ jobs:
           include-templates: true
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
-          packages: "platform-tools"
+          packages: ""
 
       - name: Install Android SDK packages
         run: |
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;23.2.8568313"
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "cmake;3.10.2.4988404" "ndk;23.2.8568313"
 
       - name: Configure Godot Android SDK paths
         run: |
@@ -85,10 +85,10 @@ jobs:
         run: godot --headless --path android-game --script res://tests/audio_smoke.gd
 
       - name: Gate 6 - scene runtime smoke test
-        run: godot --headless --path android-game --quit-after 5
+        run: godot --headless --path android-game --script res://tests/runtime_smoke.gd
 
       - name: Gate 7 - extended 300-frame runtime test
-        run: godot --headless --path android-game --quit-after 300
+        run: godot --headless --path android-game --script res://tests/runtime_smoke.gd
 
       - name: Gate 8 - source hygiene and expected scene files
         run: |
@@ -112,23 +112,24 @@ jobs:
         run: |
           cd android-game
           mkdir -p build
+          adb start-server
           godot --headless --editor --path . --quit
           godot --headless --path . --export-debug "Android" build/NovaAncientWarrior-debug.apk --verbose
           test -s build/NovaAncientWarrior-debug.apk
 
-      - name: Gate 10 - four repeated gameplay and runtime passes
+      - name: Gate 10 - six repeated gameplay and runtime passes
         run: |
-          for pass in 1 2 3 4; do
-            echo "===== STABILITY PASS $pass / 4 ====="
+          for pass in 1 2 3 4 5 6; do
+            echo "===== STABILITY PASS $pass / 6 ====="
             python3 -m unittest discover -s tests -p 'test_godot_project.py' -v
             godot --headless --path android-game --script res://tests/combat_smoke.gd
             godot --headless --path android-game --script res://tests/cinematic_smoke.gd
             godot --headless --path android-game --script res://tests/audio_smoke.gd
-            godot --headless --path android-game --quit-after 300
+            godot --headless --path android-game --script res://tests/runtime_smoke.gd
           done
 
       - name: Upload Android debug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nova-ancient-warrior-android-debug
           path: android-game/build/NovaAncientWarrior-debug.apk
