@@ -13,7 +13,7 @@ An original third-person 3D action prototype using Godot 4.7.2 and GDScript. Pro
 
 ## Controls
 Keyboard: WASD or arrows to move, J or Enter to attack, Space to jump.
-Touch: directional buttons lower-left; Attack and Jump lower-right.
+Touch: directional buttons lower-left; Attack and Jump lower-right. A Restart button appears after victory or defeat.
 
 ## Run
 1. Install Godot 4.7.2 from https://godotengine.org/download/
