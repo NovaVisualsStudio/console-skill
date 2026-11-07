@@ -1,0 +1,136 @@
+name: Nova Ancient Warrior Android debug APK
+
+on:
+  push:
+    branches: [nova-android-vertical-slice, nova-gameplay-hardening]
+    paths:
+      - "nova-ancient-warrior/**"
+      - ".github/workflows/godot-android-apk.yml"
+  pull_request:
+    paths:
+      - "nova-ancient-warrior/**"
+      - ".github/workflows/godot-android-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-android-debug:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+
+      - name: Install pinned Android SDK packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager --install \
+            "platform-tools" \
+            "build-tools;35.0.1" \
+            "platforms;android-35" \
+            "cmdline-tools;latest" \
+            "cmake;3.10.2.4988404" \
+            "ndk;28.1.13356709"
+
+      - name: Download Godot 4.7.2 editor and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot" "$RUNNER_TEMP/templates"
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" \
+            -o "$RUNNER_TEMP/godot-editor.zip"
+          unzip -q "$RUNNER_TEMP/godot-editor.zip" -d "$RUNNER_TEMP/godot"
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz" \
+            -o "$RUNNER_TEMP/godot-templates.tpz"
+          unzip -q "$RUNNER_TEMP/godot-templates.tpz" -d "$RUNNER_TEMP/templates"
+          template_file="$(find "$RUNNER_TEMP/templates" -type f -name android_debug.apk -print -quit)"
+          test -n "$template_file"
+          template_dir="$(dirname "$template_file")"
+          install_dir="$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          mkdir -p "$install_dir"
+          cp -a "$template_dir/." "$install_dir/"
+          test -s "$install_dir/android_debug.apk"
+          editor="$(find "$RUNNER_TEMP/godot" -type f -name 'Godot_v4.7.2-stable_linux.x86_64' -print -quit)"
+          test -n "$editor"
+          chmod +x "$editor"
+          echo "GODOT_BIN=$editor" >> "$GITHUB_ENV"
+
+      - name: Configure Godot Android SDK paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$ANDROID_HOME/platform-tools"
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          EOF
+
+      - name: Create ephemeral debug signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          keytool -genkeypair -noprompt -storetype JKS \
+            -keystore "$RUNNER_TEMP/nova-debug.keystore" \
+            -storepass android -keypass android \
+            -alias androiddebugkey -keyalg RSA -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Import, export and verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$RUNNER_TEMP/nova-debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+          "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --check-only --script res://scripts/main.gd
+          smoke_log="$(mktemp)"
+          if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
+              --quit-after 120 >"$smoke_log" 2>&1; then
+            cat "$smoke_log"
+            exit 1
+          fi
+          cat "$smoke_log"
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$smoke_log"; then
+            exit 1
+          fi
+          mkdir -p artifacts
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --export-debug "Android Debug" \
+            "$GITHUB_WORKSPACE/artifacts/nova-ancient-warrior-debug.apk"
+          apk="artifacts/nova-ancient-warrior-debug.apk"
+          test -s "$apk"
+          unzip -t "$apk"
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$apk"
+          "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk" | \
+            grep -F "package: name='com.novavisualsstudio.novaancientwarrior'"
+
+      - name: Publish verified debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-ancient-warrior-android-debug
+          path: artifacts/nova-ancient-warrior-debug.apk
+          if-no-files-found: error
+          retention-days: 14
