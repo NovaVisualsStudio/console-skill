@@ -56,8 +56,8 @@ class GodotProjectIntegrity(unittest.TestCase):
         combat = self.read("tests/combat_smoke.gd")
         cinematic = self.read("tests/cinematic_smoke.gd")
         self.assertIn("Perfect parry", combat)
-        self.assertIn("Boss phase 2", combat)
-        self.assertIn("THE ASHEN GATE", cinematic)
+        self.assertIn("Boss phase transition", combat)
+        self.assertIn("camera_rig.start_intro", cinematic)
         self.assertIn("combat_started", cinematic)
 
     def test_no_external_or_proprietary_game_assets_are_bundled(self):
