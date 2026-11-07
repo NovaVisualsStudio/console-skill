@@ -51,7 +51,7 @@ jobs:
 
       - name: Install Android SDK packages
         run: |
-          "$HOME/.local/bin/android" --no-metrics --sdk="$ANDROID_HOME" sdk install platform-tools platforms/android-34 build-tools/34.0.0 cmake/3.10.2.4988404 ndk/23.2.8568313
+          "$HOME/.local/bin/android" --no-metrics --sdk="$ANDROID_HOME" sdk install platform-tools platforms/android-35 build-tools/35.0.1 cmake/3.10.2.4988404 ndk/28.1.13356709
 
       - name: Configure Godot Android SDK paths
         run: |
@@ -71,10 +71,10 @@ jobs:
           grep -E 'export/android/(android_sdk_path|java_sdk_path)' "$HOME/.config/godot/editor_settings-4.7.tres"
           echo "---- Android export templates ----"
           find "$HOME/.local/share/godot/export_templates" -maxdepth 2 -type f -name 'android_*' -print
-          test -d "$ANDROID_HOME/platforms/android-34"
+          test -d "$ANDROID_HOME/platforms/android-35"
           test -x "$HOME/.local/bin/android"
           test -x "$ANDROID_HOME/platform-tools/adb"
-          test -d "$ANDROID_HOME/build-tools/34.0.0"
+          test -d "$ANDROID_HOME/build-tools/35.0.1"
           test -x "$JAVA_HOME/bin/java"
 
       - name: Gate 1 - repository integrity tests
@@ -129,8 +129,8 @@ jobs:
           adb devices
           godot --headless --path . --export-debug "Android" build/NovaAncientWarrior-debug.apk --verbose
           test -s build/NovaAncientWarrior-debug.apk
-          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose build/NovaAncientWarrior-debug.apk
-          "$ANDROID_HOME/build-tools/34.0.0/aapt" dump badging build/NovaAncientWarrior-debug.apk | grep -F "package: name='com.novavisuals.ancientwarrior'"
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose build/NovaAncientWarrior-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging build/NovaAncientWarrior-debug.apk | grep -F "package: name='com.novavisuals.ancientwarrior'"
           unzip -l build/NovaAncientWarrior-debug.apk | grep -F "lib/arm64-v8a/libgodot_android.so"
 
       - name: Gate 10 - six repeated gameplay and runtime passes
