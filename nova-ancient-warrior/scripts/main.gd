@@ -47,7 +47,14 @@ func _physics_process(delta: float) -> void:
 	if game_over or not is_instance_valid(player):
 		return
 	var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var direction := Vector3(input_vector.x, 0.0, input_vector.y).normalized()
+	var camera_basis := camera.global_transform.basis
+	var camera_forward := -camera_basis.z
+	camera_forward.y = 0.0
+	camera_forward = camera_forward.normalized()
+	var camera_right := camera_basis.x
+	camera_right.y = 0.0
+	camera_right = camera_right.normalized()
+	var direction := (camera_right * input_vector.x + camera_forward * -input_vector.y).normalized()
 	if direction.length_squared() > 0.01:
 		player.velocity.x = direction.x * PLAYER_SPEED
 		player.velocity.z = direction.z * PLAYER_SPEED
@@ -381,7 +388,12 @@ func _attack() -> void:
 	for enemy in enemies.duplicate():
 		if not is_instance_valid(enemy):
 			continue
-		if player.global_position.distance_to(enemy.global_position) <= ATTACK_RANGE:
+		var to_enemy := enemy.global_position - player.global_position
+		to_enemy.y = 0.0
+		var distance := to_enemy.length()
+		var facing := -player.global_transform.basis.z
+		facing.y = 0.0
+		if distance <= ATTACK_RANGE and distance > 0.001 and facing.normalized().dot(to_enemy.normalized()) >= 0.2:
 			var hp := int(enemy.get_meta("hp", 60)) - 40
 			enemy.set_meta("hp", hp)
 			_play_tone(260.0, 0.07, 0.2)
