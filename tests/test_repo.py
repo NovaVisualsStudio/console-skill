@@ -309,6 +309,27 @@ class Repo(unittest.TestCase):
         self.assertIn("<svg", icon)
         self.assertIn("Nova", project)
 
+    def test_enemy_ai_uses_fixed_tick_and_avoids_per_frame_copy(self):
+        script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
+        with open(script_path, encoding="utf-8") as fh:
+            script = fh.read()
+        process_body = script.split("func _process", 1)[1].split("func _physics_process", 1)[0]
+        physics_body = script.split("func _physics_process", 1)[1].split("func _setup_input", 1)[0]
+        self.assertNotIn("enemies.duplicate()", script)
+        self.assertNotIn("_update_enemies(delta)", process_body)
+        self.assertIn("_update_enemies(delta)", physics_body)
+
+    def test_combat_rules_have_a_headless_gameplay_smoke_test(self):
+        rules_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "combat_rules.gd")
+        test_path = os.path.join(ROOT, "nova-ancient-warrior", "tests", "combat_rules_smoke.gd")
+        with open(rules_path, encoding="utf-8") as fh:
+            rules = fh.read()
+        with open(test_path, encoding="utf-8") as fh:
+            smoke = fh.read()
+        self.assertIn("static func is_target_in_attack_arc", rules)
+        self.assertIn("target behind player is not hittable", smoke)
+        self.assertIn("target outside attack range is not hittable", smoke)
+
 
 if __name__ == "__main__":
     unittest.main()
