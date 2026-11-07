@@ -5,6 +5,15 @@ const AUDIO_SCRIPT = preload("res://scripts/audio_fx.gd")
 func _initialize() -> void:
     call_deferred("_run_tests")
 
+func _finish(exit_code: int, audio: NovaAudioFX) -> void:
+    if is_instance_valid(audio):
+        audio.shutdown()
+        audio.free()
+    await create_timer(0.5).timeout
+    await process_frame
+    await process_frame
+    quit(exit_code)
+
 func _run_tests() -> void:
     var audio := AUDIO_SCRIPT.new() as NovaAudioFX
     root.add_child(audio)
@@ -12,7 +21,7 @@ func _run_tests() -> void:
 
     if audio.ambience_player == null or audio.ambience_player.stream == null:
         push_error("Atmospheric ambience player was not created.")
-        quit(1)
+        await _finish(1, audio)
         return
     var ambience := audio.ambience_player.stream as AudioStreamWAV
     if ambience == null or ambience.loop_mode != AudioStreamWAV.LOOP_FORWARD:
@@ -42,7 +51,5 @@ func _run_tests() -> void:
         return
 
     print("AUDIO TESTS PASS: looping atmospheric drone, light/heavy swing and impact, parry, boss telegraph and phase burst.")
-    audio.free()
-    await process_frame
-    await process_frame
-    quit(0)
+    ambience = null
+    await _finish(0, audio)
