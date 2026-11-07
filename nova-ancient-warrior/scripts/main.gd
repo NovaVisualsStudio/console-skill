@@ -394,7 +394,7 @@ func _update_enemies(delta: float) -> void:
 		var attack_cooldown_value := maxf(0.0, float(enemy.get_meta("attack_cooldown", 0.0)) - delta)
 
 		if attack_state == "approach":
-			if distance > 1.55:
+			if distance > 1.85:
 				enemy.global_position += offset.normalized() * ENEMY_SPEED * delta
 				if visual != null:
 					visual.call("set_locomotion", 0.46, delta)
@@ -434,7 +434,7 @@ func _attack() -> void:
 		return
 	var current_step := combo_step
 	var damage := CombatRules.combo_damage(current_step)
-	var range := CombatRules.combo_range(current_step)
+	var attack_range_value := CombatRules.combo_range(current_step)
 	attack_cooldown = CombatRules.combo_cooldown(current_step)
 	combo_display_step = current_step
 	combo_step = (combo_step + 1) % 3
@@ -451,7 +451,7 @@ func _attack() -> void:
 		to_enemy.y = 0.0
 		var facing := -player.global_transform.basis.z
 		facing.y = 0.0
-		if CombatRules.is_target_in_attack_arc(facing, to_enemy, range):
+		if CombatRules.is_target_in_attack_arc(facing, to_enemy, attack_range_value):
 			var hp := int(enemy.get_meta("hp", 60)) - damage
 			enemy.set_meta("hp", hp)
 			var enemy_visual := enemy.get_node_or_null("WarriorVisual")
