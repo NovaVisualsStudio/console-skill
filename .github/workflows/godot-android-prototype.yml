@@ -1,8 +1,8 @@
-name: Godot Android prototype validation
+name: NOVA cinematic Android validation
 
 on:
   push:
-    branches: [main, "feature/**"]
+    branches: [main]
     paths:
       - "android-game/**"
       - "tests/test_godot_project.py"
