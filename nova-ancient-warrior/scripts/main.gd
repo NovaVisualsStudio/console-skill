@@ -388,9 +388,9 @@ func _attack() -> void:
 	for enemy in enemies.duplicate():
 		if not is_instance_valid(enemy):
 			continue
-		var to_enemy := enemy.global_position - player.global_position
+		var to_enemy: Vector3 = enemy.global_position - player.global_position
 		to_enemy.y = 0.0
-		var distance := to_enemy.length()
+		var distance: float = to_enemy.length()
 		var facing := -player.global_transform.basis.z
 		facing.y = 0.0
 		if distance <= ATTACK_RANGE and distance > 0.001 and facing.normalized().dot(to_enemy.normalized()) >= 0.2:
