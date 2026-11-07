@@ -19,7 +19,7 @@ Open this folder in Godot 4.4 or newer and press Play. For desktop testing use W
 
 ## Android export
 
-Install the matching Godot export templates and configure Android SDK + OpenJDK 17 in Editor Settings. Export a debug APK first. Keep release signing keys out of Git. See the [official Godot Android export guide](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_android.html).
+The repository includes an ARM64 Android debug export preset. GitHub Actions configures Godot export templates, OpenJDK 17 and the Android SDK, then builds and uploads the `nova-ancient-warrior-android-debug` artifact when the seven-gate workflow passes. Download it from the workflow run's Artifacts section. It is a debug APK for testing, not a release-signed store build. Keep release signing keys out of Git. See the [official Godot Android export guide](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_android.html).
 
 ## Performance target
 
