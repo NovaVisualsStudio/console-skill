@@ -37,7 +37,7 @@ func _run_tests() -> void:
     for required_node in ["ArenaFloor", "PortalCore", "AtmosphericAsh"]:
         if arena.find_child(required_node, true, false) == null:
             push_error("Missing cinematic environment node: " + required_node)
-            quit(1)
+            await _finish(1, arena)
             return
     if arena.camera_rig.intro_timer <= 0.0:
         push_error("Camera intro sequence did not start.")
@@ -76,6 +76,8 @@ func _run_tests() -> void:
     arena.player.rotation.y = 0.0
     arena.boss.global_position = arena.player.global_position + Vector3(4.0, 0.0, 0.0)
     arena.player.lock_target = arena.boss
+    await physics_frame
+    await physics_frame
     await physics_frame
     if absf(wrapf(arena.player.rotation.y, -PI, PI)) < 0.25:
         push_error("Player lock-on did not rotate the warrior toward a target while idle.")
