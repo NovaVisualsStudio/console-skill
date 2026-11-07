@@ -53,9 +53,17 @@ jobs:
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/save_manager_smoke.gd
 
-      - name: Validate data-driven arena themes
+      - name: Validate data-driven campaign themes
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/level_catalog_smoke.gd
+
+      - name: Verify all nine waves and three boss encounters
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/campaign_smoke.gd
+
+      - name: Build each procedural chapter environment
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/stage_builder_smoke.gd
 
       - name: Smoke-run main scene and reject script errors
         shell: bash
