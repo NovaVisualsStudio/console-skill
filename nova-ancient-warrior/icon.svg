@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111c2e"/>
+      <stop offset="1" stop-color="#382017"/>
+    </linearGradient>
+    <linearGradient id="bronze" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#f2c879"/>
+      <stop offset="0.55" stop-color="#a9632b"/>
+      <stop offset="1" stop-color="#58351f"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.5" stop-color="#9fb6c8"/>
+      <stop offset="1" stop-color="#364a60"/>
+    </linearGradient>
+  </defs>
+  <rect x="20" y="20" width="472" height="472" rx="88" fill="url(#bg)" stroke="#c58a42" stroke-width="12"/>
+  <circle cx="256" cy="236" r="155" fill="none" stroke="#c58a42" stroke-opacity=".28" stroke-width="5"/>
+  <path d="M256 72 L286 126 L275 174 L330 211 L312 333 L256 386 L200 333 L182 211 L237 174 L226 126 Z" fill="url(#bronze)" stroke="#f1ca7c" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M256 88 L256 343 M211 208 L301 208" stroke="#51301d" stroke-width="13" stroke-linecap="round"/>
+  <path d="M225 231 L256 247 L287 231 L277 305 L256 325 L235 305 Z" fill="#132033" stroke="#e1ad5b" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M256 115 L256 184" stroke="#f8e2ad" stroke-width="9" stroke-linecap="round"/>
+  <path d="M107 392 L256 447 L405 392" fill="none" stroke="#c58a42" stroke-width="10" stroke-linecap="round"/>
+  <path d="M256 366 L256 432" stroke="url(#steel)" stroke-width="18" stroke-linecap="round"/>
+  <path d="M222 402 L290 402" stroke="#e2b76b" stroke-width="15" stroke-linecap="round"/>
+</svg>
