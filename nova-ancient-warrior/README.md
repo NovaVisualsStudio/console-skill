@@ -3,17 +3,18 @@
 An original third-person 3D action prototype using Godot 4.7.2 and GDScript. Procedural meshes and materials keep the first playable slice free of paid assets.
 
 ## Included
-- Third-person arena camera and movement.
-- Keyboard and on-screen touch controls.
-- Jump and melee sword attack.
-- Four pursuing enemies, vitality, score and victory/defeat states.
-- Procedural stone arena, pillars, braziers, lighting and sky.
-- Procedural one-shot audio cues.
+- Third-person arena camera and movement with an articulated low-poly warrior assembled from separate body and armor parts.
+- Layered humanoid enemies with distinct armor colors and a visible attack telegraph.
+- Three-step sword combo with tuned damage, a wider finisher and hit feedback.
+- Directional dodge with a short invulnerability window, plus jump and mobile touch controls.
+- Enemy approach, windup, strike and recovery states instead of immediate contact damage.
+- Vitality, combo readout, score and victory/defeat states.
+- Procedural stone arena, pillars, braziers, lighting, sky and lightweight generated audio cues.
 - OpenGL Compatibility renderer for broader Android support.
 
 ## Controls
-Keyboard: WASD or arrows to move, J or Enter to attack, Space to jump.
-Touch: directional buttons lower-left; Attack and Jump lower-right. A Restart button appears after victory or defeat.
+Keyboard: WASD or arrows to move, J or Enter to attack, Shift or K to dodge, Space to jump, R to restart.
+Touch: directional buttons lower-left; Attack, Jump and Dodge lower-right. A Restart button appears after victory or defeat.
 
 ## Run
 1. Install Godot 4.7.2 from https://godotengine.org/download/
@@ -31,8 +32,8 @@ This remains a gameplay prototype, not a finished game. Godot headless validatio
 
 ## Production milestones
 1. Validate import and scene execution in Godot 4.7.2.
-2. Replace procedural placeholders with licensed CC0 characters, animations and environment assets.
-3. Add combat state machine, hitboxes, enemy telegraphs, lock-on camera and feedback.
+2. Replace or augment the articulated procedural character with a licensed production-ready rig and authored animation clips.
+3. Add animation retargeting, hitboxes, lock-on camera, combat cancel windows, boss patterns and richer feedback.
 4. Build authored levels, checkpoints, save data, settings and accessibility.
 5. Profile on the target Android phone and tune draw calls, shadows, resolution and memory.
 6. Create a separate PS2SDK codebase with a deliberately reduced PS2 asset budget.
