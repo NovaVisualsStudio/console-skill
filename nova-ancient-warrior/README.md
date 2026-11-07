@@ -10,6 +10,8 @@ An original third-person 3D action prototype using Godot 4.7.2 and GDScript. Pro
 - Directional dodge with a short invulnerability window, plus jump and mobile touch controls.
 - Enemy approach, windup, strike and recovery states instead of immediate contact damage.
 - Vitality, combo readout, score and victory/defeat states.
+- Versioned local save profile for best score, earned souls, wave checkpoint, audio preferences and boss/chapter unlock progress.
+- Original procedural ambient soundtrack generated at runtime; boss reveal camera sequence.
 - Procedural stone arena, pillars, braziers, lighting, sky and lightweight generated audio cues.
 - OpenGL Compatibility renderer for broader Android support.
 
@@ -30,6 +32,10 @@ This is a debug-signed sideloading build for device testing, not a Play Store re
 
 ## Verification status
 This remains a gameplay prototype, not a finished game. Godot headless validation and the reproducible Android export pipeline are configured; the Android debug APK and on-device playtest must pass before calling the build device-verified. The PS2 port is a separate PS2SDK implementation; this Godot project is not a PS2 ELF.
+
+## Character and mocap pipeline
+
+See [`docs/NOVA_CHARACTER_MOCAP_PRODUCTION_PIPELINE.md`](../docs/NOVA_CHARACTER_MOCAP_PRODUCTION_PIPELINE.md) for the open-source-first production stack, capture protocol, licensing rules and Godot humanoid retargeting contract. The Blender packaging validator is [`tools/blender/export_humanoid_for_godot.py`](../tools/blender/export_humanoid_for_godot.py); it requires a source FBX/GLB with a skinned humanoid, records asset provenance, checks the skeleton/weights/actions, and exports a Godot-ready GLB. No external hero model or mocap take has been imported yet.
 
 ## Production milestones
 1. Validate import and scene execution in Godot 4.7.2.
