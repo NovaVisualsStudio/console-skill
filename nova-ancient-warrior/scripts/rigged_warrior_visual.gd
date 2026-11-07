@@ -24,7 +24,8 @@ func _ready() -> void:
 	if _model == null:
 		return
 	add_child(_model)
-	_animation_player = _model.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	var animation_nodes := _model.find_children("*", "AnimationPlayer", true, false)
+	_animation_player = animation_nodes[0] as AnimationPlayer if not animation_nodes.is_empty() else null
 	if _animation_player != null:
 		_animation_player.animation_finished.connect(_on_animation_finished)
 		_play_loop("idle")
