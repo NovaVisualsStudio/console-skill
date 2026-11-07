@@ -5,6 +5,7 @@ An original third-person 3D action prototype using Godot 4.7.2 and GDScript. Pro
 ## Included
 - Third-person arena camera and movement with an articulated low-poly warrior assembled from separate body and armor parts.
 - Layered humanoid enemies with distinct armor colors and a visible attack telegraph.
+- Three escalating arena waves, ending in a larger Ash Titan boss with higher health, heavier damage and a longer windup.
 - Three-step sword combo with tuned damage, a wider finisher and hit feedback.
 - Directional dodge with a short invulnerability window, plus jump and mobile touch controls.
 - Enemy approach, windup, strike and recovery states instead of immediate contact damage.
