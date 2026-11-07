@@ -106,6 +106,10 @@ jobs:
           "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --check-only --script res://scripts/main.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/combat_rules_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/warrior_visual_smoke.gd
           smoke_log="$(mktemp)"
           if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
               --quit-after 120 >"$smoke_log" 2>&1; then
