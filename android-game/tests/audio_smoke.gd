@@ -26,7 +26,8 @@ func _run_tests() -> void:
     var ambience := audio.ambience_player.stream as AudioStreamWAV
     if ambience == null or ambience.loop_mode != AudioStreamWAV.LOOP_FORWARD:
         push_error("Atmospheric bed must be a looping WAV stream.")
-        quit(1)
+        ambience = null
+        await _finish(1, audio)
         return
     if ambience.data.size() < 22050:
         push_error("Atmospheric bed sample data is unexpectedly short.")
