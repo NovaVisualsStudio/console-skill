@@ -247,6 +247,15 @@ class Repo(unittest.TestCase):
         self.assertIn("window/size/viewport_height=720", project)
         self.assertIn("window/handheld/orientation=0", project)
 
+    def test_android_game_has_touch_restart_and_audio_pool(self):
+        script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
+        with open(script_path, encoding="utf-8") as fh:
+            script = fh.read()
+        self.assertIn('restart_button.button_down.connect(func(): Input.action_press("restart"))', script)
+        self.assertIn("restart_button.visible = true", script)
+        self.assertIn("var sound_players: Array[AudioStreamPlayer] = []", script)
+        self.assertNotIn("—", script)
+
 
 if __name__ == "__main__":
     unittest.main()
