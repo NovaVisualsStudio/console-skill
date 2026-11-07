@@ -254,7 +254,7 @@ class Repo(unittest.TestCase):
         self.assertIn('restart_button.button_down.connect(func(): Input.action_press("restart"))', script)
         self.assertIn("restart_button.visible = true", script)
         self.assertIn("var sound_players: Array[AudioStreamPlayer] = []", script)
-        self.assertNotIn("—", script)
+        self.assertNotIn(chr(0x2014), script)
 
 
 if __name__ == "__main__":
