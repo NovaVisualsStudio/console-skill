@@ -10,7 +10,7 @@ An original Godot 4 action-adventure prototype for Android ARM64, built as a sep
 - Two guardian enemies with visible pre-attack telegraphs.
 - Ashen Warden boss with a 50% health phase transition and stronger second-phase attacks.
 - Original temple arena with portal architecture, pillars, ritual rings, emissive braziers, fog and floating ash.
-- Cinematic letterbox/title handoff, player/boss health UI, stamina and mobile touch controls.
+- Cinematic letterbox/title handoff, original procedural ambient drone and combat sounds, hit sparks, player/boss health UI, stamina and mobile touch controls.
 - Android landscape export preset and reproducible CI-built debug APK.
 
 The models and animation motions are still procedural primitives/tweens. This is a cinematic mechanics slice, not final AAA character art or a finished full game. Replace primitives with original rigged Blender models and authored animation clips before production release.
@@ -23,7 +23,7 @@ Android: left directional pad; right LIGHT, HEAVY, DODGE, GUARD and LOCK control
 
 ## Open in Godot
 
-Open this folder in Godot 4.4.1 or newer and run the project. The CI pipeline runs editor import, combat tests, cinematic integration tests, headless runtime tests, four repeat stability passes and Android ARM64 debug export.
+Open this folder in Godot 4.4.1 or newer and run the project. The CI pipeline runs editor import, combat tests, cinematic integration tests, procedural audio checks, headless runtime tests, four repeat stability passes and Android ARM64 debug export.
 
 ## Android APK
 
