@@ -130,6 +130,8 @@ jobs:
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/campaign_layout_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/mobile_render_profile_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/stage_hazard_rules_smoke.gd
           smoke_log="$(mktemp)"
           if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
