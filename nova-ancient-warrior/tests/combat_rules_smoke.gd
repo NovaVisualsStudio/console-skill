@@ -7,7 +7,7 @@ func _initialize() -> void:
 	var failures := 0
 	failures += _expect_true(CombatRules.is_target_in_attack_arc(Vector3.FORWARD, Vector3(0.0, 0.0, -2.0), 2.25), "target ahead is hittable")
 	failures += _expect_false(CombatRules.is_target_in_attack_arc(Vector3.FORWARD, Vector3(0.0, 0.0, 2.0), 2.25), "target behind player is not hittable")
-	failures += _expect_false(CombatRules.is_target_in_attack_arc(Vector3.FORWARD, Vector3(0.0, 0.0, -3.0), 2.25), "out-of-range target is rejected")
+	failures += _expect_false(CombatRules.is_target_in_attack_arc(Vector3.FORWARD, Vector3(0.0, 0.0, -3.0), 2.25), "target outside attack range is not hittable")
 	failures += _expect_false(CombatRules.is_target_in_attack_arc(Vector3.ZERO, Vector3(0.0, 0.0, -1.0), 2.25), "zero facing is rejected")
 	failures += _expect_false(CombatRules.is_target_in_attack_arc(Vector3.FORWARD, Vector3.ZERO, 2.25), "zero offset is rejected")
 	failures += _expect_true(CombatRules.is_target_in_attack_arc(Vector3.FORWARD, Vector3(0.0, 4.0, -2.0), 2.25), "ground-plane arc ignores vertical offset")
