@@ -134,3 +134,19 @@ The first four can run in CI. The fifth requires an actual Android device and mu
 - Add two enemy archetypes and boss wind-up/recovery phases.
 - Export debug APK and test on a physical phone.
 - Only after Android combat is stable, begin the separate PS2SDK action-game port.
+
+## Open-source resource directory
+
+- Godot Engine and Android export documentation: https://godotengine.org/ and https://docs.godotengine.org/en/4.4/tutorials/export/exporting_for_android.html
+- Blender (3D modelling, rigging and animation): https://www.blender.org/
+- Krita (2D concepts and UI art): https://krita.org/
+- GIMP (texture and image editing): https://www.gimp.org/
+- Audacity (audio editing): https://www.audacityteam.org/
+- Kenney asset library: https://kenney.nl/assets — verify the licence on each pack page; many packs are CC0.
+- OpenGameArt: https://opengameart.org/ — licences vary by asset; review each entry.
+- PS2SDK: https://github.com/ps2dev/ps2sdk
+- PCSX2 emulator: https://github.com/PCSX2/pcsx2
+
+## Current verified delivery state
+
+The Android ARM64 debug APK has now been exported successfully by GitHub Actions and uploaded as the `nova-ancient-warrior-android-debug` artifact. Its ZIP archive passed integrity checking after download. This verifies export and packaging only; physical-device installation, touch usability, sustained performance, thermal behaviour and battery usage remain unverified until tested on an actual phone.
