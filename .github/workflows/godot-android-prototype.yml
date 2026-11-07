@@ -47,7 +47,6 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           test -x "$HOME/.local/bin/android"
-          test -x "$ANDROID_HOME/platform-tools/adb"
           "$HOME/.local/bin/android" --no-metrics --version
 
       - name: Install Android SDK packages
@@ -74,6 +73,7 @@ jobs:
           find "$HOME/.local/share/godot/export_templates" -maxdepth 2 -type f -name 'android_*' -print
           test -d "$ANDROID_HOME/platforms/android-34"
           test -x "$HOME/.local/bin/android"
+          test -x "$ANDROID_HOME/platform-tools/adb"
           test -d "$ANDROID_HOME/build-tools/34.0.0"
           test -x "$JAVA_HOME/bin/java"
 
