@@ -16,7 +16,9 @@ var attack_ready := true
 var game_over := false
 var hud: Label
 var status_label: Label
-var sound_player: AudioStreamPlayer
+var restart_button: Button
+var sound_players: Array[AudioStreamPlayer] = []
+var sound_cursor := 0
 
 
 func _ready() -> void:
@@ -275,6 +277,27 @@ func _build_hud() -> void:
 	_add_touch_button(layer, "→", "move_right", Vector2(214.0, -139.0))
 	_add_touch_button(layer, "ATTACK", "attack", Vector2(-168.0, -126.0), Vector2(150.0, 72.0), true)
 	_add_touch_button(layer, "JUMP", "jump", Vector2(-168.0, -210.0), Vector2(112.0, 64.0), true)
+	restart_button = Button.new()
+	restart_button.name = "RestartButton"
+	restart_button.text = "RESTART"
+	restart_button.visible = false
+	restart_button.focus_mode = Control.FOCUS_NONE
+	restart_button.custom_minimum_size = Vector2(220.0, 64.0)
+	restart_button.anchor_left = 0.5
+	restart_button.anchor_right = 0.5
+	restart_button.anchor_top = 0.62
+	restart_button.anchor_bottom = 0.62
+	restart_button.offset_left = -110.0
+	restart_button.offset_right = 110.0
+	restart_button.offset_top = 0.0
+	restart_button.offset_bottom = 64.0
+	restart_button.add_theme_font_size_override("font_size", 22)
+	restart_button.add_theme_color_override("font_color", Color(1.0, 0.88, 0.7))
+	restart_button.add_theme_stylebox_override("normal", _button_style(Color(0.12, 0.13, 0.16, 0.92)))
+	restart_button.add_theme_stylebox_override("pressed", _button_style(Color(0.55, 0.23, 0.1, 0.98)))
+	restart_button.button_down.connect(func(): Input.action_press("restart"))
+	restart_button.button_up.connect(func(): Input.action_release("restart"))
+	layer.add_child(restart_button)
 	var hint := Label.new()
 	hint.anchor_left = 0.5
 	hint.anchor_right = 0.5
@@ -380,7 +403,9 @@ func _attack() -> void:
 				score += 100
 				_update_hud()
 				if enemies.is_empty():
-					status_label.text = "ARENA CLEARED — VICTORY"
+					status_label.text = "ARENA CLEARED | TAP RESTART OR PRESS R"
+					game_over = true
+					restart_button.visible = true
 					_play_tone(880.0, 0.3, 0.22)
 			else:
 				enemy.scale = Vector3(0.88, 0.88, 0.88)
@@ -395,7 +420,8 @@ func _damage_player(amount: int) -> void:
 	_update_hud()
 	if health <= 0:
 		game_over = true
-		status_label.text = "YOU FELL — PRESS R TO RESTART"
+		status_label.text = "YOU FELL | TAP RESTART OR PRESS R"
+		restart_button.visible = true
 
 
 func _update_hud() -> void:
@@ -404,14 +430,18 @@ func _update_hud() -> void:
 
 
 func _build_audio() -> void:
-	sound_player = AudioStreamPlayer.new()
-	sound_player.volume_db = -7.0
-	add_child(sound_player)
+	for i in range(4):
+		var voice := AudioStreamPlayer.new()
+		voice.volume_db = -7.0
+		add_child(voice)
+		sound_players.append(voice)
 
 
 func _play_tone(frequency: float, duration: float, amplitude: float) -> void:
-	if not is_instance_valid(sound_player):
+	if sound_players.is_empty():
 		return
+	var voice := sound_players[sound_cursor]
+	sound_cursor = (sound_cursor + 1) % sound_players.size()
 	var sample_rate := 22050
 	var count := maxi(1, int(sample_rate * duration))
 	var data := PackedByteArray()
@@ -426,8 +456,8 @@ func _play_tone(frequency: float, duration: float, amplitude: float) -> void:
 	stream.mix_rate = sample_rate
 	stream.stereo = false
 	stream.data = data
-	sound_player.stream = stream
-	sound_player.play()
+	voice.stream = stream
+	voice.play()
 
 
 func _material(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
