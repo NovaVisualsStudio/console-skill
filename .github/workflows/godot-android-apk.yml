@@ -104,6 +104,18 @@ jobs:
           export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
           export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
           "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --check-only --script res://scripts/main.gd
+          smoke_log="$(mktemp)"
+          if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
+              --quit-after 120 >"$smoke_log" 2>&1; then
+            cat "$smoke_log"
+            exit 1
+          fi
+          cat "$smoke_log"
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$smoke_log"; then
+            exit 1
+          fi
           mkdir -p artifacts
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --export-debug "Android Debug" \
