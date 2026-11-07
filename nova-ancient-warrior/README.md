@@ -16,7 +16,7 @@ An original third-person 3D action game prototype built with Godot 4.7.2 and GDS
 - Three-hit sword combo, heavy attack, directional dodge with invulnerability frames, hold-to-guard, timed perfect parry, and target lock-on.
 - Enemies have readable approach, telegraph, strike and recovery phases.
 - Three enemy archetypes by speed/health/damage profile; bosses have different attack ranges and health-triggered phases.
-- Boss reveal camera sequence, procedural ambient soundtrack, procedural combat tones and impact feedback.
+- Chapter title cards, boss reveal camera sequence, procedural ambient soundtrack, procedural combat tones and impact feedback.
 - Touch buttons: movement pad, Attack, Heavy, Jump, Lock-on, Dodge and Block.
 - Keyboard: WASD/arrows move, J/Enter attack, H heavy, I block, Tab lock-on, Shift/K dodge, Space jump, R restart.
 
@@ -41,16 +41,16 @@ A successful cloud export is not device certification. Install on the target pho
 
 ## Automated validation
 
-CI imports the project, strictly parses the main script, runs combat and visual smoke tests, verifies save/currency/upgrade persistence, validates chapter metadata, checks all nine encounter definitions, builds all three chapter dressings, and performs a headless main-scene smoke run before exporting Android.
+CI imports the project, strictly parses the main script, runs combat and visual smoke tests, verifies save/currency/upgrade persistence, validates chapter metadata, checks all nine encounter definitions, builds all three chapter dressings, tests timed hazard windows and safe lanes, and performs a headless main-scene smoke run before exporting Android.
 
 ## Character and motion-capture pipeline
 
-See [the character and mocap production pipeline](../docs/NOVA_CHARACTER_MOCAP_PRODUCTION_PIPELINE.md). The manual GitHub Actions workflow [Nova Warrior Motion Capture and Rigged Character](../.github/workflows/nova-mocap-character.yml) uses a pinned, experimental open-source markerless video-to-rig pipeline and a CC0 demo rig/video by default. It can also process a short performer recording committed under `mocap/`. Its output is a validated GLB candidate, not yet the production hero. The current game hero is a procedural articulated low-poly visual; no studio-grade captured animation set, final skinned character or weapon-contact cleanup is yet integrated.
+See [the character and mocap production pipeline](../docs/NOVA_CHARACTER_MOCAP_PRODUCTION_PIPELINE.md). The GitHub Actions workflow [Nova Warrior Motion Capture and Rigged Character](../.github/workflows/nova-mocap-character.yml) uses a pinned, experimental open-source markerless video-to-rig pipeline and a CC0 demo rig/video by default. It has successfully generated a humanoid GLB with a 61-bone skeleton and a body-motion clip, then imported and validated it in Godot. The pipeline now includes an optimizer that removes unused facial morph-target data to meet an Android asset budget while preserving skinning and skeletal animation; its latest CI check is pending. The capture is a single short kung-fu sequence, not a complete library of separate idle, locomotion, attack, dodge and reaction clips. The candidate is a base human, not the finished armoured hero, and is not yet wired into the runtime character. A custom phone recording can be processed from `mocap/` after performer rights are cleared.
 
 ## Known production boundaries
 
 - Stage geometry is procedural set dressing around the combat arena, not a complete traversal/exploration layout with authored collision puzzles.
-- Current character motion is procedural pivot/tween animation. The mocap workflow has not yet been run and its output is not yet wired into an AnimationTree.
-- Cinematic coverage currently focuses on boss introductions and transitions; chapter-specific story scenes, dialogue, subtitles and full narrative audio remain to be authored.
+- The shipped game scene still uses procedural pivot/tween character motion. The separately validated mocap GLB is an asset candidate only; armour, weapon attachment, motion cleanup and AnimationTree integration remain to be completed.
+- Cinematic coverage includes chapter title cards and boss introduction camera moves; authored dialogue scenes, character voice acting, subtitles and final narrative audio remain to be produced.
 - Android export is checked in CI; physical-device playtesting and performance profiling are still required.
 - This Godot Android game is not a PS2 executable. A real PS2 port would require a separate PS2SDK implementation and its own memory, rendering and controller constraints.
