@@ -37,6 +37,25 @@ func _run_tests() -> void:
         quit(1)
         return
 
+    for control_name in ["move_forward", "move_back", "move_left", "move_right", "light_attack", "heavy_attack", "dodge", "guard", "lock_on"]:
+        if arena.find_child(control_name, true, false) == null:
+            push_error("Missing Android touch control: " + control_name)
+            arena.free()
+            await process_frame
+            quit(1)
+            return
+
+    arena.player.rotation.y = 0.0
+    arena.boss.global_position = arena.player.global_position + Vector3(4.0, 0.0, 0.0)
+    arena.player.lock_target = arena.boss
+    await physics_frame
+    if absf(wrapf(arena.player.rotation.y, -PI, PI)) < 0.25:
+        push_error("Player lock-on did not rotate the warrior toward a target while idle.")
+        arena.free()
+        await process_frame
+        quit(1)
+        return
+
     arena.camera_rig.set_lock_target(arena.boss)
     if arena.camera_rig.lock_target != arena.boss:
         push_error("Camera lock-on target assignment failed.")
