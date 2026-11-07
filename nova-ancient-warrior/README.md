@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — Android-first prototype
+# Nova Ancient Warrior - Android-first prototype
 
 An original third-person 3D action prototype using Godot 4.7.2 and GDScript. Procedural meshes and materials keep the first playable slice free of paid assets.
 
