@@ -270,6 +270,7 @@ func _spawn_wave() -> void:
 		var spawn_radius := 7.8 if boss_wave else 6.2 + float(current_wave - 1) * 0.7
 		enemy.position = Vector3(cos(angle) * spawn_radius, 0.0, sin(angle) * spawn_radius)
 		enemy.set_meta("hp", CombatRules.wave_enemy_health(current_wave))
+		enemy.set_meta("base_scale", Vector3.ONE * (1.42 if boss_wave else 1.0))
 		enemy.set_meta("speed", 1.35 if boss_wave else ENEMY_SPEED + float(current_wave - 1) * 0.12)
 		enemy.set_meta("damage", CombatRules.wave_enemy_damage(current_wave))
 		enemy.set_meta("boss", boss_wave)
@@ -513,9 +514,10 @@ func _attack() -> void:
 			var enemy_visual := enemy.get_node_or_null("WarriorVisual")
 			if enemy_visual != null:
 				enemy_visual.call("hit_react")
-				enemy.scale = Vector3(0.92, 0.92, 0.92)
+				var base_scale: Vector3 = enemy.get_meta("base_scale", Vector3.ONE)
+				enemy.scale = base_scale * 0.92
 				var hit_tween := create_tween()
-				hit_tween.tween_property(enemy, "scale", Vector3.ONE, 0.14)
+				hit_tween.tween_property(enemy, "scale", base_scale, 0.14)
 			_play_tone(260.0, 0.07, 0.2)
 			if hp <= 0:
 				enemy.queue_free()
