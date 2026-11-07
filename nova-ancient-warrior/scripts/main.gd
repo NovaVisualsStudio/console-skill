@@ -39,6 +39,8 @@ var chapter_intro_tween: Tween
 var restart_button: Button
 var sound_players: Array[AudioStreamPlayer] = []
 var sound_cursor := 0
+var sfx_streams: Dictionary = {}
+var footstep_timer := 0.0
 var souls_earned := 0
 var cinematic_active := false
 var music_director: Node
@@ -131,7 +133,7 @@ func _physics_process(delta: float) -> void:
 		dodge_remaining = 0.28
 		dodge_cooldown = 0.88
 		player_invulnerability_time = maxf(player_invulnerability_time, 0.42)
-		_play_tone(360.0, 0.09, 0.17)
+		_play_sfx_or_tone("dodge", 360.0, 0.09, 0.17)
 
 	if dodge_remaining > 0.0:
 		player.velocity.x = dodge_direction.x * 9.4
@@ -155,7 +157,7 @@ func _physics_process(delta: float) -> void:
 		player.velocity.y -= GRAVITY * delta
 	elif Input.is_action_just_pressed("jump"):
 		player.velocity.y = JUMP_SPEED
-		_play_tone(520.0, 0.08, 0.16)
+		_play_sfx_or_tone("jump", 520.0, 0.08, 0.16)
 
 	player.move_and_slide()
 	var safe_position: Vector3 = player.global_position
@@ -167,8 +169,11 @@ func _physics_process(delta: float) -> void:
 	if not is_equal_approx(safe_position.z, previous_position.z):
 		player.velocity.z = 0.0
 	player.global_position = safe_position
+	var planar_speed := Vector2(player.velocity.x, player.velocity.z).length()
+	if player.is_on_floor() and planar_speed > 0.9 and dodge_remaining <= 0.0 and footstep_timer <= 0.0:
+		_play_sfx_or_tone("footstep", 92.0, 0.07, 0.12)
+		footstep_timer = 0.44
 	if is_instance_valid(hero_visual):
-		var planar_speed := Vector2(player.velocity.x, player.velocity.z).length()
 		hero_visual.call("set_locomotion", planar_speed / PLAYER_SPEED, delta)
 	_update_stage_hazards(delta)
 	_update_enemies(delta)
@@ -188,9 +193,11 @@ func _update_stage_hazards(delta: float) -> void:
 		StageBuilder.set_rune_intensity(self, 1.0 if rune_hazard_lit else 0.0)
 	if bool(hazard.get("warning", false)) and hazard_warning_cooldown <= 0.0:
 		status_label.text = "%s CHARGING - MOVE!" % str(hazard.get("label", "ARENA HAZARD"))
+		_play_sfx_or_tone("hazard_warning", 720.0, 0.16, 0.20)
 		hazard_warning_cooldown = 1.0
 	if bool(hazard.get("active", false)) and hazard_damage_cooldown <= 0.0:
 		_damage_player(int(hazard.get("damage", 10)))
+		_play_sfx_or_tone("hazard_burst", 58.0, 0.24, 0.24)
 		if not game_over:
 			status_label.text = "%s HIT - GET CLEAR!" % str(hazard.get("label", "ARENA HAZARD"))
 		hazard_damage_cooldown = 1.12
@@ -538,6 +545,7 @@ func _start_boss_intro(boss: Node3D) -> void:
 	cinematic_active = true
 	if is_instance_valid(music_director):
 		music_director.call("set_intensity", 0.9)
+	_play_sfx_or_tone("boss_roar", 82.0, 0.34, 0.22)
 	var return_position := player.global_position + Vector3(0.0, 6.3, 9.0)
 	var return_target := player.global_position + Vector3(0.0, 1.1, 0.0)
 	var reveal := CinematicDirector.play_camera_reveal(camera, boss, return_position, return_target, 3.0)
@@ -568,7 +576,7 @@ func _handle_wave_cleared() -> void:
 		restart_button.visible = true
 		upgrade_panel.visible = true
 		_refresh_upgrade_panel()
-		_play_tone(880.0, 0.3, 0.22)
+		_play_sfx_or_tone("victory", 880.0, 0.3, 0.22)
 		return
 	wave_transitioning = true
 	if CombatRules.is_boss_wave(cleared_wave):
@@ -892,7 +900,7 @@ func _attack(heavy: bool = false) -> void:
 			hero_visual.call("play_heavy_attack")
 		else:
 			hero_visual.call("play_attack", current_step)
-	_play_tone(560.0 if heavy else 740.0 + float(current_step) * 90.0, 0.14 if heavy else 0.11, 0.22)
+	_play_sfx_or_tone("heavy_swing" if heavy else "sword_swing", 560.0 if heavy else 740.0 + float(current_step) * 90.0, 0.14 if heavy else 0.11, 0.22)
 	var facing := -player.global_transform.basis.z
 	if _is_lock_target_valid():
 		facing = locked_target.global_position - player.global_position
@@ -920,7 +928,7 @@ func _attack(heavy: bool = false) -> void:
 			enemy.scale = base_scale * (0.90 if heavy else 0.94)
 			var hit_tween := create_tween()
 			hit_tween.tween_property(enemy, "scale", base_scale, 0.18 if heavy else 0.14)
-			_play_tone(190.0 if heavy else 260.0, 0.09, 0.22)
+			_play_sfx_or_tone("impact", 190.0 if heavy else 260.0, 0.09, 0.22)
 			if hp <= 0:
 				var was_boss := bool(enemy.get_meta("boss", false))
 				enemy.queue_free()
@@ -954,7 +962,7 @@ func _damage_player(amount: int, source: Node3D = null) -> void:
 				if source_visual != null:
 					source_visual.call("hit_react")
 			status_label.text = "PERFECT PARRY  |  +75 SCORE"
-			_play_tone(980.0, 0.12, 0.24)
+			_play_sfx_or_tone("parry", 980.0, 0.12, 0.24)
 			_update_hud()
 			return
 		amount = maxi(1, int(ceil(float(amount) * guard_damage_scale * 0.35)))
@@ -963,7 +971,7 @@ func _damage_player(amount: int, source: Node3D = null) -> void:
 	player_invulnerability_time = 0.72
 	if is_instance_valid(hero_visual):
 		hero_visual.call("hit_react")
-	_play_tone(105.0, 0.13, 0.24)
+	_play_sfx_or_tone("hurt", 105.0, 0.13, 0.24)
 	health = maxi(0, health - amount)
 	_update_hud()
 	if health <= 0:
@@ -1012,7 +1020,7 @@ func _purchase_upgrade(upgrade_name: String) -> void:
 		return
 	if _save_call("purchase_upgrade", [upgrade_name]):
 		status_label.text = "%s UPGRADED | EFFECTIVE NEXT RUN" % upgrade_name.to_upper()
-		_play_tone(820.0, 0.16, 0.2)
+		_play_sfx_or_tone("upgrade", 820.0, 0.16, 0.2)
 	else:
 		status_label.text = "NOT ENOUGH SOULS OR MAX LEVEL REACHED"
 	_refresh_upgrade_panel()
@@ -1030,6 +1038,32 @@ func _build_audio() -> void:
 		voice.volume_db = sfx_gain_db
 		add_child(voice)
 		sound_players.append(voice)
+	var sound_names := [
+		"sword_swing", "heavy_swing", "impact", "parry", "footstep",
+		"dodge", "jump", "hurt", "boss_roar", "hazard_warning",
+		"hazard_burst", "victory", "upgrade"
+	]
+	for sound_name in sound_names:
+		var audio_path := "res://audio/generated/%s.wav" % sound_name
+		if ResourceLoader.exists(audio_path):
+			var stream := load(audio_path) as AudioStreamWAV
+			if stream != null:
+				sfx_streams[sound_name] = stream
+
+
+func _play_sfx(sound_name: String) -> bool:
+	if sound_players.is_empty() or not sfx_streams.has(sound_name):
+		return false
+	var voice := sound_players[sound_cursor]
+	sound_cursor = (sound_cursor + 1) % sound_players.size()
+	voice.stream = sfx_streams[sound_name]
+	voice.play()
+	return true
+
+
+func _play_sfx_or_tone(sound_name: String, frequency: float, duration: float, amplitude: float) -> void:
+	if not _play_sfx(sound_name):
+		_play_tone(frequency, duration, amplitude)
 
 
 func _play_tone(frequency: float, duration: float, amplitude: float) -> void:
