@@ -2,6 +2,7 @@ extends Node3D
 class_name WarriorVisual
 
 var is_enemy := false
+var is_boss := false
 var _phase := 0.0
 var _torso_material: StandardMaterial3D
 var _armor_material: StandardMaterial3D
@@ -64,11 +65,11 @@ func hit_react() -> void:
 
 func _build_character() -> void:
 	var skin := _mat(Color(0.57, 0.34, 0.23) if not is_enemy else Color(0.22, 0.29, 0.30), 0.0, 0.9)
-	_base_torso_color = Color(0.42, 0.13, 0.09) if not is_enemy else Color(0.12, 0.20, 0.22)
-	_base_armor_color = Color(0.62, 0.37, 0.15) if not is_enemy else Color(0.22, 0.34, 0.37)
+	_base_torso_color = Color(0.42, 0.13, 0.09) if not is_enemy else (Color(0.25, 0.045, 0.04) if is_boss else Color(0.12, 0.20, 0.22))
+	_base_armor_color = Color(0.62, 0.37, 0.15) if not is_enemy else (Color(0.54, 0.13, 0.07) if is_boss else Color(0.22, 0.34, 0.37))
 	_torso_material = _mat(_base_torso_color, 0.0, 0.72)
 	_armor_material = _mat(_base_armor_color, 0.52, 0.34)
-	var dark := _mat(Color(0.12, 0.10, 0.10) if not is_enemy else Color(0.07, 0.10, 0.12), 0.12, 0.82)
+	var dark := _mat(Color(0.12, 0.10, 0.10) if not is_enemy else (Color(0.055, 0.035, 0.035) if is_boss else Color(0.07, 0.10, 0.12)), 0.12, 0.82)
 	var steel := _mat(Color(0.72, 0.78, 0.82), 0.72, 0.24)
 	var gold := _mat(Color(0.82, 0.58, 0.22), 0.72, 0.28)
 	var cloth := _mat(Color(0.22, 0.06, 0.045) if not is_enemy else Color(0.07, 0.13, 0.16), 0.0, 0.94)
