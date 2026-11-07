@@ -7,7 +7,10 @@ func _initialize() -> void:
 
 func _finish(exit_code: int, arena: Node) -> void:
     if is_instance_valid(arena):
+        if arena is NovaArenaController and is_instance_valid(arena.audio_fx):
+            arena.audio_fx.shutdown()
         arena.free()
+    await create_timer(0.5).timeout
     await process_frame
     await process_frame
     quit(exit_code)
@@ -24,9 +27,7 @@ func _run() -> void:
         return
     if not arena.combat_started or not arena.player.input_enabled:
         push_error("Runtime smoke test: cinematic intro did not hand control to the player.")
-        arena.free()
-        await process_frame
-        quit(1)
+        await _finish(1, arena)
         return
     if arena.active_enemies.size() != 3:
         push_error("Runtime smoke test: encounter population changed unexpectedly.")
