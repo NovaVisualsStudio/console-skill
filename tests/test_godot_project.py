@@ -19,6 +19,13 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn('config/icon="res://icon.svg"', project)
         self.assertTrue(os.path.isfile(os.path.join(ROOT, "icon.svg")))
         self.assertTrue(os.path.isfile(os.path.join(ROOT, "tests", "runtime_smoke.gd")))
+        self.assertIn('PackedStringArray("4.7"', project)
+        with open(os.path.join(ROOT, "..", ".github", "workflows", "godot-android-prototype.yml"), encoding="utf-8") as handle:
+            workflow = handle.read()
+        self.assertIn("version: 4.7.2", workflow)
+        self.assertIn("android sdk install", workflow)
+        self.assertNotIn("sdkmanager ", workflow)
+        self.assertIn("pass in 1 2 3 4 5 6", workflow)
 
     def test_mobile_renderer_is_compatibility(self):
         project = self.read("project.godot")
@@ -59,7 +66,7 @@ class GodotProjectIntegrity(unittest.TestCase):
     def test_audio_fx_module_and_audio_test_exist(self):
         audio = self.read("scripts/audio_fx.gd")
         self.assertTrue(os.path.isfile(os.path.join(ROOT, "tests", "audio_smoke.gd")))
-        for token in ("_make_ambience", "_make_one_shot", "play_hit", "play_parry", "play_telegraph"):
+        for token in ("_make_ambience", "_make_one_shot", "play_hit", "play_parry", "play_telegraph", "func shutdown()", "one_shot_players.clear()"):
             self.assertIn(token, audio)
 
     def test_combat_and_cinematic_runtime_tests_exist(self):
