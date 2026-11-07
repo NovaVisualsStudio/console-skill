@@ -5,6 +5,7 @@ const JUMP_SPEED := 7.0
 const GRAVITY := 18.0
 const ENEMY_SPEED := 1.65
 const ATTACK_RANGE := 2.25
+const ARENA_LIMIT := 16.0
 
 var player: CharacterBody3D
 var sword: MeshInstance3D
@@ -61,6 +62,15 @@ func _physics_process(delta: float) -> void:
 		player.velocity.y = JUMP_SPEED
 		_play_tone(520.0, 0.08, 0.16)
 	player.move_and_slide()
+	var safe_position: Vector3 = player.global_position
+	var previous_position: Vector3 = safe_position
+	safe_position.x = clampf(safe_position.x, -ARENA_LIMIT, ARENA_LIMIT)
+	safe_position.z = clampf(safe_position.z, -ARENA_LIMIT, ARENA_LIMIT)
+	if not is_equal_approx(safe_position.x, previous_position.x):
+		player.velocity.x = 0.0
+	if not is_equal_approx(safe_position.z, previous_position.z):
+		player.velocity.z = 0.0
+	player.global_position = safe_position
 
 
 func _setup_input() -> void:
