@@ -67,8 +67,8 @@ func _ready() -> void:
 	_save_call("begin_run")
 	_build_world()
 	_build_player()
-	_build_enemies()
 	_build_hud()
+	_build_enemies()
 	_build_audio()
 	_update_hud()
 
