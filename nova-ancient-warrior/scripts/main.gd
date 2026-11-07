@@ -4,7 +4,7 @@ const PLAYER_SPEED := 5.2
 const JUMP_SPEED := 7.0
 const GRAVITY := 18.0
 const ENEMY_SPEED := 1.65
-const ATTACK_RANGE := 2.25
+const ATTACK_RANGE := 2.35
 const ARENA_LIMIT := 16.0
 const CombatRules = preload("res://scripts/combat_rules.gd")
 const WarriorVisual = preload("res://scripts/warrior_visual.gd")
@@ -682,7 +682,7 @@ func _update_enemies(delta: float) -> void:
 				visual.call("phase_change", phase)
 			if is_instance_valid(music_director):
 				music_director.call("set_intensity", 0.68 if phase == 2 else 1.0)
-			status_label.text = "%s — PHASE %d" % [CombatRules.boss_display_name(current_wave), phase]
+			status_label.text = "%s | PHASE %d" % [CombatRules.boss_display_name(current_wave), phase]
 
 		var attack_state := str(enemy.get_meta("attack_state", "approach"))
 		var attack_timer := maxf(0.0, float(enemy.get_meta("attack_timer", 0.0)))
@@ -793,7 +793,10 @@ func _attack(heavy: bool = false) -> void:
 		var effective_range := attack_range_value
 		if heavy and bool(enemy.get_meta("boss", false)):
 			effective_range += 0.25
-		if CombatRules.is_target_in_attack_arc(facing, to_enemy, effective_range):
+		var target_is_in_arc := CombatRules.is_target_in_attack_arc(facing, to_enemy, ATTACK_RANGE)
+		if heavy or not is_equal_approx(effective_range, ATTACK_RANGE):
+			target_is_in_arc = CombatRules.is_target_in_attack_arc(facing, to_enemy, effective_range)
+		if target_is_in_arc:
 			var hp := int(enemy.get_meta("hp", 60)) - damage
 			enemy.set_meta("hp", hp)
 			var enemy_visual := enemy.get_node_or_null("WarriorVisual")
@@ -852,7 +855,7 @@ func _damage_player(amount: int, source: Node3D = null) -> void:
 	if health <= 0:
 		game_over = true
 		_save_run(false)
-		status_label.text = "YOU FELL | SOULS SAVED — FORGE YOUR WARRIOR"
+		status_label.text = "YOU FELL | SOULS SAVED | FORGE YOUR WARRIOR"
 		restart_button.text = "CONTINUE CAMPAIGN"
 		restart_button.visible = true
 		upgrade_panel.visible = true
@@ -894,7 +897,7 @@ func _purchase_upgrade(upgrade_name: String) -> void:
 	if not game_over:
 		return
 	if _save_call("purchase_upgrade", [upgrade_name]):
-		status_label.text = "%s UPGRADED — EFFECTIVE NEXT RUN" % upgrade_name.to_upper()
+		status_label.text = "%s UPGRADED | EFFECTIVE NEXT RUN" % upgrade_name.to_upper()
 		_play_tone(820.0, 0.16, 0.2)
 	else:
 		status_label.text = "NOT ENOUGH SOULS OR MAX LEVEL REACHED"
