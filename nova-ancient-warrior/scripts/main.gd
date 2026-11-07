@@ -53,10 +53,10 @@ var upgrade_buttons: Dictionary = {}
 
 func _ready() -> void:
 	_setup_input()
-	var profile: Dictionary = SaveManager.profile
+	var profile: Dictionary = _save_profile()
 	var chapter_start := (int(profile.get("unlocked_chapter", 1)) - 1) * 3 + 1
 	current_wave = 7 if bool(profile.get("campaign_complete", false)) else maxi(chapter_start, int(profile.get("highest_wave", 1)))
-	SaveManager.begin_run()
+	_save_call("begin_run")
 	_build_world()
 	_build_player()
 	_build_enemies()
@@ -191,6 +191,25 @@ func _toggle_lock_on() -> void:
 	_update_hud()
 
 
+func _save_manager() -> Node:
+	return get_node_or_null("/root/SaveManager")
+
+
+func _save_profile() -> Dictionary:
+	var manager := _save_manager()
+	if manager == null:
+		return {}
+	var value: Variant = manager.get("profile")
+	return value if value is Dictionary else {}
+
+
+func _save_call(method_name: String, arguments: Array = []) -> Variant:
+	var manager := _save_manager()
+	if manager == null or not manager.has_method(method_name):
+		return false
+	return manager.callv(method_name, arguments)
+
+
 func _setup_input() -> void:
 	_add_key_action("move_forward", KEY_W)
 	_add_key_action("move_forward", KEY_UP)
@@ -321,9 +340,9 @@ func _build_player() -> void:
 	player.name = "AncientWarrior"
 	player.position = Vector3(0.0, 0.15, 3.5)
 	add_child(player)
-	blade_damage_bonus = int(SaveManager.profile.get("upgrade_blade", 0)) * 4
-	health = 100 + int(SaveManager.profile.get("upgrade_vitality", 0)) * 15
-	guard_damage_scale = clampf(1.0 - float(SaveManager.profile.get("upgrade_guard", 0)) * 0.12, 0.64, 1.0)
+	blade_damage_bonus = int(_save_profile().get("upgrade_blade", 0)) * 4
+	health = 100 + int(_save_profile().get("upgrade_vitality", 0)) * 15
+	guard_damage_scale = clampf(1.0 - float(_save_profile().get("upgrade_guard", 0)) * 0.12, 0.64, 1.0)
 	var collision := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = 0.42
@@ -333,7 +352,7 @@ func _build_player() -> void:
 	player.add_child(collision)
 	hero_visual = WarriorVisual.new()
 	hero_visual.name = "WarriorVisual"
-	hero_visual.set("blade_upgrade", int(SaveManager.profile.get("upgrade_blade", 0)))
+	hero_visual.set("blade_upgrade", int(_save_profile().get("upgrade_blade", 0)))
 	player.add_child(hero_visual)
 
 
@@ -461,7 +480,7 @@ func _handle_wave_cleared() -> void:
 	var cleared_wave := current_wave
 	_save_checkpoint()
 	if CombatRules.is_boss_wave(cleared_wave):
-		SaveManager.record_boss_victory(cleared_wave)
+		_save_call("record_boss_victory", [cleared_wave])
 		if is_instance_valid(music_director):
 			music_director.call("set_intensity", 0.24)
 	if cleared_wave >= CombatRules.CAMPAIGN_WAVES:
@@ -843,7 +862,7 @@ func _damage_player(amount: int, source: Node3D = null) -> void:
 func _update_hud() -> void:
 	if is_instance_valid(hud):
 		var combo_display := combo_display_step + 1 if combo_timer > 0.0 else 1
-		var profile: Dictionary = SaveManager.profile
+		var profile: Dictionary = _save_profile()
 		var banked_souls := int(profile.get("total_souls", 0))
 		hud.text = "NOVA  |  CHAPTER %d  |  WAVE %d/9  |  HP %d  |  SCORE %d  |  RUN SOULS %d  |  COMBO x%d  |  BANK %d" % [
 			CombatRules.chapter_for_wave(current_wave), current_wave, health, score, souls_earned, combo_display, banked_souls
@@ -860,21 +879,21 @@ func _refresh_upgrade_panel() -> void:
 	}
 	for key in upgrade_buttons:
 		var button := upgrade_buttons[key] as Button
-		var cost := int(SaveManager.call("upgrade_cost", key))
+		var cost := int(_save_call("upgrade_cost", [key]))
 		var level_key := "upgrade_" + str(key)
-		var level := int(SaveManager.profile.get(level_key, 0))
+		var level := int(_save_profile().get(level_key, 0))
 		if cost < 0:
 			button.text = "%s  |  MAX LEVEL" % labels[key]
 			button.disabled = true
 		else:
 			button.text = "%s  |  LV %d/3  |  %d SOULS" % [labels[key], level, cost]
-			button.disabled = int(SaveManager.profile.get("total_souls", 0)) < cost
+			button.disabled = int(_save_profile().get("total_souls", 0)) < cost
 
 
 func _purchase_upgrade(upgrade_name: String) -> void:
 	if not game_over:
 		return
-	if SaveManager.call("purchase_upgrade", upgrade_name):
+	if _save_call("purchase_upgrade", [upgrade_name]):
 		status_label.text = "%s UPGRADED — EFFECTIVE NEXT RUN" % upgrade_name.to_upper()
 		_play_tone(820.0, 0.16, 0.2)
 	else:
@@ -887,7 +906,7 @@ func _build_audio() -> void:
 	music_director = MusicDirector.new()
 	music_director.name = "MusicDirector"
 	add_child(music_director)
-	var sfx_level := float(SaveManager.profile.get("sfx_volume", 0.85))
+	var sfx_level := float(_save_profile().get("sfx_volume", 0.85))
 	var sfx_gain_db := linear_to_db(maxf(sfx_level, 0.0001)) - 5.0
 	for i in range(4):
 		var voice := AudioStreamPlayer.new()
