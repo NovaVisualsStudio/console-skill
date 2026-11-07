@@ -11,6 +11,12 @@ func _ensure_actions() -> void:
         if not InputMap.has_action(action):
             InputMap.add_action(action)
 
+func _wait_attack_ready(player: NovaPlayer) -> void:
+    var frames := 0
+    while player.attack_cooldown > 0.0 and frames < 90:
+        await physics_frame
+        frames += 1
+
 func _run_tests() -> void:
     _ensure_actions()
     var test_root := Node3D.new()
@@ -35,14 +41,14 @@ func _run_tests() -> void:
         push_error("Light attack combo step 1 failed.")
         quit(1)
         return
-    await create_timer(0.41).timeout
+    await _wait_attack_ready(player)
     var second_ok := player.perform_light_attack()
     print("COMBO DEBUG 2 accepted=%s hp=%d step=%d cooldown=%.3f chain=%.3f" % [str(second_ok), grunt.health, player.combo_step, player.attack_cooldown, player.combo_chain_timer])
     if not second_ok or grunt.health != 9 or player.combo_step != 2:
         push_error("Light attack combo step 2 failed.")
         quit(1)
         return
-    await create_timer(0.41).timeout
+    await _wait_attack_ready(player)
     var third_ok := player.perform_light_attack()
     print("COMBO DEBUG 3 accepted=%s hp=%d step=%d cooldown=%.3f chain=%.3f" % [str(third_ok), grunt.health, player.combo_step, player.attack_cooldown, player.combo_chain_timer])
     if not third_ok or grunt.health != 0 or player.combo_step != 3:
@@ -66,7 +72,7 @@ func _run_tests() -> void:
         quit(1)
         return
 
-    await create_timer(0.41).timeout
+    await _wait_attack_ready(player)
     var boss_health_before_heavy := boss.health
     if not player.perform_heavy_attack() or boss.health != boss_health_before_heavy - 82:
         push_error("Heavy attack damage or stamina path failed.")
@@ -114,7 +120,10 @@ func _run_tests() -> void:
     test_root.add_child(attacker)
     await process_frame
     attacker.activate()
-    await create_timer(0.42).timeout
+    var telegraph_frames := 0
+    while attacker.current_state != NovaEnemy.BrainState.TELEGRAPH and telegraph_frames < 90:
+        await physics_frame
+        telegraph_frames += 1
     if attacker.current_state != NovaEnemy.BrainState.TELEGRAPH or not attacker.telegraph_mesh.visible:
         push_error("Enemy attack telegraph did not become visible before striking.")
         quit(1)
