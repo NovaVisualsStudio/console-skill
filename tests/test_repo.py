@@ -271,6 +271,17 @@ class Repo(unittest.TestCase):
         self.assertIn('--export-debug "Android Debug"', workflow)
         self.assertIn('apksigner', workflow)
 
+    def test_android_export_has_explicit_enemy_types_and_etc2(self):
+        script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
+        project_path = os.path.join(ROOT, "nova-ancient-warrior", "project.godot")
+        with open(script_path, encoding="utf-8") as fh:
+            script = fh.read()
+        with open(project_path, encoding="utf-8") as fh:
+            project = fh.read()
+        self.assertIn("var offset: Vector3 = player.global_position - enemy.global_position", script)
+        self.assertIn("var distance: float = offset.length()", script)
+        self.assertIn("textures/vram_compression/import_etc2_astc=true", project)
+
 
 if __name__ == "__main__":
     unittest.main()
