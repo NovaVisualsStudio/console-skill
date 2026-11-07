@@ -17,6 +17,7 @@ var health := 100
 var score := 0
 var attack_cooldown := 0.0
 var combo_step := 0
+var combo_display_step := 0
 var combo_timer := 0.0
 var dodge_remaining := 0.0
 var dodge_cooldown := 0.0
@@ -389,7 +390,7 @@ func _update_enemies(delta: float) -> void:
 			enemy.look_at(Vector3(player.global_position.x, enemy.global_position.y, player.global_position.z), Vector3.UP)
 		var visual := enemy.get_node_or_null("WarriorVisual")
 		var attack_state := str(enemy.get_meta("attack_state", "approach"))
-		var attack_timer := maxf(0.0, float(enemy.get_meta("attack_timer", 0.0)) - delta)
+		var attack_timer := maxf(0.0, float(enemy.get_meta("attack_timer", 0.0)))
 		var attack_cooldown_value := maxf(0.0, float(enemy.get_meta("attack_cooldown", 0.0)) - delta)
 
 		if attack_state == "approach":
@@ -435,6 +436,7 @@ func _attack() -> void:
 	var damage := CombatRules.combo_damage(current_step)
 	var range := CombatRules.combo_range(current_step)
 	attack_cooldown = CombatRules.combo_cooldown(current_step)
+	combo_display_step = current_step
 	combo_step = (combo_step + 1) % 3
 	combo_timer = 1.05
 	if is_instance_valid(hero_visual):
@@ -490,7 +492,7 @@ func _damage_player(amount: int) -> void:
 
 func _update_hud() -> void:
 	if is_instance_valid(hud):
-		var combo_display := combo_step + 1 if combo_timer > 0.0 else 1
+		var combo_display := combo_display_step + 1 if combo_timer > 0.0 else 1
 		hud.text = "NOVA  |  VITALITY %d%%  |  SOULS %d  |  COMBO x%d" % [health, score, combo_display]
 
 
