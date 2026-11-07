@@ -29,11 +29,13 @@ func _initialize() -> void:
 		CombatRules.is_target_in_attack_arc(Vector3.FORWARD, Vector3(0.0, 4.0, -2.0), 2.25),
 		"vertical separation does not alter the ground-plane attack test"
 	)
+	failures += _expect_true(CombatRules.can_receive_hit(0.0), "player can be hit when invulnerability expires")
+	failures += _expect_false(CombatRules.can_receive_hit(0.5), "player ignores hits during invulnerability")
 	if failures > 0:
 		push_error("Combat rules smoke test failed: %d assertion(s)" % failures)
 		quit(1)
 	else:
-		print("Combat rules smoke test passed: 6 assertions")
+		print("Combat rules smoke test passed: 8 assertions")
 		quit(0)
 
 
