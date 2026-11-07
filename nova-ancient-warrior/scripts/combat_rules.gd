@@ -50,3 +50,38 @@ static func combo_cooldown(step: int) -> float:
 
 static func should_start_enemy_windup(distance: float, cooldown: float) -> bool:
 	return distance <= 1.85 and cooldown <= 0.0
+
+
+
+static func wave_enemy_count(wave: int) -> int:
+	match clampi(wave, 1, 3):
+		1:
+			return 4
+		2:
+			return 5
+		_:
+			return 1
+
+
+static func wave_enemy_health(wave: int) -> int:
+	match clampi(wave, 1, 3):
+		1:
+			return 60
+		2:
+			return 78
+		_:
+			return 260
+
+
+static func wave_enemy_damage(wave: int) -> int:
+	match clampi(wave, 1, 3):
+		1:
+			return 9
+		2:
+			return 11
+		_:
+			return 20
+
+
+static func is_boss_wave(wave: int) -> bool:
+	return wave >= 3
