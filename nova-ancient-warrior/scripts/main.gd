@@ -272,6 +272,18 @@ func _build_enemies() -> void:
 	_spawn_wave()
 
 
+func _save_checkpoint() -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager != null:
+		manager.call("record_checkpoint", current_wave, score)
+
+
+func _save_run(defeated_boss: bool) -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager != null:
+		manager.call("record_run", current_wave, score, souls_earned, defeated_boss)
+
+
 func _apply_level_theme(wave: int) -> void:
 	var level := LevelCatalog.get_level(wave)
 	if is_instance_valid(arena_floor_material):
@@ -354,13 +366,13 @@ func _handle_wave_cleared() -> void:
 		return
 	if current_wave >= 3:
 		game_over = true
-		SaveManager.record_run(current_wave, score, souls_earned, true)
+		_save_run(true)
 		status_label.text = "ASH TITAN DEFEATED | CHAPTER 2 UNLOCKED"
 		restart_button.visible = true
 		_play_tone(880.0, 0.3, 0.22)
 		return
 	wave_transitioning = true
-	SaveManager.record_checkpoint(current_wave, score)
+	_save_checkpoint()
 	status_label.text = "WAVE %d CLEARED | PREPARE FOR THE NEXT ATTACK" % current_wave
 	_play_tone(660.0, 0.18, 0.18)
 	var transition := get_tree().create_timer(1.35)
@@ -594,7 +606,7 @@ func _damage_player(amount: int) -> void:
 	_update_hud()
 	if health <= 0:
 		game_over = true
-		SaveManager.record_run(current_wave, score, souls_earned, false)
+		_save_run(false)
 		status_label.text = "YOU FELL | TAP RESTART OR PRESS R"
 		restart_button.visible = true
 
