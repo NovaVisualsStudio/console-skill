@@ -23,7 +23,7 @@ class GodotProjectIntegrity(unittest.TestCase):
         with open(os.path.join(ROOT, "..", ".github", "workflows", "godot-android-prototype.yml"), encoding="utf-8") as handle:
             workflow = handle.read()
         self.assertIn("version: 4.7.2", workflow)
-        self.assertIn("android sdk install", workflow)
+        self.assertIn("sdk install platform-tools", workflow)
         self.assertNotIn("sdkmanager ", workflow)
         self.assertIn("pass in 1 2 3 4 5 6", workflow)
 
