@@ -33,6 +33,13 @@ func _run_rigged_hero_smoke() -> void:
 			_fail(visual, "Missing required hero animation: %s" % required_name)
 			return
 	visual.call("set_locomotion", 0.5, 0.016)
+	var locomotion_name := str(animation_player.current_animation).to_lower()
+	if "walk" not in locomotion_name:
+		_fail(visual, "Rigged hero did not select its walk clip")
+		return
+	if animation_player.get_animation(animation_player.current_animation).loop_mode != Animation.LOOP_LINEAR:
+		_fail(visual, "Locomotion clips must loop continuously")
+		return
 	visual.call("play_attack", 0)
 	visual.call("play_heavy_attack")
 	visual.call("set_blocking", true)
