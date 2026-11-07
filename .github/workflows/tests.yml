@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [main, nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean]
+    branches: [main, nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean, nova-open-source-research]
   pull_request:
 
 permissions:
