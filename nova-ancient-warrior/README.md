@@ -1,12 +1,12 @@
-# Nova Ancient Warrior — Android-first action campaign slice
+# Nova Ancient Warrior - Android-first action campaign slice
 
 An original third-person 3D action game prototype built with Godot 4.7.2 and GDScript. It now contains a complete nine-encounter campaign loop across three themed chapters, including three bosses, local progression, and mobile combat controls. It remains a production prototype rather than a finished commercial release.
 
 ## Campaign
 
-- **Chapter I — The Sunken Ruins:** two escalating sentinel encounters and **The Ash Titan**.
-- **Chapter II — The Ember Causeway:** faster and heavier enemy variants, a lunge-based boss encounter, and **The Ember Warlord**.
-- **Chapter III — The Obsidian Throne:** the hardest regular waves, an area-attack boss, and **The Obsidian Sovereign**.
+- **Chapter I - The Sunken Ruins:** two escalating sentinel encounters and **The Ash Titan**.
+- **Chapter II - The Ember Causeway:** faster and heavier enemy variants, a lunge-based boss encounter, and **The Ember Warlord**.
+- **Chapter III - The Obsidian Throne:** the hardest regular waves, an area-attack boss, and **The Obsidian Sovereign**.
 - Nine waves total, with boss encounters at waves 3, 6 and 9.
 - Three procedural stage dressings with different architectural silhouettes, palette, light and emissive accents. The campaign currently reuses one arena scene and swaps its chapter dressing; it is not yet three separately authored exploration levels.
 
