@@ -31,11 +31,22 @@ jobs:
 
       - name: Syntax-check the Blender character packaging tool
         run: |
-          python3 -m py_compile nova-ancient-warrior/tools/blender/export_humanoid_for_godot.py
+          python3 -m py_compile \
+            nova-ancient-warrior/tools/blender/export_humanoid_for_godot.py \
+            nova-ancient-warrior/tools/blender/optimize_mocap_glb.py \
+            nova-ancient-warrior/tools/generate_game_audio.py
+
+      - name: Generate original game sound effects
+        run: |
+          python3 nova-ancient-warrior/tools/generate_game_audio.py --output nova-ancient-warrior/audio/generated
 
       - name: Import project resources
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path nova-ancient-warrior --quit
+
+      - name: Validate imported original sound effects
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/audio_assets_smoke.gd
 
       - name: Strictly parse the gameplay script
         run: |
