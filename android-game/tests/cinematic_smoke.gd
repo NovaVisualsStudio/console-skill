@@ -77,6 +77,17 @@ func _run_tests() -> void:
             await _finish(1, arena)
             return
 
+    # Verify lock-on rotates the player even without movement input.
+    arena.player.rotation.y = 0.0
+    arena.boss.global_position = arena.player.global_position + Vector3(4.0, 0.0, 0.0)
+    arena.player.lock_target = arena.boss
+    for frame in range(8):
+        await physics_frame
+    if absf(wrapf(arena.player.rotation.y, -PI, PI)) < 0.25:
+        push_error("Player lock-on did not rotate the warrior toward a target while idle.")
+        await _finish(1, arena)
+        return
+
     arena.player.rotation.y = 0.0
     arena.boss.global_position = arena.player.global_position + Vector3(4.0, 0.0, 0.0)
     arena.player.lock_target = arena.boss
