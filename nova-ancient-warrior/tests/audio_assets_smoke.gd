@@ -25,8 +25,10 @@ func _initialize() -> void:
 			return
 		if stream.get_length() <= 0.04:
 			push_error("Generated sound is too short to be useful: " + path)
+			stream = null
 			quit(1)
 			return
+		stream = null
 	var music_path := "res://audio/generated/ambient_music.wav"
 	if not ResourceLoader.exists(music_path):
 		push_error("Original ambient music loop is missing: " + music_path)
@@ -35,12 +37,14 @@ func _initialize() -> void:
 	var music := load(music_path) as AudioStreamWAV
 	if music == null or music.mix_rate != 22050 or music.data.is_empty() or music.get_length() < 10.0:
 		push_error("Original ambient music loop failed WAV import or duration validation")
+		music = null
 		quit(1)
 		return
 	var music_length := music.get_length()
 	var director_script := load("res://scripts/music_director.gd")
 	if director_script == null:
 		push_error("MusicDirector script could not be loaded")
+		music = null
 		quit(1)
 		return
 	var director = director_script.new()
