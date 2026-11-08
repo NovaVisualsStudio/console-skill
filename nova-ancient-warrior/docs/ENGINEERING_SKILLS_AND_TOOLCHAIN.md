@@ -76,3 +76,32 @@ This is a curated reference and decision policy for future work across games, mo
 - No physical Android device benchmark is claimed by this document.
 - Do not import third-party art until its exact license, attribution, source and technical compatibility are verified.
 - The project's current Godot version declaration is 4.7. Keep compatibility checks aligned with it.
+
+## 6. Newly discovered specialist skills (2026-11-08)
+
+These are additional upstream skill libraries discovered and inspected after the initial shortlist. Prefer loading only the specialist skill needed for a task.
+
+| Priority | New source | Specialist skills worth consulting | License / integration decision |
+|---|---|---|---|
+| A | [edemaistre/godot-expert-skills](https://github.com/edemaistre/godot-expert-skills) | `godot-3d-world`, `godot-animation`, `godot-gameplay`, `godot-rendering-lighting`, `godot-shaders`, `godot-vfx`, `godot-audio`, `godot-pipeline-automation`, `godot-performance-export` | README and individual skills inspected; repository license file was not located during this review. Use as read-only technical reference only until explicit licensing is confirmed; do not copy files into the project yet. |
+| A | [oh-ashen-one/blender-agent-skills](https://github.com/oh-ashen-one/blender-agent-skills) | `blender-staged-scene-construction`, `concept-target-visual-gate`, plus isolated Blender sessions | MIT license verified. Suitable for staged procedural environment production, reproducible GLB export, visual comparison against fixed references and honest screenshot-based acceptance. Preserve MIT notice if any skill text is copied. |
+| B | [bgrenat/godot-game-dev-studio](https://github.com/bgrenat/godot-game-dev-studio) | `studio-router`, `studio-godot-technical-director`, `studio-gameplay-lead`, `studio-level-design-lead`, `studio-qa-playtest-lead`, `studio-performance-release-lead` | 189 skills advertised in the inspected README; LGPL-3.0 distribution with third-party provenance in NOTICE. Large aggregator overlaps existing sources; use its catalog/router selectively and do not bulk-copy or install the whole package into Nova. |
+
+### Immediate task routing for Nova Ancient Warrior
+
+- **3D levels and world dressing:** consult `godot-3d-world`; focus on terrain, collision, LOD, instancing, GLB import and camera collision. Adapt only after checking the current project's renderer and scene structure.
+- **Hero/enemy animation:** consult `godot-animation`; audit retargeting, AnimationTree transitions, root motion, foot sliding, hit reactions and upper-body layers. Do not replace the current character or animation assets blindly.
+- **Enemy combat and navigation:** consult `godot-gameplay`; review state machines, NavigationAgent3D, hitbox/hurtbox contracts, telegraphs, save/load and deterministic headless tests.
+- **Visual fidelity and environments:** use Blender staged construction plus the concept-target visual gate. Each milestone must be backed by an actual render or in-engine screenshot; concept art is not proof of a finished asset.
+- **Mobile performance:** consult `godot-performance-export`; classify CPU vs GPU bottlenecks, measure frame time and memory, check shader-compilation/loading hitches, and test sustained sessions on real Android target devices. Do not transplant desktop benchmark numbers to phones.
+- **Production and QA:** use the Game Dev Studio router/QA/release roles as checklists, not as authority to change the engine or overwrite project architecture.
+
+### Future project routing
+
+- For future Godot games, reuse the Godot specialist skills selectively and keep project-specific architecture, controls, rendering and asset budgets separate.
+- For Blender-heavy asset production, use the MIT Blender workflow skills as a repeatable art pipeline.
+- For future apps, continue using the previously curated native Android (Kotlin/Compose), Flutter and web stacks according to platform needs; game-engine skills are not substitutes for mobile-app architecture, privacy/security review or app-store release checks.
+
+### Verification boundary
+
+Repository metadata and selected README/SKILL.md files were inspected on 2026-11-08. This does not mean the skills have been installed into the current assistant runtime, executed against Nova, or validated on a physical Android phone. The Godot Expert Skills procedures report testing on Godot 4.7.2 on macOS; treat that as upstream evidence, not a Nova/Android benchmark. The Blender skills are workflow instructions, not Blender execution in this environment.
