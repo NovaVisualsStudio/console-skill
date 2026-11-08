@@ -74,10 +74,6 @@ func _run_save_smoke() -> void:
 	if int(reader.profile.get("pending_souls", -1)) != 0:
 		_fail("Run-local pending souls were not reset")
 		return
-	var absolute_path := ProjectSettings.globalize_path(test_path)
-	DirAccess.remove_absolute(absolute_path)
-	writer.queue_free()
-	reader.queue_free()
 	if not reader.set_graphics_quality("mid"):
 		_fail("Could not switch graphics preference back to mid")
 		return
@@ -85,6 +81,10 @@ func _run_save_smoke() -> void:
 	if str(reader.profile.get("graphics_quality", "")) != "mid":
 		_fail("Graphics quality preference did not persist when returning to mid")
 		return
+	var absolute_path := ProjectSettings.globalize_path(test_path)
+	DirAccess.remove_absolute(absolute_path)
+	writer.free()
+	reader.free()
 	print("Save manager smoke test passed: checkpoint delta, resume, chapter unlock, upgrade, audio, graphics tier and run reset")
 	quit(0)
 
