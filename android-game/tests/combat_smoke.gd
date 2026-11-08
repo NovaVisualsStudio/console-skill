@@ -84,6 +84,42 @@ func _run_tests() -> void:
         push_error("Boss phase transition did not trigger at 50 percent health.")
         await _finish(1, test_root)
         return
+    # Phase two must cycle through distinct, testable attack shapes.
+    boss._begin_telegraph()
+    if boss.current_attack_pattern != NovaEnemy.AttackPattern.MELEE:
+        push_error("Boss phase-two pattern cycle did not start with melee.")
+        await _finish(1, test_root)
+        return
+    if not boss._is_player_in_attack_area(Vector3(0.0, 0.0, -3.0)):
+        push_error("Boss melee pattern failed its forward hit-area check.")
+        await _finish(1, test_root)
+        return
+    boss._begin_telegraph()
+    if boss.current_attack_pattern != NovaEnemy.AttackPattern.SWEEP:
+        push_error("Boss sweep pattern was not selected.")
+        await _finish(1, test_root)
+        return
+    if not boss._is_player_in_attack_area(Vector3(4.5, 0.0, 0.0)):
+        push_error("Boss sweep failed its lateral hit-area check.")
+        await _finish(1, test_root)
+        return
+    boss._begin_telegraph()
+    if boss.current_attack_pattern != NovaEnemy.AttackPattern.SLAM:
+        push_error("Boss slam pattern was not selected.")
+        await _finish(1, test_root)
+        return
+    if not boss._is_player_in_attack_area(Vector3(0.0, 0.0, 6.0)):
+        push_error("Boss slam failed its radial hit-area check.")
+        await _finish(1, test_root)
+        return
+    if boss._is_player_in_attack_area(Vector3(0.0, 0.0, 8.0)):
+        push_error("Boss slam hit-area exceeded its maximum radius.")
+        await _finish(1, test_root)
+        return
+    boss.telegraph_mesh.scale = Vector3.ONE
+    boss.telegraph_mesh.visible = false
+    boss.current_state = NovaEnemy.BrainState.CHASE
+
 
     await _wait_attack_ready(player)
     var boss_health_before_heavy := boss.health
