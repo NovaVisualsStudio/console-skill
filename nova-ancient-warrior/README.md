@@ -1,6 +1,6 @@
-# Nova Ancient Warrior - Android-first action campaign slice
+# Nova Ancient Warrior — High-Fidelity Third-Person Action Prototype
 
-An original third-person 3D action game prototype built with Godot 4.7.2 and GDScript. It now contains a complete nine-encounter campaign loop across three themed chapters, including three bosses, local progression, and mobile combat controls. It remains a production prototype rather than a finished commercial release.
+An original third-person 3D action game prototype built with Godot 4.7.2 and GDScript. It contains a nine-encounter campaign loop across three themed chapters, including three bosses, local progression and mobile combat controls. It remains a production prototype rather than a finished commercial release. The current production target is a high-fidelity desktop master using Forward+ and a high-end Android profile using Mobile/Vulkan. See the [professional high-fidelity production standard](../docs/NOVA_PROFESSIONAL_GAME_STANDARD.md) before changing rendering, art or platform priorities.
 
 ## Campaign
 
@@ -47,7 +47,7 @@ The Android and Godot CI workflows run this generator automatically before impor
 
 The GitHub Actions workflow **Nova Ancient Warrior Android debug APK** exports an ARM64 debug APK. It validates the APK archive, Android signature and package ID before publishing the `nova-ancient-warrior-android-debug` artifact. This is a sideloading/debug build, not a Play Store release.
 
-A successful cloud export is not device certification. Install on the target phone and test touch reachability, audio, frame pacing, thermal behaviour and memory usage before release.
+A successful cloud export is not device certification. The current project targets desktop Forward+ and Android Mobile/Vulkan, preserves glow and key-light shadows on Android, and uses a 60 FPS cap as an initial target. Install on a compatible target phone and test touch reachability, audio, frame pacing, thermal behaviour and memory usage before release.
 
 ## Automated validation
 
@@ -62,5 +62,5 @@ See [the character and mocap production pipeline](../docs/NOVA_CHARACTER_MOCAP_P
 - Stage geometry is procedural set dressing around the combat arena, not a complete traversal/exploration layout with authored collision puzzles.
 - CI now procedurally generates an original skinned low-poly armoured hero in Blender, including a weighted humanoid rig, hand-attached sword and shield, and Idle/Walk/Run/LightAttack/HeavyAttack/Dodge/Block/Parry/HitReact/Death clips. The runtime adapter selects this rigged GLB when present and preserves the procedural character as a fallback. The markerless mocap candidate remains separate research input, not the hero's final animation source. The 2026-11-08 Godot validation run 140 and Android export run 124 on commit `4d9045e` both completed successfully; the generated GLB imported and passed the rigged-warrior smoke test (20 bones, 10 animation clips).
 - Cinematic coverage includes chapter title cards and boss introduction camera moves; authored dialogue scenes, character voice acting, subtitles and final narrative audio remain to be produced.
-- Android export is checked in CI. On Android, the runtime applies a conservative 45 FPS cap, disables glow and key-light shadows, and halves decorative point lights; desktop preview restores the full lighting profile. Physical-device playtesting, frame-time capture, thermal behaviour and memory profiling are still required.
+- Rendering now uses Forward+ on desktop and Mobile/Vulkan on Android. The runtime quality profile preserves glow and key-light shadows on Android with an initial 60 FPS cap. This is a quality-oriented configuration, not proof that all Android devices support it or achieve 60 FPS; physical-device validation remains required.
 - This Godot Android game is not a PS2 executable. A real PS2 port would require a separate PS2SDK implementation and its own memory, rendering and controller constraints.
