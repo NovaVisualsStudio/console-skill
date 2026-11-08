@@ -26,6 +26,7 @@ var wave_transitioning := false
 var health := 100
 var score := 0
 var attack_cooldown := 0.0
+var attack_sequence: int = 0
 var combo_step := 0
 var combo_display_step := 0
 var combo_timer := 0.0
@@ -902,7 +903,7 @@ func _attack(heavy: bool = false) -> void:
 	var attack_range_value := CombatRules.heavy_attack_range() if heavy else CombatRules.combo_range(current_step)
 	attack_cooldown = CombatRules.heavy_attack_cooldown() if heavy else CombatRules.combo_cooldown(current_step)
 	attack_sequence += 1
-	var sequence := attack_sequence
+	var sequence: int = attack_sequence
 	if not heavy:
 		combo_display_step = current_step
 		combo_step = (combo_step + 1) % 3
