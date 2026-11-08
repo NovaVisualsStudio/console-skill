@@ -126,11 +126,12 @@ jobs:
         run: |
           set -euo pipefail
           log_file="$(mktemp)"
-          if ! ./Godot_v4.7.2-stable_linux.x86_64 --verbose --headless --path nova-ancient-warrior --quit-after 240 >"$log_file" 2>&1; then
+          if ! ./Godot_v4.7.2-stable_linux.x86_64 --verbose --headless --path nova-ancient-warrior --script res://tests/combat_window_smoke.gd >"$log_file" 2>&1; then
             cat "$log_file"
             exit 1
           fi
           cat "$log_file"
+          grep -q "Combat window smoke test passed" "$log_file"
           if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$log_file"; then
             exit 1
           fi
