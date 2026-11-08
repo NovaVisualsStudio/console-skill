@@ -8,7 +8,10 @@ var _intensity := 0.22
 
 
 func _ready() -> void:
+	print("MUSIC_DIRECTOR_READY_ENTER")
+	print("MUSIC_DIRECTOR_PATH_EXISTS=", ResourceLoader.exists(MUSIC_PATH))
 	var stream := load(MUSIC_PATH) as AudioStreamWAV
+	print("MUSIC_DIRECTOR_STREAM_OK=", stream != null, " DATA_BYTES=", stream.data.size() if stream != null else -1)
 	if stream == null or stream.data.is_empty():
 		push_warning("Original ambient music is missing; run tools/generate_game_audio.py")
 		return
@@ -23,6 +26,7 @@ func _ready() -> void:
 	_player = AudioStreamPlayer.new()
 	_player.stream = stream
 	add_child(_player)
+	print("MUSIC_DIRECTOR_PLAYER_ADDED=", _player.is_inside_tree(), " CHILDREN=", get_child_count())
 	_apply_volume()
 	_player.play()
 
