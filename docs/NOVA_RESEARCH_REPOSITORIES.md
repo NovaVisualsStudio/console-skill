@@ -142,3 +142,20 @@ python nova-ancient-warrior/tools/research/audit_github_sources.py \
 The tool queries public GitHub repository metadata and default branch heads. It does not download source files, execute third-party code or decide legal compatibility. Review the human-readable license notes in this document before reuse.
 
 A GitHub Actions workflow can run the same audit manually and publish the JSON report as a workflow artifact.
+
+
+## Selective source staging
+
+When a specific MIT-licensed file is useful, stage only the exact allowlisted file into a review cache:
+
+```bash
+python nova-ancient-warrior/tools/research/fetch_reviewed_source.py \
+  --source adventure-mode-godot \
+  --file "Modular Mobility/mvpk_climb.gd" \
+  --file "Modular Mobility/mvpk_combat.gd" \
+  --accept-mit
+```
+
+For GOAT, use source id `goat-godot` and exact file paths from `source_catalog.json`, for example `addons/goat/globals/goat_interaction.gd`.
+
+The fetcher pins requests to the reviewed commit, permits only exact candidate paths in the catalog, retrieves the upstream code license, and records SHA-256 hashes and provenance. It writes under `docs/research-source-cache/<source-id>/` by default. It refuses GPL, unlicensed, archived-index and discovery-index sources, and it does not import or execute the files. The staged code remains a review artifact until a developer adapts it, attributes it and adds tests.
