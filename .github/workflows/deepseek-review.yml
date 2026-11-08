@@ -1,0 +1,52 @@
+name: DeepSeek advisory code review
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: OpenAI-compatible model identifier
+        required: false
+        default: deepseek-flash
+      base_ref:
+        description: Branch to compare against
+        required: false
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source and history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare patch
+        shell: bash
+        env:
+          BASE_REF: ${{ inputs.base_ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "${BASE_REF}"
+          git diff --no-ext-diff --unified=5 "origin/${BASE_REF}...HEAD" -- nova-ancient-warrior > /tmp/nova.patch
+          test -s /tmp/nova.patch || { echo "No project changes to review."; exit 2; }
+
+      - name: Run read-only DeepSeek review
+        working-directory: nova-ancient-warrior
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_BASE_URL: ${{ vars.DEEPSEEK_BASE_URL }}
+          DEEPSEEK_MODEL: ${{ inputs.model }}
+        run: |
+          python tools/deepseek_review.py --diff-file /tmp/nova.patch --output deepseek-review.md
+
+      - name: Upload review report
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-ancient-warrior-deepseek-review
+          path: nova-ancient-warrior/deepseek-review.md
+          if-no-files-found: error
+          retention-days: 14
