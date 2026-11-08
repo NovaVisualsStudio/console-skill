@@ -40,7 +40,10 @@ func _process(delta: float) -> void:
         intro_timer = maxf(0.0, intro_timer - delta)
         if intro_timer <= 0.0:
             _begin_combat()
-    elif Input.is_action_just_pressed("lock_on"):
+func _input(event: InputEvent) -> void:
+    if event is InputEventKey and (event as InputEventKey).echo:
+        return
+    if combat_started and event.is_action_pressed("lock_on"):
         _on_lock_pressed()
 
 func _ensure_input_actions() -> void:
