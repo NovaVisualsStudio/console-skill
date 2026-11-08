@@ -21,7 +21,11 @@ func _run_pbr_smoke() -> void:
 		_fail("PBR albedo and roughness maps must be procedural NoiseTexture2D resources")
 		return
 	if stone.albedo_texture.width != 128 or stone.albedo_texture.height != 128:
-		_fail("Procedural PBR maps must use the mobile 128x128 source budget")
+		_fail("Mid-tier procedural PBR maps must retain the 128x128 source budget")
+		return
+	var high_detail := PBRMaterials.create_surface_material(Color(0.32, 0.29, 0.25), 0.12, 0.84, 1703, 2.8, Color.BLACK, PBRMaterials.HIGH_TEXTURE_SIZE)
+	if high_detail.albedo_texture.width != 256 or high_detail.normal_texture.height != 256:
+		_fail("High-tier procedural PBR maps must use the 256x256 detail tier")
 		return
 	if not stone.normal_texture.as_normal_map:
 		_fail("Generated surface normal texture is not flagged as a normal map")
