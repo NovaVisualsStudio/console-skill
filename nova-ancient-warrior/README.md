@@ -21,6 +21,8 @@ Nova Ancient Warrior is an original third-person 3D action game prototype built 
 - Original ambient music baked to a looping WAV at build time, plus 13 generated WAV sound effects; runtime playback uses an imported stream rather than a per-frame audio generator.
 - Right-side touch dragging rotates the third-person camera; the separate lower-right action cluster remains reserved for combat controls.
 - Campaign architecture and the arena floor use shared procedural albedo, roughness and normal maps generated at runtime by a small noise-texture library.
+- Mid profile uses cached 128x128 procedural PBR maps; the opt-in High profile uses 256x256 maps for stronger surface detail. This is a source-resolution tier, not a measured FPS or memory guarantee.
+- Chapter dressing now adds extra masonry piers, carved bands, rubble, basalt fractures and throne rune shards. Collision-backed layouts also add optional flank steps, side walks and cover blocks while keeping the central combat lane open.
 
 ## Character and animation status
 
@@ -35,7 +37,7 @@ This is a functional prototype character, not a photorealistic human. It does no
 - Desktop master viewport: 1920 x 1080.
 - Android viewport: 1280 x 720; quality scaling and sustained performance still require physical-device profiling.
 - Android export preset enables ARMv7 and ARM64 architectures.
-- Android now exposes a saved MID profile (45 FPS cap, conservative lighting) and an opt-in HIGH profile (60 FPS cap, glow and key-light shadows) with larger environment-detail budgets. These are configurable caps, not measured performance guarantees; all high-tier effects still require physical-device thermal and frame-pacing tests.
+- Android now exposes a saved MID profile (45 FPS cap, conservative lighting) and an opt-in HIGH profile (60 FPS cap, glow and key-light shadows) with larger environment-detail budgets. These are configurable caps, not measured performance guarantees; high-tier 256px PBR maps, effects and increased geometry still require physical-device memory, thermal and frame-pacing tests.
 - Desktop retains a 60 FPS cap, glow and key-light shadows.
 - Raising Android frame rate or re-enabling expensive effects requires measurements on representative physical devices.
 
