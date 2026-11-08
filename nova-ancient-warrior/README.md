@@ -18,7 +18,7 @@ Nova Ancient Warrior is an original third-person 3D action game prototype built 
 - Versioned offline save data, wave resume, checkpoints, campaign progression and permanent Soul Forge upgrades.
 - Touch controls for movement, attack, heavy attack, jump, lock-on, dodge and block.
 - Keyboard controls: WASD or arrows to move, J or Enter to attack, H for heavy attack, I to block, Tab to lock on, Shift or K to dodge, Space to jump, and R to restart.
-- Procedurally generated original ambient music and 13 WAV sound effects.
+- Original ambient music baked to a looping WAV at build time, plus 13 generated WAV sound effects; runtime playback uses an imported stream rather than a per-frame audio generator.
 
 ## Character and animation status
 
