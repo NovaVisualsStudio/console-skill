@@ -18,7 +18,7 @@ func handle_event(event: InputEvent, viewport_size: Vector2) -> bool:
 		return false
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			var in_look_region := (
+			var in_look_region: bool = (
 				event.position.x >= viewport_size.x * LOOK_REGION_LEFT_RATIO
 				and event.position.y <= viewport_size.y * LOOK_REGION_BOTTOM_RATIO
 			)
