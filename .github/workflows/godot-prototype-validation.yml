@@ -103,6 +103,10 @@ jobs:
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/campaign_layout_smoke.gd
 
+      - name: Verify procedural PBR material maps
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/pbr_material_smoke.gd
+
       - name: Verify Android and desktop rendering profiles
         shell: bash
         run: |

@@ -19,6 +19,8 @@ Nova Ancient Warrior is an original third-person 3D action game prototype built 
 - Touch controls for movement, attack, heavy attack, jump, lock-on, dodge and block.
 - Keyboard controls: WASD or arrows to move, J or Enter to attack, H for heavy attack, I to block, Tab to lock on, Shift or K to dodge, Space to jump, and R to restart.
 - Original ambient music baked to a looping WAV at build time, plus 13 generated WAV sound effects; runtime playback uses an imported stream rather than a per-frame audio generator.
+- Right-side touch dragging rotates the third-person camera; the separate lower-right action cluster remains reserved for combat controls.
+- Campaign architecture and the arena floor use shared procedural albedo, roughness and normal maps generated at runtime by a small noise-texture library.
 
 ## Character and animation status
 
@@ -33,7 +35,7 @@ This is a functional prototype character, not a photorealistic human. It does no
 - Desktop master viewport: 1920 x 1080.
 - Android viewport: 1280 x 720; quality scaling and sustained performance still require physical-device profiling.
 - Android export preset enables ARMv7 and ARM64 architectures.
-- Android default profile uses a conservative 30 FPS cap, disables real-time key-light shadows and glow, and reduces arena props and dynamic lights. This is a stability-oriented cap, not a measured performance guarantee.
+- Android now exposes a saved MID profile (45 FPS cap, conservative lighting) and an opt-in HIGH profile (60 FPS cap, glow and key-light shadows) with larger environment-detail budgets. These are configurable caps, not measured performance guarantees; all high-tier effects still require physical-device thermal and frame-pacing tests.
 - Desktop retains a 60 FPS cap, glow and key-light shadows.
 - Raising Android frame rate or re-enabling expensive effects requires measurements on representative physical devices.
 

@@ -71,7 +71,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for test_script in rigged_warrior_smoke.gd warrior_visual_smoke.gd audio_assets_smoke.gd; do
+          for test_script in rigged_warrior_smoke.gd warrior_visual_smoke.gd audio_assets_smoke.gd pbr_material_smoke.gd; do
             "$GODOT_BIN" --headless --path nova-ancient-warrior --script "res://tests/$test_script"
           done
           echo "PASS 4: character, animation and audio smoke tests passed"

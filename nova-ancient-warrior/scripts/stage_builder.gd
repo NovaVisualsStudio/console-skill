@@ -1,5 +1,6 @@
 extends RefCounted
-## Lightweight, procedural campaign dressing. Geometry is decorative and avoids extra physics bodies.
+## Procedural campaign dressing with shared PBR materials; geometry is decorative and avoids extra physics bodies.
+const PBRMaterials = preload("res://scripts/pbr_material_library.gd")
 
 static func build_stage(parent: Node3D, stage_index: int) -> void:
 	var previous := parent.get_node_or_null("GeneratedStageDressing")
@@ -123,11 +124,5 @@ static func _cylinder(parent: Node3D, node_name: String, radius: float, height: 
 
 
 static func _mat(color: Color, metallic: float, roughness: float, emission: Color = Color.BLACK) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.metallic = metallic
-	material.roughness = roughness
-	if emission != Color.BLACK:
-		material.emission_enabled = true
-		material.emission = emission
-	return material
+	var seed_value := int(absf(color.r * 997.0 + color.g * 467.0 + color.b * 193.0 + metallic * 61.0)) + 311
+	return PBRMaterials.create_surface_material(color, metallic, roughness, seed_value, 2.8, emission)

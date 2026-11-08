@@ -2,6 +2,7 @@ extends RefCounted
 ## Chapter-specific, collision-backed arena layouts for the Android campaign.
 ## Keeps combat lanes clear while adding traversable landmarks and physical boundaries.
 
+const PBRMaterials = preload("res://scripts/pbr_material_library.gd")
 const ROOT_NAME := "GeneratedCampaignLayout"
 
 
@@ -108,11 +109,5 @@ static func _solid_block(parent: Node3D, node_name: String, size: Vector3, posit
 
 
 static func _material(color: Color, metallic: float, roughness: float, emission: Color = Color.BLACK) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.metallic = metallic
-	material.roughness = roughness
-	if emission != Color.BLACK:
-		material.emission_enabled = true
-		material.emission = emission
-	return material
+	var seed_value := int(absf(color.r * 997.0 + color.g * 467.0 + color.b * 193.0 + metallic * 61.0)) + 1
+	return PBRMaterials.create_surface_material(color, metallic, roughness, seed_value, 2.4, emission)
