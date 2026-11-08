@@ -15,6 +15,15 @@ func _initialize() -> void:
 		_fail("Bottom-right action region must not capture camera look")
 		return
 
+	controller.set_excluded_rect(Rect2(Vector2(1040.0, 10.0), Vector2(220.0, 60.0)))
+	var ui_touch := InputEventScreenTouch.new()
+	ui_touch.index = 2
+	ui_touch.position = Vector2(1100.0, 40.0)
+	ui_touch.pressed = true
+	if controller.handle_event(ui_touch, viewport):
+		_fail("The graphics-quality HUD button area must be excluded from camera look")
+		return
+
 	var look_touch := InputEventScreenTouch.new()
 	look_touch.index = 7
 	look_touch.position = Vector2(900.0, 240.0)

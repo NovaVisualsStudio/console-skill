@@ -88,6 +88,8 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if is_instance_valid(quality_button):
+		touch_camera_controller.set_excluded_rect(quality_button.get_global_rect())
 	if not cinematic_active and touch_camera_controller.handle_event(event, get_viewport().get_visible_rect().size):
 		get_viewport().set_input_as_handled()
 
