@@ -36,9 +36,7 @@ func _run_combat_window_smoke() -> void:
 	if music_director == null:
 		await _finish(1, game, "Main scene did not create MusicDirector")
 		return
-	var director_script = music_director.get_script()
-	print("MusicDirector diagnostic: ready=", music_director.is_node_ready(), " script=", director_script.resource_path if director_script != null else "none", " children=", music_director.get_child_count())
-	var music_player := music_director.get_node_or_null("AudioStreamPlayer") as AudioStreamPlayer
+	var music_player := music_director.get_node_or_null("AmbientMusicPlayer") as AudioStreamPlayer
 	if music_player == null:
 		await _finish(1, game, "MusicDirector did not create an AudioStreamPlayer")
 		return
