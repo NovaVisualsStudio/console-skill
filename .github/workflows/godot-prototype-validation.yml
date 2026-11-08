@@ -75,11 +75,9 @@ jobs:
           fi
           cat "$log_file"
           grep -q "Combat window smoke test passed" "$log_file"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$log_file"; then
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type" "$log_file"; then
             exit 1
-          fi
-
-      - name: Smoke-test articulated warrior visuals and animation methods
+          fir visuals and animation methods
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/warrior_visual_smoke.gd
 
