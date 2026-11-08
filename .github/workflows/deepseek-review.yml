@@ -1,6 +1,16 @@
 name: DeepSeek advisory code review
 
 on:
+  push:
+    paths:
+      - "nova-ancient-warrior/tools/deepseek_review.py"
+      - "nova-ancient-warrior/tests/test_deepseek_review.py"
+      - ".github/workflows/deepseek-review.yml"
+  pull_request:
+    paths:
+      - "nova-ancient-warrior/tools/deepseek_review.py"
+      - "nova-ancient-warrior/tests/test_deepseek_review.py"
+      - ".github/workflows/deepseek-review.yml"
   workflow_dispatch:
     inputs:
       model:
@@ -16,7 +26,19 @@ permissions:
   contents: read
 
 jobs:
-  review:
+  offline-client-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Test client syntax and local OpenAI-compatible endpoint
+        working-directory: nova-ancient-warrior
+        run: |
+          python -m py_compile tools/deepseek_review.py tests/test_deepseek_review.py
+          python -m unittest tests/test_deepseek_review.py -v
+
+  hosted-review:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Check out source and history
