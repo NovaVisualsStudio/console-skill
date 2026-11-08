@@ -3,18 +3,25 @@ extends SceneTree
 const CombatRules = preload("res://scripts/combat_rules.gd")
 
 var _finished := false
+var _watchdog_timer: Timer
+var _active_game: Node
 
 
 func _initialize() -> void:
+	_watchdog_timer = Timer.new()
+	_watchdog_timer.name = "CombatWindowWatchdog"
+	_watchdog_timer.one_shot = true
+	_watchdog_timer.wait_time = 12.0
+	_watchdog_timer.timeout.connect(_on_watchdog_timeout)
+	root.add_child(_watchdog_timer)
+	_watchdog_timer.start()
 	call_deferred("_run_combat_window_smoke")
-	call_deferred("_watchdog")
 
 
-func _watchdog() -> void:
-	await create_timer(12.0).timeout
+func _on_watchdog_timeout() -> void:
 	if not _finished:
 		push_error("Combat window smoke test timed out before completing")
-		quit(1)
+		_finish(1, _active_game)
 
 
 func _run_combat_window_smoke() -> void:
@@ -24,6 +31,7 @@ func _run_combat_window_smoke() -> void:
 		return
 	var game := main_scene.instantiate()
 	game.name = "CombatWindowSmoke"
+	_active_game = game
 	root.add_child(game)
 	await process_frame
 	await physics_frame
@@ -114,11 +122,24 @@ func _run_combat_window_smoke() -> void:
 
 
 func _finish(exit_code: int, game: Node, message: String = "") -> void:
+	if _finished:
+		return
 	_finished = true
 	if not message.is_empty():
 		push_error(message)
 	if is_instance_valid(game):
 		game.free()
+	_active_game = null
+	if is_instance_valid(_watchdog_timer):
+		_watchdog_timer.stop()
+		_watchdog_timer.queue_free()
 	await process_frame
+	await process_frame
+	# Defer quitting until the caller coroutine has returned and released its
+	# PackedScene, streams and temporary test references.
+	call_deferred("_quit_after_cleanup", exit_code)
+
+
+func _quit_after_cleanup(exit_code: int) -> void:
 	await process_frame
 	quit(exit_code)
