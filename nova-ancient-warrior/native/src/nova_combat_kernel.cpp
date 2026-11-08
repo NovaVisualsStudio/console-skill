@@ -11,7 +11,8 @@ PackedInt32Array NovaCombatKernel::find_targets_in_attack_arc(const Vector3 &ori
  if (max_range <= 0.0 || forward.length_squared() <= 1.0e-8 || target_positions.is_empty()) return result;
  const Vector3 direction = forward.normalized();
  const double degrees = std::clamp(half_angle_degrees, 0.0, 180.0);
- const double threshold = std::cos(degrees * Math_PI / 180.0);
+ constexpr double pi = 3.14159265358979323846;
+ const double threshold = std::cos(degrees * pi / 180.0);
  const double max_range_squared = max_range * max_range;
  for (int32_t index = 0; index < target_positions.size(); ++index) {
   const Vector3 offset = target_positions[index] - origin;
