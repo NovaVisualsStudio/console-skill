@@ -1,9 +1,9 @@
 extends RefCounted
-## Runtime targets: desktop uses Forward+ at 60 FPS; Android uses GL Compatibility.
-## Compatibility avoids requiring Vulkan support on Android GPU drivers.
-## Keep a 720p mobile viewport; retain visually useful glow and one key directional shadow.
+## Broad Android compatibility baseline: Godot Compatibility renderer / OpenGL ES 3.0.
+## Desktop master: Forward+. Android exports include ARMv7 and ARM64.
+## Start at 60 FPS; real-device profiling will determine quality tier and frame pacing.
 
-const ANDROID_FPS_CAP := 30
+const ANDROID_FPS_CAP := 60
 const DESKTOP_FPS_CAP := 60
 const ANDROID_AMBIENT_FLOOR := 0.62
 
