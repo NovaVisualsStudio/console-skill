@@ -16,7 +16,12 @@ func _ready() -> void:
 	stream.buffer_length = 0.65
 	_player = AudioStreamPlayer.new()
 	_player.stream = stream
-	var music_level := float(SaveManager.profile.get("music_volume", 0.72))
+	var music_level := 0.72
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager != null:
+		var profile = save_manager.get("profile")
+		if profile is Dictionary:
+			music_level = float(profile.get("music_volume", music_level))
 	_player.volume_db = linear_to_db(maxf(music_level, 0.0001)) - 8.0
 	add_child(_player)
 	_player.play()
