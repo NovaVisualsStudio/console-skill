@@ -27,5 +27,15 @@ func _initialize() -> void:
 			push_error("Generated sound is too short to be useful: " + path)
 			quit(1)
 			return
-	print("Audio asset smoke test passed: %d original SFX WAV files imported at 22.05 kHz" % SOUND_NAMES.size())
+	var music_path := "res://audio/generated/ambient_music.wav"
+	if not ResourceLoader.exists(music_path):
+		push_error("Original ambient music loop is missing: " + music_path)
+		quit(1)
+		return
+	var music := load(music_path) as AudioStreamWAV
+	if music == null or music.mix_rate != 22050 or music.data.is_empty() or music.get_length() < 10.0:
+		push_error("Original ambient music loop failed WAV import or duration validation")
+		quit(1)
+		return
+	print("Audio asset smoke test passed: %d original SFX WAV files and a %.2f-second ambient loop at 22.05 kHz" % [SOUND_NAMES.size(), music.get_length()])
 	quit(0)
