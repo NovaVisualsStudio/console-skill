@@ -146,14 +146,14 @@ The current boss camera reveal and chapter title cards are a starting point. The
 - Review face, hands, feet, armour intersections and weapon grip.
 - Test every required animation in a neutral pose and during actual gameplay transitions.
 - No detached vertices, collapsing joints, foot skating, weapon clipping or sudden pose snaps.
-- Capture screenshots at 720p and inspect on a real phone, not only a desktop editor.
+- Capture the master art review at 1920×1080 and separately inspect the same scene on a supported high-end Android device; do not use phone preview as the only art-quality reference.
 
 ### Real-device gate
 
-- Test at least one low/mid Android device and one stronger device.
+- Begin device QA on a high-end Vulkan-capable Android device. Older low-end phones are not a release blocker for the visual master and must not dictate the art target.
 - Record average and 95th-percentile frame time, FPS, memory use, GPU/CPU load, touch latency, audio glitches and thermal behaviour.
 - Run a 20-minute combat/traversal soak test and repeat it after changing render settings.
-- Require a stable 30 FPS low tier; target 40–45 FPS balanced and 60 FPS only on devices that actually sustain it.
+- Target stable 60 FPS on the declared high-end Android test device; collect frame-time, thermal and memory evidence. Do not claim the target is met until measured.
 - Test install, uninstall, reinstall, pause/resume, rotation policy, save persistence and offline startup.
 
 ## 8. Prioritised implementation order
@@ -163,7 +163,7 @@ The current boss camera reveal and chapter title cards are a starting point. The
 3. Build a complete cleaned animation set from recorded human performances; wire a deterministic AnimationTree.
 4. Replace the single arena loop with three separate traversable chapters and scripted story beats.
 5. Upgrade environment materials, props, lighting and sound using licensed CC0/attributed assets.
-6. Add graphics tiers and profiling instrumentation; tune against actual Android hardware.
+6. Add profiling instrumentation and a high-end Android validation preset after the visual master is approved; create lower settings only as an optional later compatibility tier.
 7. Add full narrative cinematics, dialogue, subtitles and release-grade audio.
 8. Produce a release-signed build only after device QA, licence audit and save migration tests pass.
 
