@@ -51,41 +51,44 @@ func _run_tests() -> void:
     grunt.position = Vector3(0, 0, -2.0)
     test_root.add_child(grunt)
     await process_frame
+    # Keep the combo target alive through the finisher so the test can inspect it after the hit frame.
+    grunt.health = 200
+    grunt.max_health = 200
 
-    if grunt.health != 80 or player.health != 160:
+    if grunt.health != 200 or player.health != 160:
         push_error("Baseline health test failed.")
         await _finish(1, test_root)
         return
 
     var first_ok := player.perform_light_attack()
-    if not first_ok or grunt.health != 80 or player.combo_step != 1:
+    if not first_ok or grunt.health != 200 or player.combo_step != 1:
         push_error("Light attack should enter startup before applying damage.")
         await _finish(1, test_root)
         return
-    await _wait_for_enemy_health(grunt, 48)
-    if grunt.health != 48:
+    await _wait_for_enemy_health(grunt, 168)
+    if grunt.health != 168:
         push_error("Light attack combo step 1 active window failed.")
         await _finish(1, test_root)
         return
     await _wait_attack_ready(player)
     var second_ok := player.perform_light_attack()
-    if not second_ok or grunt.health != 48 or player.combo_step != 2:
+    if not second_ok or grunt.health != 168 or player.combo_step != 2:
         push_error("Light attack combo step 2 startup failed.")
         await _finish(1, test_root)
         return
-    await _wait_for_enemy_health(grunt, 9)
-    if grunt.health != 9:
+    await _wait_for_enemy_health(grunt, 129)
+    if grunt.health != 129:
         push_error("Light attack combo step 2 active window failed.")
         await _finish(1, test_root)
         return
     await _wait_attack_ready(player)
     var third_ok := player.perform_light_attack()
-    if not third_ok or grunt.health != 9 or player.combo_step != 3:
+    if not third_ok or grunt.health != 129 or player.combo_step != 3:
         push_error("Light attack combo finisher startup failed.")
         await _finish(1, test_root)
         return
-    await _wait_for_enemy_health(grunt, 0)
-    if grunt.health != 0:
+    await _wait_for_enemy_health(grunt, 73)
+    if grunt.health != 73:
         push_error("Light attack combo finisher active window failed.")
         await _finish(1, test_root)
         return
