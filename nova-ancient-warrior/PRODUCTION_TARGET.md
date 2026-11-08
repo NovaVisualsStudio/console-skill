@@ -120,6 +120,16 @@ Provisional performance gates, to be measured on physical devices:
 
 A build passing CI is not evidence of visual quality or physical-device performance. Do not mark a tier supported until a real device has passed the acceptance run.
 
+## Work completed in the current visual pass
+
+- Added a High-only 256x256 procedural PBR texture tier while preserving the 128x128 Mid tier and shared texture caching.
+- Added chapter-specific decorative detail: Sunken Ruins masonry piers/carved bands/rubble, Ember Causeway basalt fractures, and Obsidian Throne rune shards/sockets.
+- Added collision-backed optional flank steps, side walks and cover blocks to each chapter layout.
+- Updated the main scene to select the material detail tier from the saved MID/HIGH graphics preference.
+- Added smoke-test coverage for both PBR resolutions, the new chapter landmarks and flank-route geometry.
+
+These are incremental arena and material improvements. They do not turn the existing arena into three finished exploration levels, do not make the hero photorealistic, and do not establish real-device performance.
+
 ## Production gates and order
 
 1. Audit current scenes, scripts, renderer settings, asset pipeline and existing tests.
