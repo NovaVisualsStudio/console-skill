@@ -1,13 +1,13 @@
 extends SceneTree
 
-const VirtualJoystick = preload("res://scripts/virtual_joystick.gd")
+const NovaTouchJoystickScript = preload("res://scripts/virtual_joystick.gd")
 
 
 func _initialize() -> void:
 	for action_name in ["move_left", "move_right", "move_forward", "move_back"]:
 		if not InputMap.has_action(action_name):
 			InputMap.add_action(action_name)
-	var joystick := VirtualJoystick.new()
+	var joystick := NovaTouchJoystickScript.new()
 	joystick.position = Vector2(20.0, 500.0)
 	joystick.size = Vector2(180.0, 180.0)
 	get_root().add_child(joystick)

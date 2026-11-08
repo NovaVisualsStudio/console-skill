@@ -18,7 +18,7 @@ const RiggedWarriorVisual = preload("res://scripts/rigged_warrior_visual.gd")
 const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 const PBRMaterialLibrary = preload("res://scripts/pbr_material_library.gd")
 const TouchCameraController = preload("res://scripts/touch_camera_controller.gd")
-const VirtualJoystick = preload("res://scripts/virtual_joystick.gd")
+const NovaTouchJoystickScript = preload("res://scripts/virtual_joystick.gd")
 
 var player: CharacterBody3D
 var hero_visual: Node3D
@@ -687,7 +687,7 @@ func _build_hud() -> void:
 	chapter_intro_subtitle.visible = false
 	layer.add_child(chapter_intro_subtitle)
 
-	var virtual_stick := VirtualJoystick.new()
+	var virtual_stick := NovaTouchJoystickScript.new()
 	virtual_stick.name = "MovementJoystick"
 	virtual_stick.anchor_left = 0.0
 	virtual_stick.anchor_right = 0.0
