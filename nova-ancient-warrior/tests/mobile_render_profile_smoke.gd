@@ -19,31 +19,34 @@ func _initialize() -> void:
 		return
 
 	var environment := Environment.new()
-	environment.glow_enabled = false
+	environment.glow_enabled = true
 	environment.ambient_light_energy = 0.4
 	var light := DirectionalLight3D.new()
-	light.shadow_enabled = false
+	light.shadow_enabled = true
 
 	MobileRenderProfile.apply(true, environment, light)
-	if Engine.max_fps != 60:
-		_fail("Android 60 FPS target was not applied", light)
+	if Engine.max_fps != MobileRenderProfile.ANDROID_FPS_CAP:
+		_fail("Android mobile-first frame cap was not applied", light)
 		return
-	if not environment.glow_enabled or not light.shadow_enabled:
-		_fail("Android visual profile must preserve glow and key-light shadows", light)
+	if environment.glow_enabled or light.shadow_enabled:
+		_fail("Android baseline must disable glow and real-time key shadows", light)
 		return
 	if environment.ambient_light_energy < MobileRenderProfile.ANDROID_AMBIENT_FLOOR:
-		_fail("Android ambient lighting is below the visual baseline", light)
+		_fail("Android ambient lighting is below the readability baseline", light)
 		return
 
 	MobileRenderProfile.apply(false, environment, light)
 	if Engine.max_fps != 60:
-		_fail("Desktop 60 FPS target was not applied", light)
+		_fail("Desktop 60 FPS cap was not applied", light)
+		return
+	if not environment.glow_enabled or not light.shadow_enabled:
+		_fail("Desktop visual profile must retain glow and key-light shadows", light)
 		return
 
 	light.free()
 	light = null
 	environment = null
-	print("Renderer target smoke test passed: desktop Forward+, Android GL Compatibility, HD viewport, 60 FPS cap")
+	print("Renderer profile test passed: Android 30 FPS mobile baseline; desktop 60 FPS with full lighting")
 	call_deferred("quit", 0)
 
 
