@@ -107,6 +107,36 @@ def render(name, duration, seed):
     return out
 
 
+def render_ambient_music():
+    """Bake a 4-chord ambient loop so runtime playback needs no generator buffer."""
+    sample_rate = RATE
+    beat_seconds = 0.82
+    roots = (55.0, 65.41, 73.42, 49.0)
+    intensity = 0.22
+    duration = beat_seconds * 4.0 * len(roots)
+    count = int(sample_rate * duration)
+    edge_frames = int(sample_rate * 0.04)
+    out = []
+    for i in range(count):
+        t = i / sample_rate
+        bar = int(t / (beat_seconds * 4.0))
+        chord = roots[bar % len(roots)]
+        beat_phase = math.fmod(t, beat_seconds)
+        pad = math.sin(2.0 * math.pi * chord * t) * 0.105
+        pad += math.sin(2.0 * math.pi * chord * 1.5 * t) * 0.052
+        pad += math.sin(2.0 * math.pi * chord * 2.0 * t) * 0.024
+        upper = math.sin(2.0 * math.pi * chord * 3.0 * t + 0.3) * 0.018
+        kick = math.sin(2.0 * math.pi * 48.0 * beat_phase) * math.exp(-beat_phase * 17.0) * 0.10 * intensity
+        pulse = math.sin(2.0 * math.pi * (chord * 0.5) * t) * 0.012 * intensity
+        value = (pad + upper + kick + pulse) * (0.55 + intensity * 0.45)
+        if i < edge_frames:
+            value *= i / max(1, edge_frames)
+        elif i >= count - edge_frames:
+            value *= (count - 1 - i) / max(1, edge_frames)
+        out.append(int(max(-0.65, min(0.65, value)) * 32767.0))
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=Path("nova-ancient-warrior/audio/generated"))
@@ -122,7 +152,15 @@ def main():
             wav.setframerate(RATE)
             wav.writeframes(struct.pack("<%dh" % len(pcm), *pcm))
         total += path.stat().st_size
-    print("Generated %d original SFX WAV files (%d bytes) at %s" % (len(DURATIONS), total, args.output))
+    music_pcm = render_ambient_music()
+    music_path = args.output / "ambient_music.wav"
+    with wave.open(str(music_path), "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(RATE)
+        wav.writeframes(struct.pack("<%dh" % len(music_pcm), *music_pcm))
+    total += music_path.stat().st_size
+    print("Generated %d original SFX WAV files and 1 ambient music loop (%d bytes) at %s" % (len(DURATIONS), total, args.output))
 
 
 if __name__ == "__main__":
