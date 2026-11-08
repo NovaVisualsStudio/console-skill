@@ -45,6 +45,10 @@ func _run_combat_window_smoke() -> void:
 		await _finish(1, game, "Main scene did not configure a looping ambient music stream")
 		return
 	print("Combat window test: ambient music stream configured in main scene")
+	music_player.stop()
+	music_player.stream = null
+	await process_frame
+	await process_frame
 	music_stream = null
 	music_player = null
 	music_director = null
