@@ -51,8 +51,15 @@ func _initialize() -> void:
 		_fail("Releasing the active finger did not clear camera capture")
 		return
 
+	var second_touch := InputEventScreenTouch.new()
+	second_touch.index = 9
+	second_touch.position = Vector2(900.0, 240.0)
+	second_touch.pressed = true
+	if not controller.handle_event(second_touch, viewport):
+		_fail("A new touch could not recapture the look region after release")
+		return
 	var extreme_drag := InputEventScreenDrag.new()
-	extreme_drag.index = 7
+	extreme_drag.index = 9
 	extreme_drag.relative = Vector2(0.0, 100000.0)
 	controller.handle_event(extreme_drag, viewport)
 	if controller.pitch > TouchCamera.MAX_PITCH or controller.pitch < TouchCamera.MIN_PITCH:
