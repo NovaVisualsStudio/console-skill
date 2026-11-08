@@ -64,6 +64,18 @@ static func heavy_attack_cooldown() -> float:
 	return 0.82
 
 
+
+static func attack_startup(heavy: bool, combo_step: int = 0) -> float:
+	if heavy:
+		return 0.22
+	var startup_times := [0.12, 0.14, 0.16]
+	return float(startup_times[clampi(combo_step, 0, 2)])
+
+
+static func attack_active_duration(heavy: bool) -> float:
+	return 0.18 if heavy else 0.12
+
+
 static func should_start_enemy_windup(distance: float, cooldown: float, windup_range: float = 1.85) -> bool:
 	return distance <= maxf(0.0, windup_range) and cooldown <= 0.0
 
