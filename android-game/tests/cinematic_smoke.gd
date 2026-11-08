@@ -77,6 +77,22 @@ func _run_tests() -> void:
             await _finish(1, arena)
             return
 
+    # The desktop Tab action must use the same lock-on path as the Android button.
+    arena.player.lock_target = null
+    arena.camera_rig.clear_lock_target()
+    arena.lock_index = -1
+    if not InputMap.has_action("lock_on"):
+        push_error("Desktop lock-on action was not registered.")
+        await _finish(1, arena)
+        return
+    Input.action_press("lock_on")
+    await process_frame
+    Input.action_release("lock_on")
+    if not is_instance_valid(arena.player.lock_target) or arena.camera_rig.lock_target != arena.player.lock_target:
+        push_error("Desktop lock-on input did not select and frame a target.")
+        await _finish(1, arena)
+        return
+
     # Verify lock-on rotates the player even without movement input.
     arena.player.rotation.y = 0.0
     arena.boss.global_position = arena.player.global_position + Vector3(4.0, 0.0, 0.0)
