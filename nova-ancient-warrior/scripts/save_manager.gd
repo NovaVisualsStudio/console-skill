@@ -2,7 +2,7 @@ extends Node
 ## Versioned offline save profile with checkpoint-safe currency accounting and permanent upgrades.
 
 const SAVE_PATH := "user://nova_profile.cfg"
-const SCHEMA_VERSION := 2
+const SCHEMA_VERSION := 3
 const MAX_WAVE := 9
 
 var file_path := SAVE_PATH
@@ -32,7 +32,8 @@ func _default_profile() -> Dictionary:
 		"upgrade_vitality": 0,
 		"upgrade_guard": 0,
 		"music_volume": 0.72,
-		"sfx_volume": 0.85
+		"sfx_volume": 0.85,
+		"graphics_quality": "mid"
 	}
 
 
@@ -61,6 +62,8 @@ func load_profile() -> bool:
 	profile["upgrade_guard"] = clampi(int(profile["upgrade_guard"]), 0, 3)
 	profile["music_volume"] = clampf(float(profile["music_volume"]), 0.0, 1.0)
 	profile["sfx_volume"] = clampf(float(profile["sfx_volume"]), 0.0, 1.0)
+	var graphics_quality := str(profile.get("graphics_quality", "mid")).to_lower()
+	profile["graphics_quality"] = "high" if graphics_quality == "high" else "mid"
 	profile["schema_version"] = SCHEMA_VERSION
 	return true
 
@@ -147,6 +150,14 @@ func _upgrade_key(upgrade_name: String) -> String:
 func set_audio_options(music: float, sfx: float) -> bool:
 	profile["music_volume"] = clampf(music, 0.0, 1.0)
 	profile["sfx_volume"] = clampf(sfx, 0.0, 1.0)
+	return save_profile()
+
+
+func set_graphics_quality(quality: String) -> bool:
+	var normalized := quality.strip_edges().to_lower()
+	if normalized not in ["mid", "high"]:
+		return false
+	profile["graphics_quality"] = normalized
 	return save_profile()
 
 

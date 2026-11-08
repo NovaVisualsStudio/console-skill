@@ -16,6 +16,7 @@ const CampaignLayout = preload("res://scripts/campaign_layout.gd")
 const MobileRenderProfile = preload("res://scripts/mobile_render_profile.gd")
 const RiggedWarriorVisual = preload("res://scripts/rigged_warrior_visual.gd")
 const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
+const PBRMaterialLibrary = preload("res://scripts/pbr_material_library.gd")
 
 var player: CharacterBody3D
 var hero_visual: Node3D
@@ -63,11 +64,19 @@ var blade_damage_bonus := 0
 var guard_damage_scale := 1.0
 var upgrade_panel: PanelContainer
 var upgrade_buttons: Dictionary = {}
+var graphics_quality := "mid"
+var quality_button: Button
+var touch_look_finger := -1
+var camera_yaw := 0.0
+var camera_pitch := 0.52
+const CAMERA_DISTANCE := 10.3
+const TOUCH_LOOK_SENSITIVITY := 0.006
 
 
 func _ready() -> void:
 	_setup_input()
 	var profile: Dictionary = _save_profile()
+	graphics_quality = MobileRenderProfile.normalize_quality(str(profile.get("graphics_quality", MobileRenderProfile.QUALITY_MID)))
 	var chapter_start := (int(profile.get("unlocked_chapter", 1)) - 1) * 3 + 1
 	current_wave = 7 if bool(profile.get("campaign_complete", false)) else maxi(chapter_start, int(profile.get("highest_wave", 1)))
 	_save_call("begin_run")
@@ -79,16 +88,31 @@ func _ready() -> void:
 	_update_hud()
 
 
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		var viewport_size := get_viewport().get_visible_rect().size
+		if event.pressed:
+			if touch_look_finger == -1 and event.position.x >= viewport_size.x * 0.46 and event.position.y <= viewport_size.y * 0.70:
+				touch_look_finger = event.index
+		elif event.index == touch_look_finger:
+			touch_look_finger = -1
+	elif event is InputEventScreenDrag and event.index == touch_look_finger and not cinematic_active:
+		camera_yaw = wrapf(camera_yaw - event.relative.x * TOUCH_LOOK_SENSITIVITY, -PI, PI)
+		camera_pitch = clampf(camera_pitch + event.relative.y * TOUCH_LOOK_SENSITIVITY * 0.5, deg_to_rad(22.0), deg_to_rad(48.0))
+
+
 func _process(delta: float) -> void:
 	if cinematic_active:
 		return
 	if is_instance_valid(player) and is_instance_valid(camera):
 		var look_target := player.global_position + Vector3(0.0, 1.1, 0.0)
-		var camera_target := player.global_position + Vector3(0.0, 6.3, 9.0)
+		var orbit_distance := CAMERA_DISTANCE
 		if _is_lock_target_valid():
 			var midpoint: Vector3 = (player.global_position + locked_target.global_position) * 0.5
 			look_target = midpoint + Vector3(0.0, 1.1, 0.0)
-			camera_target = midpoint + Vector3(0.0, 7.0, 11.5)
+			orbit_distance = 12.4
+		var camera_offset := Vector3(0.0, sin(camera_pitch) * orbit_distance, cos(camera_pitch) * orbit_distance).rotated(Vector3.UP, camera_yaw)
+		var camera_target := look_target + camera_offset
 		camera.global_position = camera.global_position.lerp(camera_target, minf(delta * 4.5, 1.0))
 		camera.look_at(look_target, Vector3.UP)
 	if game_over and Input.is_action_just_pressed("restart"):
@@ -312,7 +336,7 @@ func _build_world() -> void:
 	sun.light_energy = 1.25
 	sun.shadow_enabled = true
 	add_child(sun)
-	MobileRenderProfile.apply(OS.get_name() == "Android", env, sun)
+	MobileRenderProfile.apply(OS.get_name() == "Android", env, sun, graphics_quality)
 
 	var floor_body := StaticBody3D.new()
 	floor_body.name = "ArenaFloor"
@@ -333,7 +357,8 @@ func _build_world() -> void:
 	floor_body.add_child(floor_collision)
 
 	var is_android := OS.get_name() == "Android"
-	var pillar_count := MobileRenderProfile.ANDROID_PILLAR_COUNT if is_android else MobileRenderProfile.DESKTOP_PILLAR_COUNT
+	var render_budget := MobileRenderProfile.environment_budget(is_android, graphics_quality)
+	var pillar_count := int(render_budget["pillar_count"])
 	for i in range(pillar_count):
 		var angle := TAU * float(i) / float(pillar_count)
 		var pillar := MeshInstance3D.new()
@@ -346,7 +371,7 @@ func _build_world() -> void:
 		pillar.material_override = _material(Color(0.28, 0.25, 0.22), 0.0, 1.0)
 		add_child(pillar)
 
-	var brazier_count := MobileRenderProfile.ANDROID_BRAZIER_COUNT if is_android else MobileRenderProfile.DESKTOP_BRAZIER_COUNT
+	var brazier_count := int(render_budget["brazier_count"])
 	for i in range(brazier_count):
 		var angle := TAU * float(i) / float(brazier_count)
 		var brazier := MeshInstance3D.new()
@@ -358,7 +383,7 @@ func _build_world() -> void:
 		brazier.position = Vector3(cos(angle) * 9.0, 0.45, sin(angle) * 9.0)
 		brazier.material_override = _material(Color(0.16, 0.14, 0.13), 0.0, 0.85)
 		add_child(brazier)
-		if not is_android or i < MobileRenderProfile.ANDROID_FIRE_LIGHT_COUNT:
+		if i < int(render_budget["fire_light_count"]):
 			var fire_light := OmniLight3D.new()
 			fire_light.position = brazier.position + Vector3(0.0, 0.8, 0.0)
 			fire_light.light_color = Color(1.0, 0.29, 0.075)
@@ -366,7 +391,7 @@ func _build_world() -> void:
 			fire_light.omni_range = 5.5
 			add_child(fire_light)
 
-	var rock_count := MobileRenderProfile.ANDROID_ROCK_COUNT if is_android else MobileRenderProfile.DESKTOP_ROCK_COUNT
+	var rock_count := int(render_budget["rock_count"])
 	for i in range(rock_count):
 		var rock := MeshInstance3D.new()
 		var rock_mesh := BoxMesh.new()
@@ -749,6 +774,24 @@ func _build_hud() -> void:
 	hint.add_theme_color_override("font_color", Color(0.72, 0.68, 0.61))
 	layer.add_child(hint)
 
+	quality_button = Button.new()
+	quality_button.name = "GraphicsQualityButton"
+	quality_button.anchor_left = 1.0
+	quality_button.anchor_right = 1.0
+	quality_button.offset_left = -220.0
+	quality_button.offset_right = -18.0
+	quality_button.offset_top = 18.0
+	quality_button.offset_bottom = 62.0
+	quality_button.focus_mode = Control.FOCUS_NONE
+	quality_button.custom_minimum_size = Vector2(202.0, 44.0)
+	quality_button.add_theme_font_size_override("font_size", 17)
+	quality_button.add_theme_color_override("font_color", Color(0.94, 0.84, 0.66))
+	quality_button.add_theme_stylebox_override("normal", _button_style(Color(0.08, 0.10, 0.15, 0.90)))
+	quality_button.add_theme_stylebox_override("pressed", _button_style(Color(0.34, 0.20, 0.10, 0.96)))
+	quality_button.pressed.connect(_cycle_graphics_quality)
+	layer.add_child(quality_button)
+	_refresh_quality_button()
+
 
 func _add_touch_button(layer: CanvasLayer, caption: String, action: String, offset: Vector2, size: Vector2 = Vector2(92.0, 82.0), right_side: bool = false) -> void:
 	var button := Button.new()
@@ -776,6 +819,21 @@ func _add_touch_button(layer: CanvasLayer, caption: String, action: String, offs
 	button.button_down.connect(func(): Input.action_press(action))
 	button.button_up.connect(func(): Input.action_release(action))
 	layer.add_child(button)
+
+
+func _cycle_graphics_quality() -> void:
+	graphics_quality = MobileRenderProfile.QUALITY_HIGH if graphics_quality == MobileRenderProfile.QUALITY_MID else MobileRenderProfile.QUALITY_MID
+	_save_call("set_graphics_quality", [graphics_quality])
+	if arena_environment != null and is_instance_valid(arena_sun):
+		MobileRenderProfile.apply(OS.get_name() == "Android", arena_environment, arena_sun, graphics_quality)
+	_refresh_quality_button()
+	if is_instance_valid(status_label):
+		status_label.text = "GRAPHICS: %s | DETAIL COUNT UPDATES AFTER RESTART" % graphics_quality.to_upper()
+
+
+func _refresh_quality_button() -> void:
+	if is_instance_valid(quality_button):
+		quality_button.text = "QUALITY: %s" % graphics_quality.to_upper()
 
 
 func _button_style(color: Color) -> StyleBoxFlat:
@@ -1131,8 +1189,5 @@ func _play_tone(frequency: float, duration: float, amplitude: float) -> void:
 
 
 func _material(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.metallic = metallic
-	material.roughness = roughness
-	return material
+	var seed_value := int(absf(color.r * 997.0 + color.g * 467.0 + color.b * 193.0 + metallic * 61.0)) + 701
+	return PBRMaterialLibrary.create_surface_material(color, metallic, roughness, seed_value, 2.6)
