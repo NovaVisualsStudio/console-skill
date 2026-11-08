@@ -50,7 +50,7 @@ The Android GitHub Actions workflow generates the hero and sound assets, imports
 
 The six-pass QA workflow currently checks source integrity, regenerated hero/audio assets, clean Godot import, character/animation/audio integrity, combat/campaign/save/hazard regression, Android renderer settings and a headless main-scene boot. A separate Godot validation workflow also runs focused smoke tests. Green CI runs prove these automated checks passed in the hosted runner; they do not prove visual quality, real-time performance or successful play on a physical Android device.
 
-The repository-wide Python test suite is separate from the Godot QA workflow. Its latest run on the current commit reports one failure because this README still contained an em dash. That documentation failure is being corrected; it does not indicate a Godot runtime or APK export failure.
+The repository-wide Python test suite is separate from the Godot QA workflow. Run it against the current branch head before release; a green Godot QA run does not imply that the separate Python suite passed.
 
 ## Cinematics, story and world status
 
