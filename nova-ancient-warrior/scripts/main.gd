@@ -17,6 +17,7 @@ const MobileRenderProfile = preload("res://scripts/mobile_render_profile.gd")
 const RiggedWarriorVisual = preload("res://scripts/rigged_warrior_visual.gd")
 const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 const PBRMaterialLibrary = preload("res://scripts/pbr_material_library.gd")
+const TouchCameraController = preload("res://scripts/touch_camera_controller.gd")
 
 var player: CharacterBody3D
 var hero_visual: Node3D
@@ -66,11 +67,8 @@ var upgrade_panel: PanelContainer
 var upgrade_buttons: Dictionary = {}
 var graphics_quality := "mid"
 var quality_button: Button
-var touch_look_finger := -1
-var camera_yaw := 0.0
-var camera_pitch := 0.52
+var touch_camera_controller := TouchCameraController.new()
 const CAMERA_DISTANCE := 10.3
-const TOUCH_LOOK_SENSITIVITY := 0.006
 
 
 func _ready() -> void:
@@ -89,16 +87,8 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch:
-		var viewport_size := get_viewport().get_visible_rect().size
-		if event.pressed:
-			if touch_look_finger == -1 and event.position.x >= viewport_size.x * 0.46 and event.position.y <= viewport_size.y * 0.70:
-				touch_look_finger = event.index
-		elif event.index == touch_look_finger:
-			touch_look_finger = -1
-	elif event is InputEventScreenDrag and event.index == touch_look_finger and not cinematic_active:
-		camera_yaw = wrapf(camera_yaw - event.relative.x * TOUCH_LOOK_SENSITIVITY, -PI, PI)
-		camera_pitch = clampf(camera_pitch + event.relative.y * TOUCH_LOOK_SENSITIVITY * 0.5, deg_to_rad(22.0), deg_to_rad(48.0))
+	if not cinematic_active and touch_camera_controller.handle_event(event, get_viewport().get_visible_rect().size):
+		get_viewport().set_input_as_handled()
 
 
 func _process(delta: float) -> void:
@@ -111,7 +101,7 @@ func _process(delta: float) -> void:
 			var midpoint: Vector3 = (player.global_position + locked_target.global_position) * 0.5
 			look_target = midpoint + Vector3(0.0, 1.1, 0.0)
 			orbit_distance = 12.4
-		var camera_offset := Vector3(0.0, sin(camera_pitch) * orbit_distance, cos(camera_pitch) * orbit_distance).rotated(Vector3.UP, camera_yaw)
+		var camera_offset := touch_camera_controller.get_camera_offset(orbit_distance)
 		var camera_target := look_target + camera_offset
 		camera.global_position = camera.global_position.lerp(camera_target, minf(delta * 4.5, 1.0))
 		camera.look_at(look_target, Vector3.UP)
