@@ -45,6 +45,9 @@ func _run_combat_window_smoke() -> void:
 		await _finish(1, game, "Main scene did not configure a looping ambient music stream")
 		return
 	print("Combat window test: ambient music stream configured in main scene")
+	music_stream = null
+	music_player = null
+	music_director = null
 
 	var player := game.get("player") as CharacterBody3D
 	var enemies: Array = game.get("enemies")
