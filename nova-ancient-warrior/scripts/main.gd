@@ -330,8 +330,10 @@ func _build_world() -> void:
 	floor_collision.position.y = -0.3
 	floor_body.add_child(floor_collision)
 
-	for i in range(12):
-		var angle := TAU * float(i) / 12.0
+	var is_android := OS.get_name() == "Android"
+	var pillar_count := 8 if is_android else 12
+	for i in range(pillar_count):
+		var angle := TAU * float(i) / float(pillar_count)
 		var pillar := MeshInstance3D.new()
 		var pillar_mesh := CylinderMesh.new()
 		pillar_mesh.top_radius = 0.48
@@ -342,8 +344,9 @@ func _build_world() -> void:
 		pillar.material_override = _material(Color(0.28, 0.25, 0.22), 0.0, 1.0)
 		add_child(pillar)
 
-	for i in range(8):
-		var angle := TAU * float(i) / 8.0
+	var brazier_count := 4 if is_android else 8
+	for i in range(brazier_count):
+		var angle := TAU * float(i) / float(brazier_count)
 		var brazier := MeshInstance3D.new()
 		var brazier_mesh := CylinderMesh.new()
 		brazier_mesh.top_radius = 0.36
@@ -353,7 +356,7 @@ func _build_world() -> void:
 		brazier.position = Vector3(cos(angle) * 9.0, 0.45, sin(angle) * 9.0)
 		brazier.material_override = _material(Color(0.16, 0.14, 0.13), 0.0, 0.85)
 		add_child(brazier)
-		if OS.get_name() != "Android" or i % 2 == 0:
+		if not is_android or i == 0:
 			var fire_light := OmniLight3D.new()
 			fire_light.position = brazier.position + Vector3(0.0, 0.8, 0.0)
 			fire_light.light_color = Color(1.0, 0.29, 0.075)
@@ -361,7 +364,8 @@ func _build_world() -> void:
 			fire_light.omni_range = 5.5
 			add_child(fire_light)
 
-	for i in range(34):
+	var rock_count := 18 if is_android else 34
+	for i in range(rock_count):
 		var rock := MeshInstance3D.new()
 		var rock_mesh := BoxMesh.new()
 		rock_mesh.size = Vector3(randf_range(0.25, 0.8), randf_range(0.18, 0.5), randf_range(0.25, 0.8))
