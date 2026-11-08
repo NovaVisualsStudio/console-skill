@@ -8,7 +8,7 @@ An original Godot 4 action-adventure prototype for Android ARM64, built as a sep
 - Procedural low-poly warrior model with heavy war axe, armor parts and swing motion.
 - Three-hit light combo, stamina-cost heavy attack, dodge i-frames, guard and timed perfect parry.
 - Two guardian enemies with visible pre-attack telegraphs.
-- Ashen Warden boss with a 50% health phase transition and stronger second-phase attacks.
+- Ashen Warden boss with a 50% health phase transition and three distinct patterns: frontal melee, lateral sweep and radial slam. Warning rings change size and colour to signal the danger area; phase two cycles all three faster.
 - Original temple arena with portal architecture, pillars, ritual rings, emissive braziers, fog and floating ash.
 - Cinematic letterbox/title handoff, original procedural ambient drone and combat sounds, hit sparks, player/boss health UI, stamina and mobile touch controls.
 - Android landscape export preset and reproducible CI-built debug APK.
@@ -23,7 +23,7 @@ Android: left directional pad; right LIGHT, HEAVY, DODGE, GUARD and LOCK control
 
 ## Open in Godot
 
-Open this folder in Godot 4.7.2 or newer and run the project. The CI pipeline runs editor import, combat tests, cinematic integration tests, procedural audio checks, headless runtime tests, six repeat stability passes and Android ARM64 debug export.
+Open this folder in Godot 4.7.2 or newer and run the project. The CI pipeline runs editor import, combat tests, cinematic integration tests, procedural audio checks, headless runtime tests, six repeat stability passes (combat, cinematic, audio and 300-frame runtime each time) and Android ARM64 debug export.
 
 ## Android APK
 
