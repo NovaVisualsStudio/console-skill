@@ -1,6 +1,5 @@
 extends SceneTree
 
-const MainScript = preload("res://scripts/main.gd")
 const CombatRules = preload("res://scripts/combat_rules.gd")
 
 var _finished := false
@@ -19,12 +18,19 @@ func _watchdog() -> void:
 
 
 func _run_combat_window_smoke() -> void:
-	var game := MainScript.new()
+	var main_scene := load("res://scenes/main.tscn") as PackedScene
+	if main_scene == null:
+		await _finish(1, null, "Could not load the actual main scene")
+		return
+	var game := main_scene.instantiate()
 	game.name = "CombatWindowSmoke"
 	root.add_child(game)
 	await process_frame
 	await physics_frame
-	print("Combat window test: main scene booted")
+	if root.get_node_or_null("SaveManager") == null:
+		await _finish(1, game, "SaveManager autoload was not initialized for the main scene")
+		return
+	print("Combat window test: main scene and autoloads booted")
 
 	var player := game.get("player") as CharacterBody3D
 	var enemies: Array = game.get("enemies")
