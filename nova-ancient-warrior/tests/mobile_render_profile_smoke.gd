@@ -41,12 +41,14 @@ func _initialize() -> void:
 		return
 
 	light.free()
+	light = null
+	environment = null
 	print("Renderer target smoke test passed: desktop Forward+, Android GL Compatibility, HD viewport, 60 FPS cap")
-	quit(0)
+	call_deferred("quit", 0)
 
 
 func _fail(message: String, light: DirectionalLight3D = null) -> void:
 	if is_instance_valid(light):
 		light.free()
 	push_error(message)
-	quit(1)
+	call_deferred("quit", 1)
