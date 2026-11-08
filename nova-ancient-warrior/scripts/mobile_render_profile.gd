@@ -1,21 +1,17 @@
 extends RefCounted
-## Conservative runtime profile for Android compatibility-renderer devices.
-## Desktop preview keeps the full presentation; Android favours stable frame pacing.
+## Visual-first runtime profile.
+## Desktop uses the Forward+ renderer; compatible Android devices use the Mobile/Vulkan renderer.
+## This profile does not silently disable shadows, glow, or other quality features on Android.
 
-const ANDROID_FPS_CAP := 45
+const ANDROID_FPS_CAP := 60
 const DESKTOP_FPS_CAP := 60
+const MIN_AMBIENT_LIGHT_ENERGY := 0.62
 
 
-static func apply(is_android: bool, world_environment: Environment, key_light: DirectionalLight3D) -> void:
-	Engine.max_fps = ANDROID_FPS_CAP if is_android else DESKTOP_FPS_CAP
-	if not is_android:
-		if world_environment != null:
-			world_environment.glow_enabled = true
-		if key_light != null:
-			key_light.shadow_enabled = true
-		return
+static func apply(_is_android: bool, world_environment: Environment, key_light: DirectionalLight3D) -> void:
+	Engine.max_fps = ANDROID_FPS_CAP if _is_android else DESKTOP_FPS_CAP
 	if world_environment != null:
-		world_environment.glow_enabled = false
-		world_environment.ambient_light_energy = maxf(world_environment.ambient_light_energy, 0.62)
+		world_environment.glow_enabled = true
+		world_environment.ambient_light_energy = maxf(world_environment.ambient_light_energy, MIN_AMBIENT_LIGHT_ENERGY)
 	if key_light != null:
-		key_light.shadow_enabled = false
+		key_light.shadow_enabled = true
