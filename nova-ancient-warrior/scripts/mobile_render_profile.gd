@@ -1,17 +1,17 @@
 extends RefCounted
-## Broad Android compatibility baseline: Godot Compatibility renderer / OpenGL ES 3.0.
-## Desktop master: Forward+. Android exports include ARMv7 and ARM64.
-## Start at 60 FPS; real-device profiling will determine quality tier and frame pacing.
+## Mobile-first Android baseline: Godot Compatibility renderer / OpenGL ES 3.0.
+## Desktop master remains Forward+. Physical-device profiling is required before raising
+## the Android frame cap or re-enabling expensive lighting features.
 
-const ANDROID_FPS_CAP := 60
+const ANDROID_FPS_CAP := 30
 const DESKTOP_FPS_CAP := 60
-const ANDROID_AMBIENT_FLOOR := 0.62
+const ANDROID_AMBIENT_FLOOR := 0.68
 
 
 static func apply(is_android: bool, world_environment: Environment, key_light: DirectionalLight3D) -> void:
 	Engine.max_fps = ANDROID_FPS_CAP if is_android else DESKTOP_FPS_CAP
 	if world_environment != null:
-		world_environment.glow_enabled = true
-		world_environment.ambient_light_energy = maxf(world_environment.ambient_light_energy, ANDROID_AMBIENT_FLOOR)
+		world_environment.glow_enabled = not is_android
+		world_environment.ambient_light_energy = maxf(world_environment.ambient_light_energy, ANDROID_AMBIENT_FLOOR if is_android else 0.0)
 	if key_light != null:
-		key_light.shadow_enabled = true
+		key_light.shadow_enabled = not is_android
