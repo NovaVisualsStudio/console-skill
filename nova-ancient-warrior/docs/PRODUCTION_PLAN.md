@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — Production Plan
+# Nova Ancient Warrior - Production Plan
 
 ## Product decision
 
@@ -21,7 +21,7 @@ These are production gaps, not claims of completed content.
 
 A gate is passed only when its acceptance checks are recorded in CI or a reproducible test report. A successful export is not proof of good gameplay or device performance.
 
-### Gate 0 — Repository and build integrity
+### Gate 0 - Repository and build integrity
 
 1. Confirm the exact branch head before every change.
 2. Run the repository Python tests and the Godot-specific QA workflow independently.
@@ -31,7 +31,7 @@ A gate is passed only when its acceptance checks are recorded in CI or a reprodu
 
 Exit criteria: all automated checks pass on the same commit; Android APK installs and launches on at least one physical device; remaining limitations are documented.
 
-### Gate 1 — Android performance baseline
+### Gate 1 - Android performance baseline
 
 Create a repeatable benchmark scene with the player, three ordinary enemies, one boss, representative environment geometry, particles, audio and the real HUD.
 
@@ -50,7 +50,7 @@ Use quality tiers (Low / Balanced / High) with conservative defaults and allow p
 
 Exit criteria: at least one tested device per target tier, documented measurements, and no known crash/blocker in the tested matrix.
 
-### Gate 2 — Vertical slice (one complete level)
+### Gate 2 - Vertical slice (one complete level)
 
 Build one authored level from entry to exit, not another dressed arena. It must include:
 - a navigable exterior/interior route with authored collision;
@@ -63,7 +63,7 @@ Build one authored level from entry to exit, not another dressed arena. It must 
 
 Exit criteria: a new player can complete the level without developer intervention; progression survives app restart; no soft locks; combat and traversal pass regression tests; performance gate remains green.
 
-### Gate 3 — Character and animation production
+### Gate 3 - Character and animation production
 
 Replace placeholder-quality presentation through a repeatable character pipeline:
 1. approved concept and silhouette;
@@ -77,13 +77,13 @@ Every external model, animation, texture, sound and plugin requires an asset-lev
 
 Exit criteria: hero and enemy models pass import, rig, animation, material, scale, collision and performance checks in the actual game scene.
 
-### Gate 4 — Combat and enemy depth
+### Gate 4 - Combat and enemy depth
 
 Separate combat rules from presentation. Add deterministic tests for hit windows, invulnerability, parry timing, stagger, knockback, target switching, interruption, boss phases and simultaneous enemy attacks. Introduce enemy behaviours only when they produce readable, fair encounters on touch controls.
 
 Exit criteria: each enemy archetype has a documented role and tested counterplay; each boss has distinct phases and no unavoidable attack loop.
 
-### Gate 5 — Full campaign production
+### Gate 5 - Full campaign production
 
 Expand only after the vertical slice passes:
 - three genuinely different authored levels, not only different materials and props;
@@ -94,7 +94,7 @@ Expand only after the vertical slice passes:
 
 Exit criteria: all chapters are independently navigable and completable, all progression paths work after app restarts, and the complete campaign has been playtested.
 
-### Gate 6 — Release readiness
+### Gate 6 - Release readiness
 
 Run clean builds from a tagged commit; validate APK signing, package ID, permissions, offline behaviour, save compatibility, install/update/uninstall behaviour, device matrix, crash logs, attribution notices, privacy disclosures and store assets. Keep debug and release artifacts separate.
 
