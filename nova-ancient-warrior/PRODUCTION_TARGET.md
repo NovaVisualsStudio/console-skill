@@ -12,21 +12,11 @@ Target only supported mid-range and high-end Android phones. Do not spend produc
 
 ## Product direction
 
-Re-scope the current sword-combat prototype into an original third-person action-survival shooter campaign. Preserve useful save/progression, encounter orchestration and tested gameplay systems, but do not pretend that the existing melee prototype is already a shooter.
+Keep Nova Ancient Warrior as the original third-person action-adventure built around its warrior, melee combat, bosses and campaign progression. The supplied shooter screenshots define the desired mobile visual fidelity, environmental richness, character/material finish, camera readability and touch-HUD polish; they do not by themselves authorize changing the game's genre or replacing its sword-combat identity.
 
-Core loop:
-1. Explore a large but bounded combat district.
-2. Locate weapons, ammunition, healing and mission objectives.
-3. Engage human opponents using cover, aim, fire, reload, weapon swap and tactical movement.
-4. Survive authored encounter waves and elite/boss encounters.
-5. Complete mission objectives, unlock the next district and retain campaign progress.
+Preserve and deepen the current combat loop: exploration, sword combos, heavy attacks, dodge, guard, perfect parry, target lock, enemy telegraphs, elite encounters and multi-phase bosses. Add ranged weapons or shooter mechanics only if they serve the warrior campaign and fit its world; do not pivot the whole game into a battle-royale/shooter without a separate explicit decision.
 
-Initial campaign structure:
-- Mission 1: Dustline Outpost - tutorial, movement, cover, basic rifle and extraction.
-- Mission 2: Blue Quarter - denser urban block, flanking routes, vehicle wrecks and rooftop threats.
-- Mission 3: Red Basin - open terrain, long sightlines, compounds and a multi-stage commander encounter.
-
-These are production targets, not claims that three finished levels currently exist. Each mission must be individually authored and tested; do not simply recolor one arena.
+Campaign structure remains the three original chapters: Sunken Ruins, Ember Causeway and Obsidian Throne. Each must become a separately authored playable level rather than a recoloured copy of one arena. The screenshots' urban density, varied elevation, props, distant landmarks and readable combat spaces are visual benchmarks, not level-layout templates.
 
 ## Rendering and materials
 
@@ -76,21 +66,19 @@ Replace the current low-poly placeholder with an original production-ready human
 
 Use Blender and free/open-source tooling. Every external mesh, rig, animation and texture must have a recorded source, version, author and licence in ASSET_PROVENANCE.csv before integration. Reject assets whose redistribution/commercial terms are unclear.
 
-## Shooter gameplay
+## Combat and enemy gameplay
 
 Required systems:
 - Third-person over-shoulder camera with collision handling and adjustable sensitivity.
-- Camera-relative movement, sprint, crouch and optional cover interactions.
-- Hip-fire and aim-down-sights modes with reticle and weapon spread.
-- Hitscan or projectile weapon definitions with deterministic damage, range, falloff and recoil.
-- Fire modes, magazine/ammo reserve, reload interruption rules and weapon switching.
-- Muzzle flash, tracer/impact effects, casing ejection where affordable, and positional audio.
-- Damage feedback that is readable without obscuring play.
-- Enemy perception, patrol/search/alert/combat states, cover selection, flanking, retreat/reload and squad coordination.
-- Distinct enemy roles (rifleman, flanker, heavy, marksman) and authored elite/boss behaviours.
-- Difficulty and accessibility options; avoid unfair off-screen damage.
+- Camera-relative movement, sprint, dodge, guard, lock-on and responsive attack controls.
+- Melee hit windows, clear startup/active/recovery timing, combo transitions, hit-stop and readable impact feedback.
+- Weapon definitions for the warrior's sword and any campaign-approved secondary weapons; deterministic damage, range, arc and cooldown rules.
+- Enemy perception, patrol/search/alert/combat states, approach, telegraph, strike, recovery, flanking and retreat.
+- Distinct enemy roles (agile, heavy, ranged/magic if lore-appropriate) and authored elite/boss behaviours.
+- Multi-phase bosses with distinct tells, arena mechanics and fair punish windows.
+- Difficulty and accessibility options; avoid unavoidable off-screen damage.
 
-All combat outcomes must be deterministic under tests: one projectile/hit event cannot apply duplicate damage; reload/ammo cannot become negative; line-of-sight and cover must be respected; enemy AI must not attack through walls.
+All combat outcomes must be deterministic under tests: one hit event cannot apply duplicate damage; cooldown/stamina cannot become negative; line-of-sight and arena boundaries must be respected; enemies must not attack through walls.
 
 ## World and level design
 
