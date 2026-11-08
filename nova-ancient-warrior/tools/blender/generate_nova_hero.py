@@ -21,14 +21,95 @@ def arguments():
     return parser.parse_args(args)
 
 
+def _make_pbr_images(name, color, roughness, size=512):
+    """Create seamless colour, roughness and tangent-space normal maps from deterministic math."""
+    import numpy as np
+
+    angle = np.linspace(0.0, math.tau, size, endpoint=False, dtype=np.float32)
+    u, v = np.meshgrid(angle, angle)
+    field = (
+        0.44 * np.sin(2.0 * u + 0.35) * np.cos(3.0 * v - 0.65)
+        + 0.24 * np.sin(7.0 * u + 2.0 * v)
+        + 0.18 * np.cos(11.0 * v - 3.0 * u)
+        + 0.14 * np.sin(17.0 * u) * np.cos(19.0 * v)
+    )
+    height = np.clip(0.5 + field * 0.27, 0.0, 1.0)
+    variation = np.clip(0.84 + height * 0.22, 0.76, 1.08)
+
+    colour_pixels = np.ones((size, size, 4), dtype=np.float32)
+    for channel in range(3):
+        colour_pixels[:, :, channel] = np.clip(float(color[channel]) * variation, 0.0, 1.0)
+
+    rough_value = np.clip(float(roughness) + (height - 0.5) * 0.18, 0.04, 0.98)
+    rough_pixels = np.ones((size, size, 4), dtype=np.float32)
+    rough_pixels[:, :, :3] = rough_value[:, :, None]
+
+    grad_y, grad_x = np.gradient(height.astype(np.float32))
+    normal_x = -grad_x * 30.0
+    normal_y = -grad_y * 30.0
+    normal_z = np.ones_like(normal_x)
+    length = np.sqrt(normal_x * normal_x + normal_y * normal_y + normal_z * normal_z)
+    normal_pixels = np.ones((size, size, 4), dtype=np.float32)
+    normal_pixels[:, :, 0] = normal_x / length * 0.5 + 0.5
+    normal_pixels[:, :, 1] = normal_y / length * 0.5 + 0.5
+    normal_pixels[:, :, 2] = normal_z / length * 0.5 + 0.5
+
+    def make_image(suffix, pixels, non_colour=False):
+        image = bpy.data.images.new(
+            name + "_" + suffix, width=size, height=size, alpha=True, float_buffer=False
+        )
+        if non_colour:
+            image.colorspace_settings.name = "Non-Color"
+        image.pixels.foreach_set(pixels.reshape(-1))
+        image.pack()
+        return image
+
+    return (
+        make_image("Albedo", colour_pixels),
+        make_image("Roughness", rough_pixels, True),
+        make_image("Normal", normal_pixels, True),
+    )
+
+
 def material(name, color, metallic=0.0, roughness=0.7):
     mat = bpy.data.materials.new(name)
     mat.diffuse_color = (*color, 1.0)
     mat.use_nodes = True
-    principled = mat.node_tree.nodes.get("Principled BSDF")
-    principled.inputs["Base Color"].default_value = (*color, 1.0)
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    nodes.clear()
+
+    output = nodes.new("ShaderNodeOutputMaterial")
+    output.location = (620, 40)
+    principled = nodes.new("ShaderNodeBsdfPrincipled")
+    principled.location = (350, 40)
     principled.inputs["Metallic"].default_value = metallic
     principled.inputs["Roughness"].default_value = roughness
+    links.new(principled.outputs["BSDF"], output.inputs["Surface"])
+
+    albedo_image, roughness_image, normal_image = _make_pbr_images(name, color, roughness)
+    albedo_node = nodes.new("ShaderNodeTexImage")
+    albedo_node.image = albedo_image
+    albedo_node.interpolation = "Linear"
+    albedo_node.location = (-500, 220)
+    links.new(albedo_node.outputs["Color"], principled.inputs["Base Color"])
+
+    roughness_node = nodes.new("ShaderNodeTexImage")
+    roughness_node.image = roughness_image
+    roughness_node.interpolation = "Linear"
+    roughness_node.location = (-500, -10)
+    links.new(roughness_node.outputs["Color"], principled.inputs["Roughness"])
+
+    normal_texture_node = nodes.new("ShaderNodeTexImage")
+    normal_texture_node.image = normal_image
+    normal_texture_node.image.colorspace_settings.name = "Non-Color"
+    normal_texture_node.interpolation = "Linear"
+    normal_texture_node.location = (-500, -250)
+    normal_node = nodes.new("ShaderNodeNormalMap")
+    normal_node.inputs["Strength"].default_value = 0.22
+    normal_node.location = (-180, -220)
+    links.new(normal_texture_node.outputs["Color"], normal_node.inputs["Color"])
+    links.new(normal_node.outputs["Normal"], principled.inputs["Normal"])
     return mat
 
 
@@ -89,6 +170,11 @@ def add_part(rig, bone_name, name, location, dimensions, mat, shape="sphere"):
     obj.dimensions = dimensions
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     obj.data.materials.append(mat)
+    if shape == "cube":
+        bevel = obj.modifiers.new("Machined Armour Edge Bevel", "BEVEL")
+        bevel.width = max(0.006, min(dimensions) * 0.045)
+        bevel.segments = 2
+        bevel.limit_method = "ANGLE"
     for polygon in obj.data.polygons:
         polygon.use_smooth = shape == "sphere"
     group = obj.vertex_groups.new(name=bone_name)
@@ -108,6 +194,10 @@ def make_character(rig):
     leather = material("Ox-blood leather", (0.22, 0.045, 0.035), 0.0, 0.86)
     skin = material("Warm skin", (0.42, 0.22, 0.14), 0.0, 0.78)
     cloth = material("War mantle", (0.12, 0.025, 0.035), 0.0, 0.92)
+    bone = material("Ivory inlay", (0.72, 0.63, 0.43), 0.18, 0.62)
+    dark_leather = material("Dark harness leather", (0.065, 0.035, 0.025), 0.02, 0.9)
+    eye_material = material("Warm amber eyes", (0.42, 0.20, 0.055), 0.12, 0.38)
+    cloth_trim = material("Crimson cloth trim", (0.28, 0.035, 0.025), 0.0, 0.9)
 
     parts = [
         ("pelvis", "Armoured cuirass", (0, 0, 1.48), (0.62, 0.38, 0.68), leather, "sphere"),
@@ -130,6 +220,42 @@ def make_character(rig):
             ("shin" + suffix, "Greave" + suffix, (side * 0.20, -0.08, 0.39), (0.30, 0.36, 0.39), steel, "cube"),
             ("foot" + suffix, "War boot" + suffix, (side * 0.20, -0.12, 0.12), (0.34, 0.50, 0.20), dark_steel, "cube"),
         ])
+    # Layered, bevelled armour plates, facial features, straps and equipment details.
+    parts.extend([
+        ("chest", "Cuirass Upper Gold Rim", (0.0, -0.292, 1.91), (0.68, 0.055, 0.065), bright_gold, "cube"),
+        ("chest", "Cuirass Central Ridge", (0.0, -0.302, 1.68), (0.055, 0.045, 0.38), steel, "cube"),
+        ("chest", "Left Rib Plate", (-0.22, -0.292, 1.49), (0.19, 0.045, 0.15), dark_steel, "cube"),
+        ("chest", "Right Rib Plate", (0.22, -0.292, 1.49), (0.19, 0.045, 0.15), dark_steel, "cube"),
+        ("spine", "Upper Back Harness", (0.0, 0.285, 1.72), (0.12, 0.045, 0.44), dark_leather, "cube"),
+        ("pelvis", "Left Fauld Plate", (-0.22, -0.255, 1.02), (0.19, 0.07, 0.34), bronze, "cube"),
+        ("pelvis", "Right Fauld Plate", (0.22, -0.255, 1.02), (0.19, 0.07, 0.34), bronze, "cube"),
+        ("pelvis", "Front Belt Pouch", (0.36, -0.275, 1.12), (0.16, 0.11, 0.17), dark_leather, "cube"),
+        ("pelvis", "Side Belt Pouch", (-0.36, -0.245, 1.12), (0.16, 0.13, 0.18), dark_leather, "cube"),
+        ("pelvis", "Crimson Tasset Edge", (0.0, -0.285, 0.83), (0.46, 0.035, 0.055), cloth_trim, "cube"),
+        ("head", "Left Eye", (-0.078, -0.151, 2.30), (0.046, 0.035, 0.028), eye_material, "sphere"),
+        ("head", "Right Eye", (0.078, -0.151, 2.30), (0.046, 0.035, 0.028), eye_material, "sphere"),
+        ("head", "Left Brow Guard", (-0.08, -0.171, 2.355), (0.105, 0.035, 0.035), dark_steel, "cube"),
+        ("head", "Right Brow Guard", (0.08, -0.171, 2.355), (0.105, 0.035, 0.035), dark_steel, "cube"),
+        ("head", "Nasal Bridge Inlay", (0.0, -0.177, 2.23), (0.055, 0.035, 0.19), bright_gold, "cube"),
+        ("head", "Left Helmet Rivet", (-0.17, -0.19, 2.44), (0.038, 0.025, 0.038), bone, "sphere"),
+        ("head", "Right Helmet Rivet", (0.17, -0.19, 2.44), (0.038, 0.025, 0.038), bone, "sphere"),
+        ("head", "Left Cheek Guard", (-0.18, -0.015, 2.18), (0.10, 0.22, 0.22), bronze, "cube"),
+        ("head", "Right Cheek Guard", (0.18, -0.015, 2.18), (0.10, 0.22, 0.22), bronze, "cube"),
+        ("hand.R", "Sword Blade Fuller", (0.91, -0.112, 0.60), (0.026, 0.018, 0.67), bright_gold, "cube"),
+        ("hand.R", "Sword Pommel Inlay", (0.88, -0.095, 1.20), (0.065, 0.025, 0.065), bone, "sphere"),
+        ("hand.L", "Shield Boss Inlay", (-0.94, -0.195, 1.13), (0.09, 0.035, 0.09), bone, "sphere"),
+    ])
+    for side, suffix in [(-1, ".L"), (1, ".R")]:
+        parts.extend([
+            ("shoulder" + suffix, "Pauldron Gold Rim" + suffix, (side * 0.49, -0.205, 1.85), (0.31, 0.055, 0.055), bright_gold, "cube"),
+            ("upper_arm" + suffix, "Upper Arm Harness" + suffix, (side * 0.58, -0.12, 1.62), (0.22, 0.045, 0.075), dark_leather, "cube"),
+            ("forearm" + suffix, "Vambrace Upper Rim" + suffix, (side * 0.75, -0.17, 1.50), (0.22, 0.045, 0.045), bright_gold, "cube"),
+            ("forearm" + suffix, "Vambrace Lower Rim" + suffix, (side * 0.78, -0.17, 1.24), (0.21, 0.045, 0.045), bright_gold, "cube"),
+            ("thigh" + suffix, "Thigh Front Plate" + suffix, (side * 0.20, -0.19, 0.79), (0.22, 0.065, 0.28), bronze, "cube"),
+            ("shin" + suffix, "Greave Centre Ridge" + suffix, (side * 0.20, -0.275, 0.38), (0.045, 0.035, 0.27), bright_gold, "cube"),
+            ("foot" + suffix, "Boot Toe Cap" + suffix, (side * 0.20, -0.31, 0.12), (0.29, 0.055, 0.09), steel, "cube"),
+        ])
+
     for bone, name, loc, dims, mat, shape in parts:
         add_part(rig, bone, name, loc, dims, mat, shape)
 
