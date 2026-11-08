@@ -1,4 +1,4 @@
-# Advanced Game-Development Skills Adoption — Nova Ancient Warrior
+# Advanced Game-Development Skills Adoption - Nova Ancient Warrior
 
 Reviewed: 2026-11-08  
 Target: Godot 4.7, Android ARM64, medium/high device tiers  
@@ -21,29 +21,29 @@ The skill packs below are independent instructions. They can improve task decomp
 
 ## Project-specific skill routing
 
-1. **Game Director / Combat Designer** — use the game-design and game-feel disciplines to define readable sword-combat loops, enemy roles, encounter pacing, upgrade economy and measurable playtest criteria. Preserve the original warrior identity.
-2. **Godot Gameplay Engineer** — use Godot 4.7 GDScript, nodes/scenes, physics, animation, input and headless-test skills. Trace player input through state, animation, hit detection and feedback; avoid parallel systems.
-3. **Combat & Enemy AI Engineer** — use AI, physics, navigation and game-feel disciplines. Specify enemy state machines, telegraphs, recovery windows, stagger, guard/parry and boss phases. Keep damage authority in the existing Godot gameplay layer.
-4. **Character / Rigging / Animation Artist** — use Blender core, retopology/UV, PBR baking, character rigging, animation, game optimization and asset-QA skills. Validate skeleton mapping, skin weights, root motion, clip naming, scale, materials and GLB import before replacing any placeholder.
-5. **Environment / Technical Artist** — use Godot 3D, shaders, lighting, procedural generation and Blender asset skills. Build modular, explorable chapter spaces rather than dressing one arena repeatedly; enforce texture, mesh, draw-call and memory budgets.
-6. **QA / Performance Engineer** — use Godot headless testing, performance profiling and Android Perfetto. Test exported release builds on representative physical Android devices; record average FPS, 1% low, frame-time percentiles, memory, load time and thermal behavior.
+1. **Game Director / Combat Designer** - use the game-design and game-feel disciplines to define readable sword-combat loops, enemy roles, encounter pacing, upgrade economy and measurable playtest criteria. Preserve the original warrior identity.
+2. **Godot Gameplay Engineer** - use Godot 4.7 GDScript, nodes/scenes, physics, animation, input and headless-test skills. Trace player input through state, animation, hit detection and feedback; avoid parallel systems.
+3. **Combat & Enemy AI Engineer** - use AI, physics, navigation and game-feel disciplines. Specify enemy state machines, telegraphs, recovery windows, stagger, guard/parry and boss phases. Keep damage authority in the existing Godot gameplay layer.
+4. **Character / Rigging / Animation Artist** - use Blender core, retopology/UV, PBR baking, character rigging, animation, game optimization and asset-QA skills. Validate skeleton mapping, skin weights, root motion, clip naming, scale, materials and GLB import before replacing any placeholder.
+5. **Environment / Technical Artist** - use Godot 3D, shaders, lighting, procedural generation and Blender asset skills. Build modular, explorable chapter spaces rather than dressing one arena repeatedly; enforce texture, mesh, draw-call and memory budgets.
+6. **QA / Performance Engineer** - use Godot headless testing, performance profiling and Android Perfetto. Test exported release builds on representative physical Android devices; record average FPS, 1% low, frame-time percentiles, memory, load time and thermal behavior.
 
 ## Execution gates
 
-### Gate A — skill quality and provenance
+### Gate A - skill quality and provenance
 - Pin each upstream repository to a commit SHA before copying any file.
 - Preserve the upstream license, copyright notices and NOTICE file where applicable.
 - Record the exact source path and commit SHA for each vendored skill.
 - Reject skills with unclear provenance, conflicting Godot API guidance, or instructions requiring unavailable runtimes.
 - Prefer links and project-authored checklists over copying entire repositories.
 
-### Gate B — implementation
+### Gate B - implementation
 - Every task must name the player-visible behavior, affected project paths, acceptance criteria, regression tests and rollback point.
 - Make one bounded change per branch/commit; keep existing scenes and assets intact.
 - Do not import Unity/Unreal skills into the Godot runtime workflow except as design references.
 - Do not introduce C++ until a repeatable profile identifies a CPU bottleneck and GDScript parity tests exist.
 
-### Gate C — validation
+### Gate C - validation
 - Static/script checks and headless tests are necessary but not sufficient.
 - Validate scene boot, animation transitions, combat edge cases, save compatibility, resource loading and Android export.
 - Compare before/after measurements on the same device, renderer, resolution and thermal conditions.
