@@ -18,6 +18,7 @@ const RiggedWarriorVisual = preload("res://scripts/rigged_warrior_visual.gd")
 const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 const PBRMaterialLibrary = preload("res://scripts/pbr_material_library.gd")
 const TouchCameraController = preload("res://scripts/touch_camera_controller.gd")
+const ThirdPersonCameraRig = preload("res://scripts/third_person_camera_rig.gd")
 const NovaTouchJoystickScript = preload("res://scripts/virtual_joystick.gd")
 
 var player: CharacterBody3D
@@ -113,7 +114,17 @@ func _process(delta: float) -> void:
 			orbit_distance = 12.4
 		var camera_offset := touch_camera_controller.get_camera_offset(orbit_distance)
 		var camera_target := look_target + camera_offset
-		camera.global_position = camera.global_position.lerp(camera_target, minf(delta * 4.5, 1.0))
+		var camera_exclusions: Array[RID] = []
+		if is_instance_valid(player):
+			camera_exclusions.append(player.get_rid())
+		var safe_camera_target := ThirdPersonCameraRig.resolve_position(
+			get_world_3d(), look_target, camera_target, camera_exclusions
+		)
+		camera.global_position = camera.global_position.lerp(safe_camera_target, minf(delta * 4.5, 1.0))
+		# Re-check the smoothed position so the camera cannot interpolate through a wall.
+		camera.global_position = ThirdPersonCameraRig.resolve_position(
+			get_world_3d(), look_target, camera.global_position, camera_exclusions
+		)
 		camera.look_at(look_target, Vector3.UP)
 	if game_over and Input.is_action_just_pressed("restart"):
 		get_tree().reload_current_scene()
