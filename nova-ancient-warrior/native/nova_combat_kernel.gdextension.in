@@ -3,5 +3,6 @@ entry_symbol = "nova_combat_kernel_library_init"
 compatibility_minimum = "4.7"
 
 [libraries]
-linux.release.x86_64 = "res://native/bin/linux/libnova_combat_kernel.linux.template_release.x86_64.so"
-android.release.arm64 = "res://native/bin/android/libnova_combat_kernel.android.template_release.arm64.so"
+# SCons emits the platform/target/architecture suffix without a trailing .so.
+linux.release.x86_64 = "res://native/bin/linux/libnova_combat_kernel.linux.template_release.x86_64"
+android.release.arm64 = "res://native/bin/android/libnova_combat_kernel.android.template_release.arm64"
