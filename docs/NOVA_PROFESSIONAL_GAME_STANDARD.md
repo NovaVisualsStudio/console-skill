@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — Professional High-Fidelity Game Standard
+# Nova Ancient Warrior - Professional High-Fidelity Game Standard
 
 **Decision date:** 2026-11-08  
 **Branch:** `nova-full-campaign-polish`  
