@@ -44,7 +44,8 @@
         "Movement scripts depend on source project Actor, AnimationTree, input actions and root-motion layout.",
         "Check every asset's attribution and license separately.",
         "Do not contribute machine-learning-generated content back to this upstream project."
-      ]
+      ],
+      "code_license_file": "LICENSE.txt"
     },
     {
       "id": "goat-godot",
@@ -80,7 +81,8 @@
         "Do not copy demo assets without checking the per-asset license.",
         "Avoid duplicating Nova SaveManager, combat inventory or input systems.",
         "Dialogue Manager and Random Audio Stream Player are separately licensed dependencies."
-      ]
+      ],
+      "code_license_file": "LICENSE"
     },
     {
       "id": "fly-dangerous",
