@@ -6,7 +6,7 @@ An original Godot 4 action-adventure prototype for Android ARM64, built as a sep
 
 - Third-person shoulder camera with smoothing, cinematic opening move, target lock-on and impact shake.
 - Procedural low-poly warrior model with heavy war axe, armor parts and swing motion.
-- Three-hit light combo, stamina-cost heavy attack, dodge i-frames, guard and timed perfect parry.
+- Three-hit light combo and stamina-cost heavy attack with distinct startup/active/recovery windows, one hit per target per swing, cancelable pending hits, dodge i-frames, guard and timed perfect parry.
 - Two guardian enemies with visible pre-attack telegraphs.
 - Ashen Warden boss with a 50% health phase transition and three distinct patterns: frontal melee, lateral sweep and radial slam. Warning rings change size and colour to signal the danger area; phase two cycles all three faster.
 - Original temple arena with portal architecture, pillars, ritual rings, emissive braziers, fog and floating ash.
@@ -19,7 +19,7 @@ The models and animation motions are still procedural primitives/tweens. This is
 
 Desktop: WASD movement, J light combo, K heavy attack, Space dodge, L guard/parry, Tab lock target.
 
-Android: left directional pad; right LIGHT, HEAVY, DODGE, GUARD and LOCK controls. Landscape orientation is required.
+Android: left directional pad; right LIGHT, HEAVY, DODGE, GUARD and LOCK controls. Tab locks onto the next live target on desktop. Landscape orientation is required.
 
 ## Open in Godot
 
