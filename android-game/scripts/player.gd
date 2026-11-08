@@ -24,6 +24,14 @@ var current_state: CombatState = CombatState.IDLE
 var dodge_timer := 0.0
 var attack_cooldown := 0.0
 var attack_recovery_timer := 0.0
+var attack_startup_timer := 0.0
+var attack_active_timer := 0.0
+var pending_attack_active_duration := 0.14
+var pending_attack_damage := 0
+var pending_attack_range := LIGHT_RANGE
+var pending_attack_min_dot := 0.08
+var pending_attack_heavy := false
+var attack_hit_targets: Array[int] = []
 var parry_timer := 0.0
 var stagger_timer := 0.0
 var combo_chain_timer := 0.0
@@ -214,6 +222,15 @@ func _update_timers(delta: float) -> void:
     invulnerable = dodge_timer > 0.0
     stamina_changed.emit(stamina, MAX_STAMINA)
 
+    if current_state == CombatState.ATTACK:
+        if attack_startup_timer > 0.0:
+            attack_startup_timer = maxf(0.0, attack_startup_timer - delta)
+            if attack_startup_timer <= 0.0:
+                attack_active_timer = pending_attack_active_duration
+        if attack_active_timer > 0.0:
+            _hit_enemies(pending_attack_damage, pending_attack_range, pending_attack_min_dot, pending_attack_heavy)
+            attack_active_timer = maxf(0.0, attack_active_timer - delta)
+
     if current_state == CombatState.DODGE and dodge_timer <= 0.0:
         current_state = CombatState.IDLE
     elif current_state == CombatState.STAGGER and stagger_timer <= 0.0:
@@ -227,6 +244,7 @@ func set_guard(active: bool) -> void:
     if current_state == CombatState.DEAD:
         return
     if active and not guard_active:
+        _cancel_pending_attack()
         guard_active = true
         parry_timer = 0.22
         current_state = CombatState.GUARD
@@ -237,7 +255,7 @@ func set_guard(active: bool) -> void:
             current_state = CombatState.IDLE
 
 func perform_light_attack() -> bool:
-    if current_state == CombatState.DEAD or guard_active or attack_cooldown > 0.0 or not input_enabled:
+    if current_state in [CombatState.DEAD, CombatState.STAGGER, CombatState.DODGE] or guard_active or attack_cooldown > 0.0 or not input_enabled:
         return false
     if combo_chain_timer > 0.0:
         combo_step = (combo_step % 3) + 1
@@ -251,14 +269,14 @@ func perform_light_attack() -> bool:
     current_state = CombatState.ATTACK
     _animate_weapon(false, combo_step)
     attack_started.emit(false, combo_step)
-    _hit_enemies(damage, LIGHT_RANGE + float(combo_step - 1) * 0.15, 0.08, false)
+    _queue_attack(damage, LIGHT_RANGE + float(combo_step - 1) * 0.15, 0.08, false, 0.10, 0.14)
     return true
 
 func perform_attack() -> void:
     perform_light_attack()
 
 func perform_heavy_attack() -> bool:
-    if current_state == CombatState.DEAD or guard_active or attack_cooldown > 0.0 or not input_enabled:
+    if current_state in [CombatState.DEAD, CombatState.STAGGER, CombatState.DODGE] or guard_active or attack_cooldown > 0.0 or not input_enabled:
         return false
     if stamina < 30.0:
         return false
@@ -271,17 +289,38 @@ func perform_heavy_attack() -> bool:
     current_state = CombatState.ATTACK
     _animate_weapon(true, 0)
     attack_started.emit(true, 0)
-    _hit_enemies(82, 3.75, -0.02, true)
+    _queue_attack(82, 3.75, -0.02, true, 0.24, 0.20)
     return true
+
+func _queue_attack(damage: int, attack_range: float, min_dot: float, heavy: bool,
+        startup: float, active_duration: float) -> void:
+    pending_attack_damage = damage
+    pending_attack_range = attack_range
+    pending_attack_min_dot = min_dot
+    pending_attack_heavy = heavy
+    pending_attack_active_duration = active_duration
+    attack_startup_timer = startup
+    attack_active_timer = 0.0
+    attack_hit_targets.clear()
+
+func _cancel_pending_attack() -> void:
+    attack_startup_timer = 0.0
+    attack_active_timer = 0.0
+    pending_attack_damage = 0
+    attack_hit_targets.clear()
 
 func _hit_enemies(damage: int, attack_range: float, min_dot: float, heavy: bool) -> void:
     var forward := -global_transform.basis.z
     for target in get_tree().get_nodes_in_group("enemies"):
         if not is_instance_valid(target) or not target.has_method("take_damage"):
             continue
+        var target_id := target.get_instance_id()
+        if attack_hit_targets.has(target_id):
+            continue
         var offset: Vector3 = target.global_position - global_position
         var distance := offset.length()
         if distance <= attack_range and distance > 0.01 and forward.dot(offset.normalized()) > min_dot:
+            attack_hit_targets.append(target_id)
             target.take_damage(damage, global_position, heavy)
             hit_confirmed.emit(target.global_position + Vector3.UP, heavy, combo_step)
 
@@ -302,6 +341,7 @@ func _animate_weapon(heavy: bool, step: int) -> void:
 func perform_dodge() -> bool:
     if current_state == CombatState.DEAD or dodge_timer > 0.0 or stamina < 18.0 or not input_enabled:
         return false
+    _cancel_pending_attack()
     stamina -= 18.0
     stamina_changed.emit(stamina, MAX_STAMINA)
     var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
@@ -328,6 +368,7 @@ func take_damage(amount: int, source_position: Vector3 = Vector3.ZERO, heavy: bo
             parry_success.emit()
             return false
         amount = maxi(1, int(round(float(amount) * 0.30)))
+    _cancel_pending_attack()
     health = maxi(0, health - amount)
     health_changed.emit(health, MAX_HEALTH)
     if source_position != Vector3.ZERO:
