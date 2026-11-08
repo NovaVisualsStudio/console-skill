@@ -66,6 +66,10 @@ jobs:
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/combat_rules_smoke.gd
 
+      - name: Verify timed melee hit windows in the real scene
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/combat_window_smoke.gd
+
       - name: Smoke-test articulated warrior visuals and animation methods
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/warrior_visual_smoke.gd
