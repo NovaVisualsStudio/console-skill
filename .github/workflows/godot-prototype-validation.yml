@@ -66,6 +66,19 @@ jobs:
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/combat_rules_smoke.gd
 
+      - name: Verify timed melee hit windows in the real scene
+        run: |
+          log_file="$RUNNER_TEMP/combat-window.log"
+          if ! ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/combat_window_smoke.gd >"$log_file" 2>&1; then
+            cat "$log_file"
+            exit 1
+          fi
+          cat "$log_file"
+          grep -q "Combat window smoke test passed" "$log_file"
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type" "$log_file"; then
+            exit 1
+          fi
+
       - name: Smoke-test articulated warrior visuals and animation methods
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/warrior_visual_smoke.gd
@@ -103,7 +116,7 @@ jobs:
         run: |
           set -euo pipefail
           log_file="$(mktemp)"
-          if ! ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --quit-after 120 >"$log_file" 2>&1; then
+          if ! ./Godot_v4.7.2-stable_linux.x86_64 --verbose --headless --path nova-ancient-warrior --quit-after 120 >"$log_file" 2>&1; then
             cat "$log_file"
             exit 1
           fi
