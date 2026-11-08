@@ -92,6 +92,7 @@ func _run_tests() -> void:
         push_error("Light attack combo finisher active window failed.")
         await _finish(1, test_root)
         return
+    await _wait_attack_ready(player)
 
     var boss := ENEMY_SCRIPT.new() as NovaEnemy
     boss.player = player
