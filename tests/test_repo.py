@@ -63,8 +63,14 @@ class Repo(unittest.TestCase):
             top = relpath.split("/", 1)[0]
             if not top.startswith(".git"):
                 root.add(top)
-        self.assertEqual(sorted(root),
-                         sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "docs", "nova-ancient-warrior", "ps2-game", "tests"] + SKILLS))
+        # The canonical root also carries the project's governance documents.
+        # Keep this an exact inventory so accidental files still fail CI.
+        expected_root = [
+            ".agents", ".claude-plugin", "AGENTS.md", "AI_DEVELOPMENT_WORKFLOW.md",
+            "CLAUDE.md", "LICENSE", "README.md", "ZERO_COST_POLICY.md", "docs",
+            "nova-ancient-warrior", "ps2-game", "tests",
+        ] + SKILLS
+        self.assertEqual(sorted(root), sorted(expected_root))
 
     def test_frontmatter_name_description_hint(self):
         for s in SKILLS:
