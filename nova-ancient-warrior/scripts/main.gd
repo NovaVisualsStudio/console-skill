@@ -80,7 +80,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not cinematic_active and is_instance_valid(player) and is_instance_valid(camera):
+	if cinematic_active:
+		return
+	if is_instance_valid(player) and is_instance_valid(camera):
 		var look_target := player.global_position + Vector3(0.0, 1.1, 0.0)
 		var camera_target := player.global_position + Vector3(0.0, 6.3, 9.0)
 		if _is_lock_target_valid():
@@ -100,7 +102,7 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if game_over or not is_instance_valid(player):
+	if game_over or not is_instance_valid(player) or cinematic_active:
 		return
 	footstep_timer = maxf(0.0, footstep_timer - delta)
 	player_invulnerability_time = maxf(0.0, player_invulnerability_time - delta)

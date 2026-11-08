@@ -92,7 +92,24 @@ func _run_combat_window_smoke() -> void:
 		await _finish(1, game, "One swing damaged the same target more than once")
 		return
 
-	print("Combat window smoke test passed: startup delay, active hit and one hit per target per swing")
+	var intro_player_position := player.global_position
+	var intro_attack_sequence := int(game.get("attack_sequence"))
+	game.set("cinematic_active", true)
+	Input.action_press("move_forward")
+	Input.action_press("attack")
+	game.call("_physics_process", 1.0 / 60.0)
+	game.call("_process", 1.0 / 60.0)
+	Input.action_release("move_forward")
+	Input.action_release("attack")
+	if player.global_position.distance_to(intro_player_position) > 0.0001:
+		await _finish(1, game, "Player movement continued during the boss introduction cinematic")
+		return
+	if int(game.get("attack_sequence")) != intro_attack_sequence:
+		await _finish(1, game, "Player attacks were accepted during the boss introduction cinematic")
+		return
+	print("Combat window test: boss introduction locks player movement and attacks")
+
+	print("Combat window smoke test passed: startup delay, active hit, one hit per target and cinematic input lock")
 	await _finish(0, game)
 
 

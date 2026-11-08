@@ -4,25 +4,41 @@ const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 
 
 func _initialize() -> void:
-	var sunken := StageHazardRules.query(0, Vector3(0.0, 0.0, 8.4), 4.0)
-	if not bool(sunken.get("active", false)) or int(sunken.get("damage", 0)) != 10:
-		_fail("Sunken Ruins spike line did not damage the player")
+	var sunken_warning := StageHazardRules.query(0, Vector3(0.0, 0.0, 8.4), 0.4)
+	if not bool(sunken_warning.get("warning", false)) or bool(sunken_warning.get("active", false)):
+		_fail("Sunken Ruins spikes must warn before striking")
 		return
-	var sunken_safe := StageHazardRules.query(0, Vector3(8.0, 0.0, 8.4), 4.0)
-	if bool(sunken_safe.get("active", false)):
-		_fail("Sunken Ruins spike line damaged the safe outer route")
+	var sunken := StageHazardRules.query(0, Vector3(0.0, 0.0, 8.4), 1.1)
+	if not bool(sunken.get("active", false)) or int(sunken.get("damage", 0)) != 10:
+		_fail("Sunken Ruins spike line did not damage during its strike window")
+		return
+	var sunken_cool := StageHazardRules.query(0, Vector3(0.0, 0.0, 8.4), 1.8)
+	if bool(sunken_cool.get("active", false)):
+		_fail("Sunken Ruins spike trap remained active outside its strike window")
+		return
+	var sunken_safe := StageHazardRules.query(0, Vector3(8.0, 0.0, 8.4), 1.1)
+	if bool(sunken_safe.get("warning", false)) or bool(sunken_safe.get("active", false)):
+		_fail("Sunken Ruins spike line affected the safe outer route")
 		return
 
-	var lava := StageHazardRules.query(1, Vector3(-4.48, 0.0, 0.0), 3.0)
-	if not bool(lava.get("active", false)) or int(lava.get("damage", 0)) != 10:
-		_fail("Ember Causeway lava channel was not detected")
+	var lava_warning := StageHazardRules.query(1, Vector3(-4.48, 0.0, 0.0), 0.4)
+	if not bool(lava_warning.get("warning", false)) or bool(lava_warning.get("active", false)):
+		_fail("Ember Causeway lava channels must warn before striking")
 		return
-	var lava_bridge := StageHazardRules.query(1, Vector3.ZERO, 3.0)
-	if bool(lava_bridge.get("active", false)):
+	var lava := StageHazardRules.query(1, Vector3(-4.48, 0.0, 0.0), 1.3)
+	if not bool(lava.get("active", false)) or int(lava.get("damage", 0)) != 10:
+		_fail("Ember Causeway lava channel did not strike during its active window")
+		return
+	var lava_cool := StageHazardRules.query(1, Vector3(-4.48, 0.0, 0.0), 2.2)
+	if bool(lava_cool.get("active", false)):
+		_fail("Ember Causeway lava channel remained active outside its strike window")
+		return
+	var lava_bridge := StageHazardRules.query(1, Vector3.ZERO, 1.3)
+	if bool(lava_bridge.get("warning", false)) or bool(lava_bridge.get("active", false)):
 		_fail("Ember Causeway central bridge must remain safe")
 		return
-	var lava_end := StageHazardRules.query(1, Vector3(-4.48, 0.0, 11.0), 3.0)
-	if bool(lava_end.get("active", false)):
+	var lava_end := StageHazardRules.query(1, Vector3(-4.48, 0.0, 11.0), 1.3)
+	if bool(lava_end.get("warning", false)) or bool(lava_end.get("active", false)):
 		_fail("Ember Causeway lava damage escaped the channel length")
 		return
 
@@ -43,7 +59,7 @@ func _initialize() -> void:
 		_fail("Obsidian Throne central route must remain safe")
 		return
 
-	print("Stage hazard smoke test passed: readable spike, lava and timed rune hazards with safe routes")
+	print("Stage hazard smoke test passed: all chapters telegraph timed hazards and preserve safe routes")
 	quit(0)
 
 
