@@ -1,7 +1,7 @@
 # Nova Ancient Warrior - Professional High-Fidelity Game Standard
 
 **Decision date:** 2026-11-08  
-**Branch:** `nova-full-campaign-polish`  
+**Authoring baseline:** `nova-full-campaign-polish` (historical context; current implementation is tracked on `release/nova-ancient-warrior-integration-20261108`).  
 **Priority:** visual fidelity, believable presentation, responsive gameplay and complete content first. Android support is a release requirement; use scalable rendering profiles so device coverage does not force the desktop master to lose visual quality.
 
 This is the production standard for Nova Ancient Warrior. The current project is a playable systems prototype, not yet a commercially polished game. All new work must move it toward a coherent third-person action-adventure experience with the production feel of well-made console/mobile titles. References such as GTA: San Andreas, PES and Need for Speed are quality references for camera, input response, animation, UI feedback, world readability and presentation; they are not a claim that this small project already matches the scope, content volume or proprietary assets of those games.
@@ -20,8 +20,8 @@ The current Godot project has been moved away from the old Compatibility-only co
 - Desktop: Godot **Forward+** renderer.
 - Android: Godot **Compatibility** renderer using OpenGL ES 3.0 as the broad-compatibility baseline; ARMv7 and ARM64 APK ABIs are enabled. Vulkan Mobile can be evaluated as an optional high-end profile only after device testing.
 - Web: Compatibility renderer override.
-- Runtime render profile now preserves glow and key-light shadows on Android instead of disabling them unconditionally.
-- Both desktop and Android use a 60 FPS cap as an initial target. Actual frame pacing must be measured; do not present the cap as proof of 60 FPS performance. Android quality must scale by device capability, with a stable lower preset on weaker supported hardware and enhanced effects on stronger hardware.
+- **Current integration baseline:** Android is capped at 30 FPS; glow and real-time key-light shadows are disabled, and the mobile scene budget is reduced. Desktop retains a 60 FPS cap with the higher visual profile.
+- These are conservative configuration values, not measured frame-rate results. A 60 FPS Android profile and re-enabling expensive effects remain performance goals only; they require sustained physical-device measurements before changing the default. Scale quality by device capability rather than assuming one setting suits every phone.
 
 The Compatibility renderer has a smaller feature set than Forward+ and does not provide the same advanced lighting pipeline. Preserve the high-quality source assets and use carefully authored baked lighting, material maps, reflection approximations, particles and shader atmosphere for Android. Do not claim desktop/Android visual parity without captured comparisons.
 
