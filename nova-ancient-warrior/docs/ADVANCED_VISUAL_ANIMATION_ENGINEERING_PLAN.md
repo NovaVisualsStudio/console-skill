@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — Advanced Visual, Animation & Runtime Engineering Plan
+# Nova Ancient Warrior - Advanced Visual, Animation & Runtime Engineering Plan
 
 Status: implementation roadmap for the existing Godot 4.7 Android project. This document does not claim that the systems below are already implemented.
 
@@ -120,19 +120,19 @@ A successful CI run is not a substitute for testing on a physical phone. Keep me
 
 ## 7. Delivery order
 
-### Phase A — Establish a reliable baseline
+### Phase A - Establish a reliable baseline
 Record current build size, renderer, frame times, memory, scene boot, animation coverage and known visual gaps. Preserve the current stable renderer until comparisons exist.
 
-### Phase B — Make the warrior feel alive
+### Phase B - Make the warrior feel alive
 Complete the humanoid rig/retarget map, AnimationTree locomotion, combat state machine, hit reactions, foot planting and weapon/hand IK. This has higher player-visible value than adding many post-processing effects.
 
-### Phase C — Raise material and lighting quality
+### Phase C - Raise material and lighting quality
 Build the reusable PBR material library, lighting presets, fog, VFX and LODs. Validate on medium-tier hardware at native play scale.
 
-### Phase D — Complete production content
+### Phase D - Complete production content
 Build distinct explorable chapters, enemy archetypes, boss behaviors, traversal, checkpoints, cinematics, subtitles, soundscape and progression. Avoid disguising one repeated arena as several independent levels.
 
-### Phase E — Optimize and ship
+### Phase E - Optimize and ship
 Profile, tune quality tiers, verify Android ARM64 native packaging, export signed release AAB, and complete Android/Play requirements before any release claim.
 
 ## 8. Acceptance criteria
