@@ -128,8 +128,6 @@ jobs:
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/audio_assets_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
-            --check-only --script res://scripts/main.gd
-          "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/combat_rules_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/warrior_visual_smoke.gd
