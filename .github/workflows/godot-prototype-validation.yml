@@ -44,8 +44,11 @@ jobs:
       - name: Generate original skinned Nova hero and animation library
         run: |
           sudo apt-get update
-          sudo apt-get install -y blender
+          sudo apt-get install -y blender python3-numpy
+          blender --background --python-expr "import bpy, numpy; print('BLENDER_NUMPY_OK', bpy.app.version_string, numpy.__version__)"
           blender --background --python nova-ancient-warrior/tools/blender/generate_nova_hero.py -- --output nova-ancient-warrior/assets/characters/nova_hero.glb
+          test -s nova-ancient-warrior/assets/characters/nova_hero.glb
+          ls -lh nova-ancient-warrior/assets/characters/nova_hero.glb
 
       - name: Import project resources
         run: |
