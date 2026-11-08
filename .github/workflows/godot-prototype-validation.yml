@@ -111,6 +111,10 @@ jobs:
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/touch_camera_controller_smoke.gd
 
+      - name: Verify analogue movement joystick input
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/virtual_joystick_smoke.gd
+
       - name: Verify Android and desktop rendering profiles
         shell: bash
         run: |

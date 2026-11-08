@@ -18,6 +18,7 @@ const RiggedWarriorVisual = preload("res://scripts/rigged_warrior_visual.gd")
 const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 const PBRMaterialLibrary = preload("res://scripts/pbr_material_library.gd")
 const TouchCameraController = preload("res://scripts/touch_camera_controller.gd")
+const VirtualJoystick = preload("res://scripts/virtual_joystick.gd")
 
 var player: CharacterBody3D
 var hero_visual: Node3D
@@ -686,10 +687,17 @@ func _build_hud() -> void:
 	chapter_intro_subtitle.visible = false
 	layer.add_child(chapter_intro_subtitle)
 
-	_add_touch_button(layer, "↑", "move_forward", Vector2(112.0, -190.0))
-	_add_touch_button(layer, "↓", "move_back", Vector2(112.0, -88.0))
-	_add_touch_button(layer, "←", "move_left", Vector2(10.0, -139.0))
-	_add_touch_button(layer, "→", "move_right", Vector2(214.0, -139.0))
+	var virtual_stick := VirtualJoystick.new()
+	virtual_stick.name = "MovementJoystick"
+	virtual_stick.anchor_left = 0.0
+	virtual_stick.anchor_right = 0.0
+	virtual_stick.anchor_top = 1.0
+	virtual_stick.anchor_bottom = 1.0
+	virtual_stick.offset_left = 20.0
+	virtual_stick.offset_right = 200.0
+	virtual_stick.offset_top = -200.0
+	virtual_stick.offset_bottom = -20.0
+	layer.add_child(virtual_stick)
 	_add_touch_button(layer, "ATTACK", "attack", Vector2(-168.0, -126.0), Vector2(150.0, 72.0), true)
 	_add_touch_button(layer, "HEAVY", "heavy_attack", Vector2(-312.0, -126.0), Vector2(132.0, 62.0), true)
 	_add_touch_button(layer, "JUMP", "jump", Vector2(-168.0, -210.0), Vector2(112.0, 64.0), true)
