@@ -8,6 +8,7 @@ signal attack_telegraph(is_boss: bool)
 signal attack_landed(damage: int)
 
 enum BrainState { CHASE, TELEGRAPH, STRIKE, RECOVERY, STAGGER, DEAD }
+enum AttackPattern { MELEE, SWEEP, SLAM }
 
 var player: Node3D
 var is_boss := false
@@ -26,6 +27,9 @@ var body_mesh: MeshInstance3D
 var telegraph_mesh: MeshInstance3D
 var body_material: StandardMaterial3D
 var _strike_done := false
+var current_attack_pattern: AttackPattern = AttackPattern.MELEE
+var attack_pattern_index := 0
+var last_attack_hit := false
 
 func _ready() -> void:
     add_to_group("enemies")
@@ -207,11 +211,51 @@ func _stop_horizontal(delta: float) -> void:
 
 func _begin_telegraph() -> void:
     current_state = BrainState.TELEGRAPH
-    state_timer = telegraph_duration
     _strike_done = false
+    last_attack_hit = false
+    if is_boss:
+        var pattern_count := 3 if phase >= 2 else 2
+        current_attack_pattern = AttackPattern(attack_pattern_index % pattern_count)
+        attack_pattern_index += 1
+        match current_attack_pattern:
+            AttackPattern.MELEE:
+                state_timer = telegraph_duration
+                if is_instance_valid(telegraph_mesh):
+                    telegraph_mesh.scale = Vector3.ONE
+                    telegraph_mesh.rotation = Vector3.ZERO
+            AttackPattern.SWEEP:
+                state_timer = telegraph_duration * 1.12
+                if is_instance_valid(telegraph_mesh):
+                    telegraph_mesh.scale = Vector3(1.34, 1.0, 1.34)
+                    telegraph_mesh.rotation = Vector3.ZERO
+            AttackPattern.SLAM:
+                state_timer = telegraph_duration * 1.38
+                if is_instance_valid(telegraph_mesh):
+                    telegraph_mesh.scale = Vector3(1.72, 1.0, 1.72)
+                    telegraph_mesh.rotation = Vector3.ZERO
+        if phase >= 2:
+            state_timer *= 0.82
+    else:
+        current_attack_pattern = AttackPattern.MELEE
+        state_timer = telegraph_duration
     if is_instance_valid(telegraph_mesh):
         telegraph_mesh.visible = true
     attack_telegraph.emit(is_boss)
+
+func _is_player_in_attack_area(offset: Vector3) -> bool:
+    offset.y = 0.0
+    var distance := offset.length()
+    if not is_boss:
+        return distance <= attack_range * 1.12
+    var forward := -global_transform.basis.z
+    match current_attack_pattern:
+        AttackPattern.MELEE:
+            return distance <= attack_range * 1.42 and forward.dot(offset.normalized()) > 0.18
+        AttackPattern.SWEEP:
+            return distance <= attack_range * 1.72 and forward.dot(offset.normalized()) > -0.32
+        AttackPattern.SLAM:
+            return distance <= attack_range * 2.05
+    return false
 
 func _execute_strike() -> void:
     if _strike_done:
@@ -220,9 +264,8 @@ func _execute_strike() -> void:
     if not is_instance_valid(player) or not player.has_method("take_damage"):
         return
     var offset: Vector3 = player.global_position - global_position
-    offset.y = 0.0
-    var strike_range := attack_range * (1.42 if is_boss else 1.12)
-    if offset.length() <= strike_range:
+    last_attack_hit = _is_player_in_attack_area(offset)
+    if last_attack_hit:
         player.take_damage(attack_damage, global_position, is_boss)
         attack_landed.emit(attack_damage)
 
