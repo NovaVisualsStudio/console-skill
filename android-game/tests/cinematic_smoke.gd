@@ -85,9 +85,15 @@ func _run_tests() -> void:
         push_error("Desktop lock-on action was not registered.")
         await _finish(1, arena)
         return
-    Input.action_press("lock_on")
+    var lock_key := InputEventKey.new()
+    lock_key.physical_keycode = KEY_TAB
+    lock_key.pressed = true
+    Input.parse_input_event(lock_key)
     await create_timer(0.05).timeout
-    Input.action_release("lock_on")
+    var release_key := InputEventKey.new()
+    release_key.physical_keycode = KEY_TAB
+    release_key.pressed = false
+    Input.parse_input_event(release_key)
     if not is_instance_valid(arena.player.lock_target) or arena.camera_rig.lock_target != arena.player.lock_target:
         push_error("Desktop lock-on input did not select and frame a target.")
         await _finish(1, arena)
