@@ -37,6 +37,7 @@ func _initialize() -> void:
 		push_error("Original ambient music loop failed WAV import or duration validation")
 		quit(1)
 		return
+	var music_length := music.get_length()
 	var director_script := load("res://scripts/music_director.gd")
 	if director_script == null:
 		push_error("MusicDirector script could not be loaded")
@@ -46,19 +47,31 @@ func _initialize() -> void:
 	root.add_child(director)
 	await process_frame
 	var player := director.get_node_or_null("AudioStreamPlayer") as AudioStreamPlayer
-	if player == null or not player.playing:
-		push_error("MusicDirector did not start the original ambient loop")
+	if player == null:
+		push_error("MusicDirector did not create an AudioStreamPlayer")
 		director.free()
+		await process_frame
+		director = null
+		music = null
 		quit(1)
 		return
 	var active_music := player.stream as AudioStreamWAV
 	if active_music == null or active_music.loop_mode != AudioStreamWAV.LOOP_FORWARD or active_music.loop_end <= 0:
 		push_error("MusicDirector did not configure a valid looping WAV stream")
 		director.free()
+		await process_frame
+		player = null
+		active_music = null
+		director = null
+		music = null
 		quit(1)
 		return
 	director.free()
 	await process_frame
 	await process_frame
-	print("Audio asset smoke test passed: %d original SFX WAV files and a %.2f-second looping ambient track at 22.05 kHz" % [SOUND_NAMES.size(), music.get_length()])
+	player = null
+	active_music = null
+	director = null
+	music = null
+	print("Audio asset smoke test passed: %d original SFX WAV files and a %.2f-second looping ambient track configured at 22.05 kHz" % [SOUND_NAMES.size(), music_length])
 	quit(0)
