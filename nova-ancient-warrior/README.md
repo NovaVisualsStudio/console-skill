@@ -47,9 +47,17 @@ Compatibility mode improves the range of devices that may run the game, but it d
 
 The Android GitHub Actions workflow generates the hero and sound assets, imports the project, exports a signed debug APK and validates the archive, signature and package identifier. The resulting workflow artifact is named `nova-ancient-warrior-android-debug`.
 
-## DeepSeek-assisted development review
+## Optional local model review
 
-An optional, manual-dispatch, read-only DeepSeek reviewer is available. It can inspect project diffs and produce an advisory report; it does not modify source files or replace the Godot test suite. See [DEEPSEEK_INTEGRATION.md](DEEPSEEK_INTEGRATION.md) for hosted API and self-hosted open-weight setup, credential handling, and limitations. The GitHub Actions workflow is `.github/workflows/deepseek-review.yml` and requires a GitHub Actions secret named `DEEPSEEK_API_KEY` when using the hosted API.
+The optional `tools/deepseek_review.py` utility is a read-only development helper.
+It accepts only a local HTTP inference server bound to `localhost`, such as a
+locally hosted open-weight model. Hosted DeepSeek APIs, remote endpoints, API
+keys and paid inference are disabled under the repository's zero-cost policy.
+No AI review is required to run or play the game.
+
+See [DEEPSEEK_INTEGRATION.md](DEEPSEEK_INTEGRATION.md) for local-only setup,
+security limits and the distinction between model suggestions and deterministic
+tests. The hosted DeepSeek Actions workflow has been removed.
 
 ## Automated quality checks
 
