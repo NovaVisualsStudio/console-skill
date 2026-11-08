@@ -24,7 +24,7 @@ class ProductionPipelineCatalogTests(unittest.TestCase):
         item = self.items["video-into-blender-model"]
         self.assertEqual(item["code_license"], "Apache-2.0")
         self.assertEqual(item["status"], "candidate_requires_isolated_validation")
-        self.assertTrue(any("immutable commit" in step for step in item["integration_gate"]))
+        self.assertTrue(any("immutable upstream commit" in step for step in item["integration_gate"]))
         self.assertTrue(any("actual Nova skeleton" in step for step in item["integration_gate"]))
         self.assertTrue(any("personal video" in note for note in item["safety_notes"]))
 
