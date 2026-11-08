@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "project": "Nova Ancient Warrior",
+  "reviewed_on": "2026-11-08",
+  "policy": {
+    "external_tools_are_candidates_not_dependencies": true,
+    "pin_upstream_revisions_before_execution": true,
+    "review_code_and_asset_licenses_separately": true,
+    "require_asset_level_provenance": true,
+    "never_upload_private_reference_video_without_explicit_approval": true,
+    "never_auto_execute_untrusted_upstream_code": true
+  },
+  "candidates": [
+    {
+      "id": "video-into-blender-model",
+      "name": "VideoIntoBlenderModel (v2bm)",
+      "repository": "https://github.com/s0ck3t/VideoIntoBlenderModel",
+      "code_license": "Apache-2.0",
+      "asset_license": "Mixed; inspect assets/LICENCES.md and every individual asset",
+      "purpose": ["humanoid motion retargeting", "hand articulation", "facial blendshape capture", "GLB export"],
+      "target_toolchain": ["Blender 4.2+", "Godot 4"],
+      "status": "candidate_requires_isolated_validation",
+      "integration_gate": [
+        "Pin an immutable upstream commit and record its checksum",
+        "Audit pyproject dependencies, model weights and bundled media licenses",
+        "Run in an isolated CI job with no repository write token or secrets",
+        "Test retargeting against the actual Nova skeleton and verify root motion, foot contact and animation names",
+        "Compare GLB size, draw calls, skinning cost and Android memory before adoption"
+      ],
+      "safety_notes": [
+        "Do not upload personal video or photographs without explicit user approval",
+        "Do not treat the repository-wide commercial-use claim as a substitute for checking each asset",
+        "Do not replace the current player rig until visual and gameplay regression tests pass"
+      ]
+    },
+    {
+      "id": "godot-learning-cc0",
+      "name": "Godot Learning CC0 asset and shader library",
+      "website": "https://godotlearning.com/assets",
+      "code_license": "CC0-1.0 for listed library items; verify each downloaded package",
+      "asset_license": "CC0-1.0 as stated by the library; preserve the package LICENSE.txt",
+      "purpose": ["Godot 4.7 blockout geometry", "shader experiments", "mobile renderer compatibility tests"],
+      "target_toolchain": ["Godot 4.7", "Forward+", "Mobile", "Compatibility"],
+      "status": "approved_for_prototype_evaluation_not_final_art",
+      "integration_gate": [
+        "Download only the exact package needed",
+        "Keep its LICENSE.txt and source URL beside the imported files",
+        "Run Compatibility renderer import and Android performance checks",
+        "Replace greybox pieces with authored chapter art before release"
+      ],
+      "safety_notes": [
+        "Prototype Kit is low-poly greybox geometry, not a photorealistic environment pack",
+        "Do not overwrite the project's root project.godot with a downloaded demo project"
+      ]
+    },
+    {
+      "id": "open-mocap-blender",
+      "name": "Open Mocap Blender add-on",
+      "repository": "https://github.com/Larenju-Rai/open-mocap-blender",
+      "code_license": "MIT",
+      "asset_license": "Not applicable to code; review any bundled media separately",
+      "purpose": ["markerless motion capture research"],
+      "target_toolchain": ["Blender 4.0 or earlier per upstream compatibility note"],
+      "status": "not_compatible_with_current_blender_pipeline",
+      "integration_gate": ["Reconsider only if upstream publishes and tests a Blender 4.2+ compatible release"],
+      "safety_notes": ["Do not install into the current Blender pipeline; upstream states compatibility only through Blender 4.0"]
+    }
+  ]
+}
