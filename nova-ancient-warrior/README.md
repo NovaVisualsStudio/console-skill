@@ -31,12 +31,13 @@ This is a functional prototype character, not a photorealistic human. It does no
 - Desktop renderer: Godot Forward+.
 - Android renderer: Godot GL Compatibility, using the OpenGL ES 3 path for broader device coverage than a Vulkan-only requirement.
 - Desktop master viewport: 1920 x 1080.
-- Android viewport: 1280 x 720, with quality scaling still requiring physical-device profiling.
+- Android viewport: 1280 x 720; quality scaling and sustained performance still require physical-device profiling.
 - Android export preset enables ARMv7 and ARM64 architectures.
-- Initial frame-rate target: 60 FPS. This is a cap/target, not a measured performance guarantee.
-- Glow and key-light shadows are enabled in the current visual profile. Actual GPU support, frame pacing, memory use and thermal behaviour must be tested on physical devices.
+- Android default profile uses a conservative 30 FPS cap, disables real-time key-light shadows and glow, and reduces arena props and dynamic lights. This is a stability-oriented cap, not a measured performance guarantee.
+- Desktop retains a 60 FPS cap, glow and key-light shadows.
+- Raising Android frame rate or re-enabling expensive effects requires measurements on representative physical devices.
 
-Compatibility mode improves the range of devices that may run the game, but it does not guarantee support on every Android phone or tablet. The published debug APK is a sideloading test build, not a Play Store release.
+Compatibility mode improves the range of devices that may run the game, but it does not guarantee support on every Android phone or tablet. Debug APK exports are test artifacts, not Play Store releases.
 
 ## Build and run
 
