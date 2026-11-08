@@ -289,7 +289,7 @@ func perform_heavy_attack() -> bool:
     current_state = CombatState.ATTACK
     _animate_weapon(true, 0)
     attack_started.emit(true, 0)
-    _queue_attack(82, 3.75, -0.02, true, 0.24, 0.20)
+    _queue_attack(82, 3.75, -0.02, true, 0.16, 0.20)
     return true
 
 func _queue_attack(damage: int, attack_range: float, min_dot: float, heavy: bool,
