@@ -11,6 +11,12 @@ func _ensure_actions() -> void:
         if not InputMap.has_action(action):
             InputMap.add_action(action)
 
+func _wait_for_enemy_health(enemy: NovaEnemy, expected: int, max_frames: int = 60) -> void:
+    var frames := 0
+    while enemy.health != expected and frames < max_frames:
+        await physics_frame
+        frames += 1
+
 func _wait_attack_ready(player: NovaPlayer) -> void:
     var frames := 0
     while player.attack_cooldown > 0.0 and frames < 90:
@@ -52,20 +58,35 @@ func _run_tests() -> void:
         return
 
     var first_ok := player.perform_light_attack()
-    if not first_ok or grunt.health != 48 or player.combo_step != 1:
-        push_error("Light attack combo step 1 failed.")
+    if not first_ok or grunt.health != 80 or player.combo_step != 1:
+        push_error("Light attack should enter startup before applying damage.")
+        await _finish(1, test_root)
+        return
+    await _wait_for_enemy_health(grunt, 48)
+    if grunt.health != 48:
+        push_error("Light attack combo step 1 active window failed.")
         await _finish(1, test_root)
         return
     await _wait_attack_ready(player)
     var second_ok := player.perform_light_attack()
-    if not second_ok or grunt.health != 9 or player.combo_step != 2:
-        push_error("Light attack combo step 2 failed.")
+    if not second_ok or grunt.health != 48 or player.combo_step != 2:
+        push_error("Light attack combo step 2 startup failed.")
+        await _finish(1, test_root)
+        return
+    await _wait_for_enemy_health(grunt, 9)
+    if grunt.health != 9:
+        push_error("Light attack combo step 2 active window failed.")
         await _finish(1, test_root)
         return
     await _wait_attack_ready(player)
     var third_ok := player.perform_light_attack()
-    if not third_ok or grunt.health != 0 or player.combo_step != 3:
-        push_error("Light attack combo finisher failed.")
+    if not third_ok or grunt.health != 9 or player.combo_step != 3:
+        push_error("Light attack combo finisher startup failed.")
+        await _finish(1, test_root)
+        return
+    await _wait_for_enemy_health(grunt, 0)
+    if grunt.health != 0:
+        push_error("Light attack combo finisher active window failed.")
         await _finish(1, test_root)
         return
 
@@ -123,7 +144,12 @@ func _run_tests() -> void:
 
     await _wait_attack_ready(player)
     var boss_health_before_heavy := boss.health
-    if not player.perform_heavy_attack() or boss.health != boss_health_before_heavy - 82:
+    if not player.perform_heavy_attack() or boss.health != boss_health_before_heavy:
+        push_error("Heavy attack should observe startup before its active hit window.")
+        await _finish(1, test_root)
+        return
+    await _wait_for_enemy_health(boss, boss_health_before_heavy - 82)
+    if boss.health != boss_health_before_heavy - 82:
         push_error("Heavy attack damage or stamina path failed.")
         await _finish(1, test_root)
         return
