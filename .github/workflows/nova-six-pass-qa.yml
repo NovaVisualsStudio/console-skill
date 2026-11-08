@@ -2,7 +2,7 @@ name: Nova Ancient Warrior — six-pass quality gate
 
 on:
   push:
-    branches: [nova-full-campaign-polish]
+    branches: [nova-full-campaign-polish, release/nova-ancient-warrior-integration-20261108]
     paths:
       - "nova-ancient-warrior/**"
       - ".github/workflows/nova-six-pass-qa.yml"
@@ -118,7 +118,17 @@ jobs:
           if grep -E "SCRIPT ERROR:|ERROR:|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$log_file"; then
             exit 1
           fi
-          echo "PASS 6: Android profile and main-scene boot passed"
+          camera_log="$RUNNER_TEMP/third-person-camera.log"
+          if ! "$GODOT_BIN" --verbose --headless --path nova-ancient-warrior --script res://tests/third_person_camera_rig_smoke.gd >"$camera_log" 2>&1; then
+            cat "$camera_log"
+            exit 1
+          fi
+          cat "$camera_log"
+          grep -q "Third-person camera collision smoke test passed" "$camera_log"
+          if grep -E "SCRIPT ERROR:|ERROR:|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$camera_log"; then
+            exit 1
+          fi
+          echo "PASS 6: Android profile, camera collision and main-scene boot passed"
 
       - name: Publish six-pass summary
         if: always()
