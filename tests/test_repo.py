@@ -243,8 +243,12 @@ class Repo(unittest.TestCase):
         project_path = os.path.join(ROOT, "nova-ancient-warrior", "project.godot")
         with open(project_path, encoding="utf-8") as fh:
             project = fh.read()
-        self.assertIn("window/size/viewport_width=1280", project)
-        self.assertIn("window/size/viewport_height=720", project)
+        self.assertIn("window/size/viewport_width=1920", project)
+        self.assertIn("window/size/viewport_height=1080", project)
+        self.assertIn("window/size/viewport_width.mobile=1280", project)
+        self.assertIn("window/size/viewport_height.mobile=720", project)
+        self.assertIn('renderer/rendering_method="forward_plus"', project)
+        self.assertIn('renderer/rendering_method.mobile="gl_compatibility"', project)
         self.assertIn("window/handheld/orientation=0", project)
 
     def test_android_game_has_touch_restart_and_audio_pool(self):
