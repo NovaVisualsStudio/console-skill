@@ -66,7 +66,7 @@ Combat should be data-driven: attack definitions specify startup, active duratio
 
 The first slice should contain one arena, one playable warrior, two basic enemy types and one boss encounter. It should prove:
 - Movement, acceleration, facing and camera follow.
-- Light/heavy attack chain, attack recovery and hit confirmation.
+- Light/heavy attack chain with separate startup, active and recovery windows, one hit per target per swing, interruptible pending attacks and hit confirmation.
 - Dodge with a short invulnerability window.
 - Guard with directional or timed damage reduction.
 - Enemy telegraph, attack, stagger, death and reset.
@@ -75,7 +75,7 @@ The first slice should contain one arena, one playable warrior, two basic enemy 
 - Touch controls usable in landscape without blocking the combat view.
 - A stable Android debug APK and a physical-device test report.
 
-The current cinematic slice now includes an original procedural warrior/axe model, shoulder follow camera with cinematic intro, lock-on and impact shake, three-hit light combo, stamina heavy attack, dodge i-frames, timed parry/guard, two telegraphing guardians, an Ashen Warden two-phase boss with melee/sweep/slam patterns and color/size-coded warning rings, a fog-lit temple arena, generated ambience/combat sound effects, touch HUD and retry flow. Lock-on now turns the warrior toward the target even while stationary; automated integration checks verify this and the nine Android touch controls. Its models and attack animations are still procedural primitives and tweens; it does not yet meet full production art/animation quality or full-game scope.
+The current cinematic slice now includes an original procedural warrior/axe model, shoulder follow camera with cinematic intro, lock-on and impact shake, three-hit light combo, stamina heavy attack, timed startup/active/recovery windows, one-hit-per-target attack tracking, cancelable attacks, dodge i-frames, timed parry/guard, two telegraphing guardians, an Ashen Warden two-phase boss with melee/sweep/slam patterns and color/size-coded warning rings, a fog-lit temple arena, generated ambience/combat sound effects, touch HUD and retry flow. Desktop Tab and the Android lock button share the target selector; automated integration checks verify physical-key lock-on, stationary player turning and all nine Android touch controls. Its models and attack animations are still procedural primitives and tweens; it does not yet meet full production art/animation quality or full-game scope.
 
 ## Full game feature roadmap
 
@@ -120,8 +120,8 @@ Cash cost can remain near zero with self-made assets and free/open-source tools,
 
 1. Python source and project integrity (10 tests), including generated build/cache exclusion.
 2. Godot 4.7.2 headless editor import and script parsing, with Android Platform 35, Build Tools 35.0.1, NDK r28b and CMake 3.10.2.
-3. Deterministic combat behaviour tests: combo chain, heavy attack, boss threshold/phase, three boss attack selections and their melee/sweep/slam hit-area bounds, parry, guard reduction, dodge i-frames, enemy telegraph/strike.
-4. Cinematic scene integration: arena nodes, player/boss/camera, intro lock, camera lock-on/shake, stationary player rotation while locked-on, combat handoff and boss HUD/phase.
+3. Deterministic combat behaviour tests: combo chain with delayed active windows, no early or duplicate hit, heavy attack timing, boss threshold/phase, three boss attack selections and their melee/sweep/slam hit-area bounds, parry, guard reduction, dodge i-frames, enemy telegraph/strike.
+4. Cinematic scene integration: arena nodes, player/boss/camera, intro lock, camera lock-on/shake, physical Tab event routing, stationary player rotation while locked-on, combat handoff and boss HUD/phase.
 5. Procedural audio smoke test: ambience stream, sample data, pooled voices and combat effect playback calls.
 6. Scene runtime smoke test.
 7. Extended 300-frame scene runtime test.
@@ -164,4 +164,4 @@ The first four can run in CI. The fifth requires an actual Android device and mu
 
 ## Current verified delivery state
 
-The current cinematic Android ARM64 debug APK was exported successfully by GitHub Actions run #119 (Godot 4.7.2, Android Platform 35, Build Tools 35.0.1, NDK r28b) and uploaded as `nova-ancient-warrior-android-debug`. The APK passed CI apksigner v2/v3 verification, package metadata validation and ARM64 native-library checks; the downloaded artifact ZIP and APK archives both passed integrity checks. Each CI run uses a temporary debug key, so remove a previous debug installation before installing the next artifact. Six consecutive stability passes completed; all combat, cinematic, audio and 300-frame runtime checks passed in every pass, with no ObjectDB resource-leak warnings or ADB connection failures. One Godot exporter shutdown diagnostic remains: `Orphan StringName: Node` (one unclaimed StringName) during exporter shutdown; it is not accompanied by an ObjectDB instance leak, ADB connection failure or SDK deprecation warning, and was not observed in the six gameplay/runtime passes. This verifies export and headless packaging only; physical-device installation, touch ergonomics, sustained performance, thermal behaviour and battery usage remain unverified until tested on an actual phone.
+The current cinematic Android ARM64 debug APK was exported successfully by GitHub Actions run #127 (Godot 4.7.2, Android Platform 35, Build Tools 35.0.1, NDK r28b) and uploaded as `nova-ancient-warrior-android-debug`. The APK passed CI apksigner v2/v3 verification, package metadata validation and ARM64 native-library checks; the downloaded artifact ZIP and APK archives both passed integrity checks. Each CI run uses a temporary debug key, so remove a previous debug installation before installing the next artifact. Six consecutive stability passes completed; all combat, cinematic, audio and 300-frame runtime checks passed in every pass, with no ObjectDB resource-leak warnings or ADB connection failures. One Godot exporter shutdown diagnostic remains: `Orphan StringName: Node` (one unclaimed StringName) during exporter shutdown; it is not accompanied by an ObjectDB instance leak, ADB connection failure or SDK deprecation warning, and was not observed in the six gameplay/runtime passes. This verifies export and headless packaging only; physical-device installation, touch ergonomics, sustained performance, thermal behaviour and battery usage remain unverified until tested on an actual phone.
