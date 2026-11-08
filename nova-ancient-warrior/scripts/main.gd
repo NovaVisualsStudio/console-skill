@@ -901,6 +901,8 @@ func _attack(heavy: bool = false) -> void:
 	damage += blade_damage_bonus
 	var attack_range_value := CombatRules.heavy_attack_range() if heavy else CombatRules.combo_range(current_step)
 	attack_cooldown = CombatRules.heavy_attack_cooldown() if heavy else CombatRules.combo_cooldown(current_step)
+	attack_sequence += 1
+	var sequence := attack_sequence
 	if not heavy:
 		combo_display_step = current_step
 		combo_step = (combo_step + 1) % 3
@@ -911,6 +913,23 @@ func _attack(heavy: bool = false) -> void:
 		else:
 			hero_visual.call("play_attack", current_step)
 	_play_sfx_or_tone("heavy_swing" if heavy else "sword_swing", 560.0 if heavy else 740.0 + float(current_step) * 90.0, 0.14 if heavy else 0.11, 0.22)
+	_resolve_attack_window(sequence, heavy, current_step, damage, attack_range_value)
+
+
+func _resolve_attack_window(sequence: int, heavy: bool, current_step: int, damage: int, attack_range_value: float) -> void:
+	await get_tree().create_timer(CombatRules.attack_startup(heavy, current_step)).timeout
+	if not is_inside_tree() or sequence != attack_sequence or game_over or wave_transitioning:
+		return
+	var already_hit: Dictionary = {}
+	var active_end_usec := Time.get_ticks_usec() + int(CombatRules.attack_active_duration(heavy) * 1000000.0)
+	while Time.get_ticks_usec() < active_end_usec:
+		if not is_inside_tree() or sequence != attack_sequence or game_over or wave_transitioning or not is_instance_valid(player):
+			return
+		_apply_attack_hits(heavy, damage, attack_range_value, already_hit)
+		await get_tree().physics_frame
+
+
+func _apply_attack_hits(heavy: bool, damage: int, attack_range_value: float, already_hit: Dictionary) -> void:
 	var facing := -player.global_transform.basis.z
 	if _is_lock_target_valid():
 		facing = locked_target.global_position - player.global_position
@@ -920,36 +939,38 @@ func _attack(heavy: bool = false) -> void:
 		if not is_instance_valid(enemy):
 			enemies.remove_at(index)
 			continue
+		var enemy_id := enemy.get_instance_id()
+		if already_hit.has(enemy_id):
+			continue
 		var to_enemy: Vector3 = enemy.global_position - player.global_position
 		to_enemy.y = 0.0
 		var effective_range := attack_range_value
 		if heavy and bool(enemy.get_meta("boss", false)):
 			effective_range += 0.25
-		var target_is_in_arc := CombatRules.is_target_in_attack_arc(facing, to_enemy, ATTACK_RANGE)
-		if heavy or not is_equal_approx(effective_range, ATTACK_RANGE):
-			target_is_in_arc = CombatRules.is_target_in_attack_arc(facing, to_enemy, effective_range)
-		if target_is_in_arc:
-			var hp := int(enemy.get_meta("hp", 60)) - damage
-			enemy.set_meta("hp", hp)
-			var enemy_visual := enemy.get_node_or_null("WarriorVisual")
-			if enemy_visual != null:
-				enemy_visual.call("hit_react")
-			var base_scale: Vector3 = enemy.get_meta("base_scale", Vector3.ONE)
-			enemy.scale = base_scale * (0.90 if heavy else 0.94)
-			var hit_tween := create_tween()
-			hit_tween.tween_property(enemy, "scale", base_scale, 0.18 if heavy else 0.14)
-			_play_sfx_or_tone("impact", 190.0 if heavy else 260.0, 0.09, 0.22)
-			if hp <= 0:
-				var was_boss := bool(enemy.get_meta("boss", false))
-				enemy.queue_free()
-				enemies.remove_at(index)
-				if locked_target == enemy:
-					locked_target = null
-				score += 900 if was_boss else 100
-				souls_earned += 3 if was_boss else 1
-				_update_hud()
-				if enemies.is_empty():
-					_handle_wave_cleared()
+		if not CombatRules.is_target_in_attack_arc(facing, to_enemy, effective_range):
+			continue
+		already_hit[enemy_id] = true
+		var hp := int(enemy.get_meta("hp", 60)) - damage
+		enemy.set_meta("hp", hp)
+		var enemy_visual := enemy.get_node_or_null("WarriorVisual")
+		if enemy_visual != null:
+			enemy_visual.call("hit_react")
+		var base_scale: Vector3 = enemy.get_meta("base_scale", Vector3.ONE)
+		enemy.scale = base_scale * (0.90 if heavy else 0.94)
+		var hit_tween := create_tween()
+		hit_tween.tween_property(enemy, "scale", base_scale, 0.18 if heavy else 0.14)
+		_play_sfx_or_tone("impact", 190.0 if heavy else 260.0, 0.09, 0.22)
+		if hp <= 0:
+			var was_boss := bool(enemy.get_meta("boss", false))
+			enemy.queue_free()
+			enemies.remove_at(index)
+			if locked_target == enemy:
+				locked_target = null
+			score += 900 if was_boss else 100
+			souls_earned += 3 if was_boss else 1
+			_update_hud()
+			if enemies.is_empty():
+				_handle_wave_cleared()
 	if is_instance_valid(hud):
 		_update_hud()
 
