@@ -35,6 +35,19 @@ func _initialize() -> void:
 		_fail("Android ambient lighting is below the readability baseline", light)
 		return
 
+	if MobileRenderProfile.ANDROID_PILLAR_COUNT >= MobileRenderProfile.DESKTOP_PILLAR_COUNT:
+		_fail("Android pillar budget must be lower than desktop", light)
+		return
+	if MobileRenderProfile.ANDROID_BRAZIER_COUNT >= MobileRenderProfile.DESKTOP_BRAZIER_COUNT:
+		_fail("Android brazier budget must be lower than desktop", light)
+		return
+	if MobileRenderProfile.ANDROID_ROCK_COUNT >= MobileRenderProfile.DESKTOP_ROCK_COUNT:
+		_fail("Android rock budget must be lower than desktop", light)
+		return
+	if MobileRenderProfile.ANDROID_FIRE_LIGHT_COUNT != 1:
+		_fail("Android should use only one dynamic fire light", light)
+		return
+
 	MobileRenderProfile.apply(false, environment, light)
 	if Engine.max_fps != 60:
 		_fail("Desktop 60 FPS cap was not applied", light)
