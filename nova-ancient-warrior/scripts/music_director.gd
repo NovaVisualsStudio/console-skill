@@ -29,10 +29,13 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	if _playback != null:
+		_playback.clear_buffer()
+	_playback = null
 	if is_instance_valid(_player):
 		_player.stop()
 		_player.stream = null
-	_playback = null
+		_player.free()
 	_player = null
 
 
