@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — 2026 AI Game Studio Architecture
+# Nova Ancient Warrior - 2026 AI Game Studio Architecture
 
 Status: architecture and integration specification. This document does not claim that external desktop applications or MCP servers are already installed or connected.
 
@@ -10,40 +10,40 @@ The earlier label "OpenAIGamesDesigner" is not an approved dependency: do not bu
 
 ## The six-layer studio
 
-1. **Project brain and orchestration — GitHub**
+1. **Project brain and orchestration - GitHub**
    - Issues define one bounded production task, acceptance criteria, owner/agent role, affected paths, dependencies, and rollback plan.
    - Branch-per-task, pull-request review, CODEOWNERS-style ownership, protected main, immutable build artifacts.
    - Keep design decisions, asset provenance, test evidence, and benchmark history versioned beside the game.
 
-2. **Godot live-editor bridge — Godot Editor MCP / Godot MCP**
+2. **Godot live-editor bridge - Godot Editor MCP / Godot MCP**
    - Candidate: https://github.com/tugcantopaloglu/godot-mcp
    - Candidate product/package reference: https://pypi.org/project/godot-editor-mcp/
    - Use only after validating compatibility with the exact Godot 4.7 project and pinning a release/commit.
    - Allow scene-tree inspection, script diagnostics, headless run, controlled play input, screenshots, profiler and export.
    - Require a read-only first phase and explicit allow-list for mutations. Never expose arbitrary shell or secrets to an untrusted agent.
 
-3. **Blender asset factory — Blender MCP**
+3. **Blender asset factory - Blender MCP**
    - Candidate: https://github.com/ahujasid/mcp-for-blender
    - Candidate skill pack: https://github.com/EL4CTEO/blender-skills
    - Use Blender headless/background jobs for deterministic generation, retopology helpers, UV checks, PBR baking, rig validation, animation export and GLB validation.
    - Require a human-approved reference and visual review for hero characters, bosses and key environments.
    - Do not assume that AI-generated meshes are production-ready: enforce topology, scale, UV, material, skeleton, animation and polygon/texture budgets.
 
-4. **Specialist agent skills — portable skill packs**
+4. **Specialist agent skills - portable skill packs**
    - Candidate: https://github.com/gamedev-skills/awesome-gamedev-agent-skills
    - Candidate: https://github.com/setcodes/gamedev-skills
    - Candidate: https://github.com/EL4CTEO/blender-skills
    - Curate six roles: Game Director/Designer, Godot Gameplay Engineer, Combat & AI Engineer, Character/Rigging Animator, Environment/Technical Artist, QA/Performance Engineer.
    - Vendor only reviewed skill files with license and provenance records. Skills are instructions, not executable proof or autonomous expertise. Resolve conflicting instructions centrally in this document.
 
-5. **Native performance module — C++ GDExtension**
+5. **Native performance module - C++ GDExtension**
    - Official API reference: https://docs.godotengine.org/en/4.7/engine_details/engine_api/gdextension/index.html
    - Keep physics, animation, damage authority and gameplay state in Godot unless profiling demonstrates a bottleneck.
    - Candidates for native code: batched spatial filtering, large crowd steering, deterministic procedural data transforms and other measured CPU hotspots.
    - Require Linux host binary + Android arm64 binary, runtime smoke tests, GDScript parity tests and representative benchmark evidence before enabling in gameplay.
    - Current C++ state: Android arm64 library build succeeded in CI; Linux library compilation succeeded but Linux GDExtension load/smoke test failed in run 42526213242. The extension remains isolated and must not be enabled in the game until the failure is diagnosed and the smoke test passes.
 
-6. **Quality, performance and release factory — GitHub Actions**
+6. **Quality, performance and release factory - GitHub Actions**
    - Static checks, GDScript parse, import validation, scene boot, unit/regression tests, resource/license validation, asset budgets, Android export and artifact retention.
    - Separate CI green status from real-device evidence. Record device model, OS, renderer, resolution, thermal state, average FPS, 1% low, frame-time percentiles, memory, load time and battery/thermal behavior.
    - Target profiles: Medium (stable 30 FPS) and High (stable 60 FPS where hardware allows); do not promise either without device measurements.
