@@ -2,7 +2,7 @@
 
 **Decision date:** 2026-11-08  
 **Branch:** `nova-full-campaign-polish`  
-**Priority:** visual fidelity, believable presentation, responsive gameplay and complete content first. Android size and broad backward compatibility are secondary.
+**Priority:** visual fidelity, believable presentation, responsive gameplay and complete content first. Android support is a release requirement; use scalable rendering profiles so device coverage does not force the desktop master to lose visual quality.
 
 This is the production standard for Nova Ancient Warrior. The current project is a playable systems prototype, not yet a commercially polished game. All new work must move it toward a coherent third-person action-adventure experience with the production feel of well-made console/mobile titles. References such as GTA: San Andreas, PES and Need for Speed are quality references for camera, input response, animation, UI feedback, world readability and presentation; they are not a claim that this small project already matches the scope, content volume or proprietary assets of those games.
 
@@ -18,12 +18,12 @@ This is the production standard for Nova Ancient Warrior. The current project is
 ### Current engine configuration
 The current Godot project has been moved away from the old Compatibility-only configuration:
 - Desktop: Godot **Forward+** renderer.
-- Android: Godot **Mobile** renderer on Vulkan-capable devices.
+- Android: Godot **Compatibility** renderer using OpenGL ES 3.0 as the broad-compatibility baseline; ARMv7 and ARM64 APK ABIs are enabled. Vulkan Mobile can be evaluated as an optional high-end profile only after device testing.
 - Web: Compatibility renderer override.
 - Runtime render profile now preserves glow and key-light shadows on Android instead of disabling them unconditionally.
-- Both desktop and Android use a 60 FPS cap as an initial target. Actual frame pacing must be measured; do not present the cap as proof of 60 FPS performance.
+- Both desktop and Android use a 60 FPS cap as an initial target. Actual frame pacing must be measured; do not present the cap as proof of 60 FPS performance. Android quality must scale by device capability, with a stable lower preset on weaker supported hardware and enhanced effects on stronger hardware.
 
-The Mobile renderer does not expose every Forward+ feature. For example, volumetric fog, SDFGI and VoxelGI are Forward+-only; the Android visual plan should use baked LightmapGI, reflection probes, carefully authored materials, particles and shader-based atmosphere where the Mobile renderer requires alternatives.
+The Compatibility renderer has a smaller feature set than Forward+ and does not provide the same advanced lighting pipeline. Preserve the high-quality source assets and use carefully authored baked lighting, material maps, reflection approximations, particles and shader atmosphere for Android. Do not claim desktop/Android visual parity without captured comparisons.
 
 ### Unreal Engine evaluation
 Unreal Engine 5.8 is a legitimate high-fidelity comparison candidate, not an automatic migration decision:
@@ -125,6 +125,6 @@ A successful headless test proves only the tested code path. It does not prove p
 4. Complete the camera, input, combat and audio feel for that slice.
 5. Run a Godot Forward+ versus Unreal 5.8 visual/workflow comparison before any engine migration decision.
 6. Only after the vertical slice meets the visual/gameplay bar, build the remaining chapters and campaign content.
-7. Package PC/desktop master and high-end Android separately; do not degrade the master assets to make every device run the same settings.
+7. Package PC/desktop master and Android with scalable quality presets and ARMv7/ARM64 exports separately; do not degrade the master assets to make every device run the same settings.
 
 **Release claim rule:** The game is not “AAA”, “photoreal”, “complete” or “console-quality” until the actual playable build and captured footage pass the corresponding visual, gameplay and platform checks.
