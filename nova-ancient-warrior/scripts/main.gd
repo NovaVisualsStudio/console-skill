@@ -947,7 +947,10 @@ func _apply_attack_hits(heavy: bool, damage: int, attack_range_value: float, alr
 		var effective_range := attack_range_value
 		if heavy and bool(enemy.get_meta("boss", false)):
 			effective_range += 0.25
-		if not CombatRules.is_target_in_attack_arc(facing, to_enemy, effective_range):
+		var target_is_in_arc := CombatRules.is_target_in_attack_arc(facing, to_enemy, ATTACK_RANGE)
+		if heavy or not is_equal_approx(effective_range, ATTACK_RANGE):
+			target_is_in_arc = CombatRules.is_target_in_attack_arc(facing, to_enemy, effective_range)
+		if not target_is_in_arc:
 			continue
 		already_hit[enemy_id] = true
 		var hp := int(enemy.get_meta("hp", 60)) - damage
