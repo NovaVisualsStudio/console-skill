@@ -8,7 +8,7 @@
 
 Current source branch: `nova-full-campaign-polish`  
 Inspected commit: `4d9045e68866a7ddeebdf7e16fd5f9e679db1b98`  
-Engine: Godot 4.7.2, GDScript. The project configuration has since been upgraded to Forward+ for desktop and Mobile/Vulkan for Android; the earlier CI measurements below refer to the previous Compatibility configuration.
+Engine: Godot 4.7.2, GDScript. Current configuration: Forward+ desktop master and GL Compatibility/OpenGL ES 3.0 Android baseline. Android APK exports target both ARMv7 and ARM64.
 
 Verified in GitHub Actions on the inspected commit:
 
@@ -29,15 +29,15 @@ Verified in GitHub Actions on the inspected commit:
 
 ## 2. Visual target and renderer strategy
 
-The previous Compatibility-first mobile profile has been superseded. The current target is defined in [NOVA_PROFESSIONAL_GAME_STANDARD.md](NOVA_PROFESSIONAL_GAME_STANDARD.md):
+The current visual-first but broad-compatibility target is defined in [NOVA_PROFESSIONAL_GAME_STANDARD.md](NOVA_PROFESSIONAL_GAME_STANDARD.md):
 
 - Full HD 1920×1080 is the master art-review target.
 - Desktop uses Godot Forward+ for the highest feature set available in the current engine.
-- Android uses Godot Mobile with Vulkan on compatible high-end devices. The project intentionally no longer disables glow or key-light shadows on Android as a blanket rule.
+- Android uses Godot Compatibility with OpenGL ES 3.0 as the broad device baseline. The APK includes ARMv7 and ARM64. A Vulkan Mobile profile may be added later as an optional high-end renderer after device testing.
 - A 60 FPS cap is an initial frame-pacing target, not a measured performance claim.
 - Older GLES-only devices are not the primary quality target. A compatibility fallback may be added later only if it does not compromise the master build.
 
-Godot's Forward+ renderer supports desktop-oriented capabilities such as VoxelGI, SDFGI, SSIL, screen-space reflections and volumetric fog. The Mobile renderer shares the RenderingDevice/Vulkan architecture but omits some Forward+-only effects; use baked LightmapGI, reflection probes, authored shader atmosphere and carefully staged lights where needed on Android.
+Godot Compatibility has a smaller feature set than Forward+ and uses the OpenGL renderer. Preserve high-quality source models and textures, then use baked lighting, authored materials, reflection approximations, particles and shader atmosphere on Android. Do not claim desktop/Android visual parity without captured comparisons.
 
 Do not assume visual parity between desktop and Android renderers. Maintain high-quality source assets, then create renderer-specific lighting, effects and material variants. Compare actual captured frames rather than selecting a renderer by name alone.
 
@@ -150,10 +150,10 @@ The current boss camera reveal and chapter title cards are a starting point. The
 
 ### Real-device gate
 
-- Begin device QA on a high-end Vulkan-capable Android device. Older low-end phones are not a release blocker for the visual master and must not dictate the art target.
+- Validate the Android GLES3 baseline on a representative range of Android 7.0+ devices and both ARMv7 and ARM64. Vulkan can be tested as a separate high-end profile.
 - Record average and 95th-percentile frame time, FPS, memory use, GPU/CPU load, touch latency, audio glitches and thermal behaviour.
 - Run a 20-minute combat/traversal soak test and repeat it after changing render settings.
-- Target stable 60 FPS on the declared high-end Android test device; collect frame-time, thermal and memory evidence. Do not claim the target is met until measured.
+- Set a 60 FPS cap as the initial Android target, then measure frame times on representative low, mid and high-tier devices. Use quality scaling to avoid crashes or unplayable frame pacing; do not claim 60 FPS until measured.
 - Test install, uninstall, reinstall, pause/resume, rotation policy, save persistence and offline startup.
 
 ## 8. Prioritised implementation order
@@ -163,7 +163,7 @@ The current boss camera reveal and chapter title cards are a starting point. The
 3. Build a complete cleaned animation set from recorded human performances; wire a deterministic AnimationTree.
 4. Replace the single arena loop with three separate traversable chapters and scripted story beats.
 5. Upgrade environment materials, props, lighting and sound using licensed CC0/attributed assets.
-6. Add profiling instrumentation and a high-end Android validation preset after the visual master is approved; create lower settings only as an optional later compatibility tier.
+6. Add runtime quality tiers and profiling instrumentation for Android GLES3, then validate Vulkan as an optional enhanced profile without removing the broad-compatibility baseline.
 7. Add full narrative cinematics, dialogue, subtitles and release-grade audio.
 8. Produce a release-signed build only after device QA, licence audit and save migration tests pass.
 
