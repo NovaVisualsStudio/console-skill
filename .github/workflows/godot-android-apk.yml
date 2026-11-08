@@ -157,13 +157,13 @@ jobs:
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/stage_hazard_rules_smoke.gd
           smoke_log="$(mktemp)"
-          if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
+          if ! "$GODOT_BIN" --verbose --headless --path nova-ancient-warrior \
               --quit-after 240 >"$smoke_log" 2>&1; then
             cat "$smoke_log"
             exit 1
           fi
           cat "$smoke_log"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$smoke_log"; then
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type" "$smoke_log"; then
             exit 1
           fi
           mkdir -p artifacts
