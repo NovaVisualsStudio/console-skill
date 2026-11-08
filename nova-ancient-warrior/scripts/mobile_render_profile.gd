@@ -6,6 +6,13 @@ extends RefCounted
 const ANDROID_FPS_CAP := 30
 const DESKTOP_FPS_CAP := 60
 const ANDROID_AMBIENT_FLOOR := 0.68
+const ANDROID_PILLAR_COUNT := 8
+const DESKTOP_PILLAR_COUNT := 12
+const ANDROID_BRAZIER_COUNT := 4
+const DESKTOP_BRAZIER_COUNT := 8
+const ANDROID_ROCK_COUNT := 18
+const DESKTOP_ROCK_COUNT := 34
+const ANDROID_FIRE_LIGHT_COUNT := 1
 
 
 static func apply(is_android: bool, world_environment: Environment, key_light: DirectionalLight3D) -> void:
