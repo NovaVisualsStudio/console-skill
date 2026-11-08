@@ -20,6 +20,12 @@ func _run_save_smoke() -> void:
 	if not writer.set_audio_options(0.4, 0.6):
 		_fail("Could not persist audio settings")
 		return
+	if not writer.set_graphics_quality("high"):
+		_fail("Could not persist high graphics preference")
+		return
+	if writer.set_graphics_quality("ultra"):
+		_fail("Unsupported graphics quality was accepted")
+		return
 	var reader := SaveManagerScript.new()
 	reader.file_path = test_path
 	reader.name = "SaveSmokeReader"
@@ -27,6 +33,9 @@ func _run_save_smoke() -> void:
 	await process_frame
 	if int(reader.profile.get("best_score", 0)) != 1200 or int(reader.profile.get("highest_wave", 0)) != 2:
 		_fail("Checkpoint score or wave was not restored")
+		return
+	if str(reader.profile.get("graphics_quality", "")) != "high":
+		_fail("Graphics quality preference was not restored after creating a new save-manager instance")
 		return
 	if int(reader.profile.get("total_souls", 0)) != 2 or int(reader.profile.get("pending_souls", 0)) != 2:
 		_fail("Checkpoint souls were not safely banked")
@@ -69,7 +78,14 @@ func _run_save_smoke() -> void:
 	DirAccess.remove_absolute(absolute_path)
 	writer.queue_free()
 	reader.queue_free()
-	print("Save manager smoke test passed: checkpoint delta, resume, chapter unlock, upgrade, audio and run reset")
+	if not reader.set_graphics_quality("mid"):
+		_fail("Could not switch graphics preference back to mid")
+		return
+	reader.load_profile()
+	if str(reader.profile.get("graphics_quality", "")) != "mid":
+		_fail("Graphics quality preference did not persist when returning to mid")
+		return
+	print("Save manager smoke test passed: checkpoint delta, resume, chapter unlock, upgrade, audio, graphics tier and run reset")
 	quit(0)
 
 
