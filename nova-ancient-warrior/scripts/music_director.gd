@@ -23,6 +23,14 @@ func _ready() -> void:
 	_playback = _player.get_stream_playback() as AudioStreamGeneratorPlayback
 
 
+func _exit_tree() -> void:
+	if is_instance_valid(_player):
+		_player.stop()
+		_player.stream = null
+	_playback = null
+	_player = null
+
+
 func set_intensity(value: float) -> void:
 	_intensity = clampf(value, 0.0, 1.0)
 
