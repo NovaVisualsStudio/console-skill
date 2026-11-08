@@ -15,8 +15,9 @@ func _run_layout_smoke() -> void:
 		"EmberCauseway",
 		"ObsidianThroneDais"
 	]
+	var expected_routes := ["SunkenFlankStep", "EmberFlankStep", "ObsidianSideWalk"]
 	for chapter in range(3):
-		CampaignLayout.build_stage(root, chapter)
+		CampaignLayout.build_stage(root, chapter, "high")
 		var layout := root.get_node_or_null("GeneratedCampaignLayout")
 		if layout == null:
 			_fail(root, "Campaign layout root missing for chapter %d" % chapter)
@@ -24,14 +25,14 @@ func _run_layout_smoke() -> void:
 		if layout.get_child_count() < 12:
 			_fail(root, "Campaign layout has too few structural pieces for chapter %d" % chapter)
 			return
-		if layout.get_node_or_null(expected_landmarks[chapter]) == null:
+		if layout.get_node_or_null(expected_landmarks[chapter]) == null or layout.get_node_or_null(expected_routes[chapter]) == null:
 			_fail(root, "Chapter %d landmark is missing" % chapter)
 			return
 		var colliders := 0
 		for node in layout.get_children():
 			if node is StaticBody3D and node.get_node_or_null("Collision") is CollisionShape3D:
 				colliders += 1
-		if colliders < 12:
+		if colliders < 16:
 			_fail(root, "Chapter %d has insufficient collision-backed geometry" % chapter)
 			return
 	if root.get_child_count() != 1:
