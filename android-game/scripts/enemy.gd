@@ -215,7 +215,13 @@ func _begin_telegraph() -> void:
     last_attack_hit = false
     if is_boss:
         var pattern_count := 3 if phase >= 2 else 2
-        current_attack_pattern = AttackPattern(attack_pattern_index % pattern_count)
+        var pattern_index := attack_pattern_index % pattern_count
+        if pattern_index == 0:
+            current_attack_pattern = AttackPattern.MELEE
+        elif pattern_index == 1:
+            current_attack_pattern = AttackPattern.SWEEP
+        else:
+            current_attack_pattern = AttackPattern.SLAM
         attack_pattern_index += 1
         match current_attack_pattern:
             AttackPattern.MELEE:
