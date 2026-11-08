@@ -1,14 +1,14 @@
 # Nova Ancient Warrior - HD Realism Production Roadmap
 
-**Status:** production roadmap based on the repository and CI outputs inspected on 2026-11-08. This document distinguishes implemented prototype systems from unimplemented production work.
+**Status:** production roadmap. The detailed CI figures below are a historical snapshot from 2026-11-08 on `nova-full-campaign-polish`, not a claim about the current integration head. The active PR branch is `release/nova-ancient-warrior-integration-20261108`; always use its latest Actions runs and project README for current verification.
 
 **Primary production standard:** [NOVA_PROFESSIONAL_GAME_STANDARD.md](NOVA_PROFESSIONAL_GAME_STANDARD.md) now defines the visual-first platform strategy, gameplay feel, character, animation, world, writing and release bar. [NOVA_ASSET_ECOSYSTEM_POLICY.md](NOVA_ASSET_ECOSYSTEM_POLICY.md) defines source discovery, asset scoring, licence checks and provenance. This roadmap is subordinate to both documents.
 
 ## 1. Verified baseline
 
-Current source branch: `nova-full-campaign-polish`  
-Inspected commit: `4d9045e68866a7ddeebdf7e16fd5f9e679db1b98`  
-Engine: Godot 4.7.2, GDScript. Current configuration: Forward+ desktop master and GL Compatibility/OpenGL ES 3.0 Android baseline. Android APK exports target both ARMv7 and ARM64.
+Historical source branch: `nova-full-campaign-polish`  
+Historical inspected commit: `4d9045e68866a7ddeebdf7e16fd5f9e679db1b98`  
+Engine: Godot 4.7.2, GDScript. The active integration branch keeps Forward+ for desktop and GL Compatibility/OpenGL ES 3.0 for Android, with ARMv7 and ARM64 export targets. Its current mobile runtime profile caps Android at 30 FPS and disables glow and real-time key-light shadows; this is a conservative baseline, not a measured performance result.
 
 Verified in GitHub Actions on the inspected commit:
 
@@ -34,7 +34,7 @@ The current visual-first but broad-compatibility target is defined in [NOVA_PROF
 - Full HD 1920×1080 is the master art-review target.
 - Desktop uses Godot Forward+ for the highest feature set available in the current engine.
 - Android uses Godot Compatibility with OpenGL ES 3.0 as the broad device baseline. The APK includes ARMv7 and ARM64. A Vulkan Mobile profile may be added later as an optional high-end renderer after device testing.
-- A 60 FPS cap is an initial frame-pacing target, not a measured performance claim.
+- The active integration baseline uses a 30 FPS Android cap. A 60 FPS Android cap is a future target only, not an implemented or measured result; raise it only after sustained physical-device profiling.
 - Older GLES-only devices are not the primary quality target. A compatibility fallback may be added later only if it does not compromise the master build.
 
 Godot Compatibility has a smaller feature set than Forward+ and uses the OpenGL renderer. Preserve high-quality source models and textures, then use baked lighting, authored materials, reflection approximations, particles and shader atmosphere on Android. Do not claim desktop/Android visual parity without captured comparisons.
