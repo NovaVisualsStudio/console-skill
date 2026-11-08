@@ -28,13 +28,19 @@ func _run_combat_window_smoke() -> void:
 	await process_frame
 	await physics_frame
 	var has_save_manager := root.get_node_or_null("SaveManager") != null
-	print("Combat window test: main scene booted; SaveManager autoload present: ", has_save_manager)
+	if not has_save_manager:
+		await _finish(1, game, "SaveManager autoload was not initialized for the main scene")
+		return
+	print("Combat window test: main scene and SaveManager autoload booted")
 	var music_director := game.get_node_or_null("MusicDirector")
 	if music_director == null:
 		await _finish(1, game, "Main scene did not create MusicDirector")
 		return
 	var music_player := music_director.get_node_or_null("AudioStreamPlayer") as AudioStreamPlayer
-	var music_stream := music_player.stream as AudioStreamWAV if music_player != null else null
+	if music_player == null:
+		await _finish(1, game, "MusicDirector did not create an AudioStreamPlayer")
+		return
+	var music_stream := music_player.stream as AudioStreamWAV
 	if music_stream == null or music_stream.loop_mode != AudioStreamWAV.LOOP_FORWARD or music_stream.loop_end <= 0:
 		await _finish(1, game, "Main scene did not configure a looping ambient music stream")
 		return
