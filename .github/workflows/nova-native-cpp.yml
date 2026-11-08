@@ -76,7 +76,7 @@ jobs:
           chmod +x "$godot_bin"
           cp -a nova-ancient-warrior/. "$RUNNER_TEMP/native-smoke/"
           mkdir -p "$RUNNER_TEMP/native-smoke/native/bin/linux"
-          cp bin/linux/* "$RUNNER_TEMP/native-smoke/native/bin/linux/"
+          cp nova-ancient-warrior/native/bin/linux/* "$RUNNER_TEMP/native-smoke/native/bin/linux/"
           cp "$RUNNER_TEMP/native-smoke/native/nova_combat_kernel.gdextension.in" "$RUNNER_TEMP/native-smoke/native/nova_combat_kernel.gdextension"
           "$godot_bin" --headless --editor --path "$RUNNER_TEMP/native-smoke" --quit
           smoke_log="$RUNNER_TEMP/native-smoke.log"
