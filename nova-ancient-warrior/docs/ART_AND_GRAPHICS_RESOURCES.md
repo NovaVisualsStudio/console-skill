@@ -12,7 +12,7 @@ This file records external reference repositories for the project's art-producti
 
 ## Additional discovery lead
 
-- [Game Art Pipeline Skills directory](https://skilldb.dev/skills/game-art-pipeline-skills) — a discovery/catalog page for art-pipeline skills. Treat it as a discovery lead; verify the original publisher, source repository, version, and license before adding any of its content to this repository.
+- [Game Art Pipeline Skills directory](https://skilldb.dev/skills/game-art-pipeline-skills) - a discovery/catalog page for art-pipeline skills. Treat it as a discovery lead; verify the original publisher, source repository, version, and license before adding any of its content to this repository.
 
 ## How these resources should be applied
 
