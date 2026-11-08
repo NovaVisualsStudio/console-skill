@@ -88,10 +88,17 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if is_instance_valid(quality_button):
-		touch_camera_controller.set_excluded_rect(quality_button.get_global_rect())
+	touch_camera_controller.set_excluded_rects(_get_touch_ui_exclusions())
 	if not cinematic_active and touch_camera_controller.handle_event(event, get_viewport().get_visible_rect().size):
 		get_viewport().set_input_as_handled()
+
+
+func _get_touch_ui_exclusions() -> Array[Rect2]:
+	var exclusions: Array[Rect2] = []
+	for control in [quality_button, upgrade_panel, restart_button]:
+		if is_instance_valid(control) and control.visible:
+			exclusions.append(control.get_global_rect())
+	return exclusions
 
 
 func _process(delta: float) -> void:

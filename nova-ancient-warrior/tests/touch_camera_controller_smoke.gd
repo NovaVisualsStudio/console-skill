@@ -15,13 +15,23 @@ func _initialize() -> void:
 		_fail("Bottom-right action region must not capture camera look")
 		return
 
-	controller.set_excluded_rect(Rect2(Vector2(1040.0, 10.0), Vector2(220.0, 60.0)))
+	controller.set_excluded_rects([
+		Rect2(Vector2(1040.0, 10.0), Vector2(220.0, 60.0)),
+		Rect2(Vector2(500.0, 300.0), Vector2(280.0, 220.0))
+	])
 	var ui_touch := InputEventScreenTouch.new()
 	ui_touch.index = 2
 	ui_touch.position = Vector2(1100.0, 40.0)
 	ui_touch.pressed = true
 	if controller.handle_event(ui_touch, viewport):
 		_fail("The graphics-quality HUD button area must be excluded from camera look")
+		return
+	var upgrade_touch := InputEventScreenTouch.new()
+	upgrade_touch.index = 3
+	upgrade_touch.position = Vector2(640.0, 420.0)
+	upgrade_touch.pressed = true
+	if controller.handle_event(upgrade_touch, viewport):
+		_fail("The central upgrade panel must be excluded from camera look")
 		return
 
 	var look_touch := InputEventScreenTouch.new()
@@ -75,7 +85,7 @@ func _initialize() -> void:
 		_fail("Camera pitch escaped its safety limits")
 		return
 
-	print("Touch camera smoke test passed: action-zone isolation, one-finger orbit, multi-touch and pitch bounds")
+	print("Touch camera smoke test passed: UI exclusion zones, action-zone isolation, one-finger orbit, multi-touch and pitch bounds")
 	quit(0)
 
 

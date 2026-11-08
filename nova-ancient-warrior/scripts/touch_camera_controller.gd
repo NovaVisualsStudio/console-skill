@@ -11,7 +11,7 @@ const MAX_PITCH := 0.837758041
 var active_touch_id := -1
 var yaw := 0.0
 var pitch := 0.52
-var excluded_rect := Rect2()
+var excluded_rects: Array[Rect2] = []
 
 
 func handle_event(event: InputEvent, viewport_size: Vector2) -> bool:
@@ -19,8 +19,9 @@ func handle_event(event: InputEvent, viewport_size: Vector2) -> bool:
 		return false
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			if excluded_rect.has_point(event.position):
-				return false
+			for excluded_rect in excluded_rects:
+				if excluded_rect.has_point(event.position):
+					return false
 			var in_look_region: bool = (
 				event.position.x >= viewport_size.x * LOOK_REGION_LEFT_RATIO
 				and event.position.y <= viewport_size.y * LOOK_REGION_BOTTOM_RATIO
@@ -42,8 +43,8 @@ func handle_event(event: InputEvent, viewport_size: Vector2) -> bool:
 	return false
 
 
-func set_excluded_rect(rect: Rect2) -> void:
-	excluded_rect = rect
+func set_excluded_rects(rects: Array[Rect2]) -> void:
+	excluded_rects = rects.duplicate()
 
 
 func get_camera_offset(distance: float) -> Vector3:
@@ -55,4 +56,4 @@ func reset() -> void:
 	active_touch_id = -1
 	yaw = 0.0
 	pitch = 0.52
-	excluded_rect = Rect2()
+	excluded_rects.clear()
