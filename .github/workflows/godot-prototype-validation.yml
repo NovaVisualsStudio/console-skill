@@ -121,6 +121,6 @@ jobs:
             exit 1
           fi
           cat "$log_file"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$log_file"; then
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$log_file"; then
             exit 1
           fi
