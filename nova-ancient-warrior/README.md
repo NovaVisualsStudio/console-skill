@@ -47,6 +47,10 @@ Compatibility mode improves the range of devices that may run the game, but it d
 
 The Android GitHub Actions workflow generates the hero and sound assets, imports the project, exports a signed debug APK and validates the archive, signature and package identifier. The resulting workflow artifact is named `nova-ancient-warrior-android-debug`.
 
+## DeepSeek-assisted development review
+
+An optional, manual-dispatch, read-only DeepSeek reviewer is available. It can inspect project diffs and produce an advisory report; it does not modify source files or replace the Godot test suite. See [DEEPSEEK_INTEGRATION.md](DEEPSEEK_INTEGRATION.md) for hosted API and self-hosted open-weight setup, credential handling, and limitations. The GitHub Actions workflow is `.github/workflows/deepseek-review.yml` and requires a GitHub Actions secret named `DEEPSEEK_API_KEY` when using the hosted API.
+
 ## Automated quality checks
 
 The six-pass QA workflow currently checks source integrity, regenerated hero/audio assets, clean Godot import, character/animation/audio integrity, combat/campaign/save/hazard regression, Android renderer settings and a headless main-scene boot. A separate Godot validation workflow also runs focused smoke tests. Green CI runs prove these automated checks passed in the hosted runner; they do not prove visual quality, real-time performance or successful play on a physical Android device.
