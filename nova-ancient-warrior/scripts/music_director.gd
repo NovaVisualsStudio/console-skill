@@ -50,3 +50,9 @@ func _process(_delta: float) -> void:
 		buffer[i] = Vector2(sample, sample * 0.985)
 		_sample_cursor += 1
 	_playback.push_buffer(buffer)
+
+func _exit_tree() -> void:
+	if is_instance_valid(_player):
+		_player.stop()
+	# Release the generator playback reference before the AudioStreamPlayer is freed.
+	_playback = null
