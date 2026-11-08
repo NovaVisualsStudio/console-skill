@@ -87,7 +87,7 @@ jobs:
           fi
           cat "$combat_log"
           grep -q "Combat window smoke test passed" "$combat_log"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$combat_log"; then
+          if grep -E "SCRIPT ERROR:|ERROR:|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$combat_log"; then
             exit 1
           fi
           for test_script in combat_rules_smoke.gd save_manager_smoke.gd level_catalog_smoke.gd campaign_smoke.gd stage_builder_smoke.gd campaign_layout_smoke.gd stage_hazard_rules_smoke.gd; do
@@ -105,7 +105,7 @@ jobs:
             exit 1
           fi
           cat "$mobile_log"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$mobile_log"; then
+          if grep -E "SCRIPT ERROR:|ERROR:|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$mobile_log"; then
             exit 1
           fi
           log_file="$RUNNER_TEMP/nova-main-scene.log"
@@ -115,7 +115,7 @@ jobs:
           fi
           cat "$log_file"
           grep -q "Combat window smoke test passed" "$log_file"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$log_file"; then
+          if grep -E "SCRIPT ERROR:|ERROR:|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$log_file"; then
             exit 1
           fi
           echo "PASS 6: Android profile and main-scene boot passed"

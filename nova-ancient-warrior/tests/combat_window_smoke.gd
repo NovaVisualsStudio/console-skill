@@ -13,9 +13,15 @@ func _initialize() -> void:
 	_watchdog_timer.one_shot = true
 	_watchdog_timer.wait_time = 12.0
 	_watchdog_timer.timeout.connect(_on_watchdog_timeout)
+	call_deferred("_install_watchdog_timer")
+	call_deferred("_run_combat_window_smoke")
+
+
+func _install_watchdog_timer() -> void:
+	if not is_instance_valid(_watchdog_timer):
+		return
 	root.add_child(_watchdog_timer)
 	_watchdog_timer.start()
-	call_deferred("_run_combat_window_smoke")
 
 
 func _on_watchdog_timeout() -> void:
