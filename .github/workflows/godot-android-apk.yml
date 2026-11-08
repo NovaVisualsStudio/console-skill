@@ -2,6 +2,9 @@ name: Nova Ancient Warrior Android debug APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - release/nova-ancient-warrior-integration-20261108
 
 permissions:
   contents: read
