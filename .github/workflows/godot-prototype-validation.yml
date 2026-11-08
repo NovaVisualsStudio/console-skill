@@ -104,8 +104,18 @@ jobs:
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/campaign_layout_smoke.gd
 
       - name: Verify Android and desktop rendering profiles
+        shell: bash
         run: |
-          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/mobile_render_profile_smoke.gd
+          set -euo pipefail
+          mobile_log="$(mktemp)"
+          if ! ./Godot_v4.7.2-stable_linux.x86_64 --verbose --headless --path nova-ancient-warrior --script res://tests/mobile_render_profile_smoke.gd >"$mobile_log" 2>&1; then
+            cat "$mobile_log"
+            exit 1
+          fi
+          cat "$mobile_log"
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$mobile_log"; then
+            exit 1
+          fi
 
       - name: Verify stage hazard warning, timing and safe routes
         run: |
