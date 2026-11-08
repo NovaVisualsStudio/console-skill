@@ -129,6 +129,17 @@ jobs:
             --script res://tests/audio_assets_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/combat_rules_smoke.gd
+          combat_log="$RUNNER_TEMP/combat-window.log"
+          if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/combat_window_smoke.gd >"$combat_log" 2>&1; then
+            cat "$combat_log"
+            exit 1
+          fi
+          cat "$combat_log"
+          grep -q "Combat window smoke test passed" "$combat_log"
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$combat_log"; then
+            exit 1
+          fi
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/warrior_visual_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
@@ -147,7 +158,7 @@ jobs:
             --script res://tests/stage_hazard_rules_smoke.gd
           smoke_log="$(mktemp)"
           if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
-              --quit-after 120 >"$smoke_log" 2>&1; then
+              --quit-after 240 >"$smoke_log" 2>&1; then
             cat "$smoke_log"
             exit 1
           fi
