@@ -87,7 +87,7 @@ jobs:
           fi
           cat "$combat_log"
           grep -q "Combat window smoke test passed" "$combat_log"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$combat_log"; then
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$combat_log"; then
             exit 1
           fi
           for test_script in combat_rules_smoke.gd save_manager_smoke.gd level_catalog_smoke.gd campaign_smoke.gd stage_builder_smoke.gd campaign_layout_smoke.gd stage_hazard_rules_smoke.gd; do
