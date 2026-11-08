@@ -43,7 +43,7 @@ def main() -> int:
     if len(diff) > args.max_diff_chars:
         diff = diff[:args.max_diff_chars] + "\n\n[DIFF TRUNCATED BY REVIEW CLIENT]\n"
 
-    base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com").rstrip("/")
+    base_url = (os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com").rstrip("/")
     api_key = os.getenv("DEEPSEEK_API_KEY", "")
     # Local OpenAI-compatible servers may intentionally run without a key.
     if not api_key and base_url.startswith("https://api.deepseek.com"):
