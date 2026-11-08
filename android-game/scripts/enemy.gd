@@ -25,6 +25,7 @@ var state_timer := 0.0
 var attack_cooldown := 0.35
 var body_mesh: MeshInstance3D
 var telegraph_mesh: MeshInstance3D
+var telegraph_material: StandardMaterial3D
 var body_material: StandardMaterial3D
 var _strike_done := false
 var current_attack_pattern: AttackPattern = AttackPattern.MELEE
@@ -117,12 +118,12 @@ func _build_enemy() -> void:
     ring.outer_radius = 1.12 if not is_boss else 2.18
     telegraph_mesh.mesh = ring
     telegraph_mesh.position.y = 0.06
-    var ring_material := StandardMaterial3D.new()
-    ring_material.albedo_color = Color(1.0, 0.12, 0.025, 0.75)
-    ring_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-    ring_material.emission_enabled = true
-    ring_material.emission = Color(0.95, 0.045, 0.008)
-    telegraph_mesh.material_override = ring_material
+    telegraph_material = StandardMaterial3D.new()
+    telegraph_material.albedo_color = Color(1.0, 0.12, 0.025, 0.75)
+    telegraph_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    telegraph_material.emission_enabled = true
+    telegraph_material.emission = Color(0.95, 0.045, 0.008)
+    telegraph_mesh.material_override = telegraph_material
     telegraph_mesh.visible = false
     add_child(telegraph_mesh)
 
@@ -227,18 +228,30 @@ func _begin_telegraph() -> void:
             AttackPattern.MELEE:
                 state_timer = telegraph_duration
                 if is_instance_valid(telegraph_mesh):
-                    telegraph_mesh.scale = Vector3.ONE
+                    var radius_scale := attack_range * 1.42 / 2.18
+                    telegraph_mesh.scale = Vector3(radius_scale, 1.0, radius_scale)
                     telegraph_mesh.rotation = Vector3.ZERO
+                if is_instance_valid(telegraph_material):
+                    telegraph_material.albedo_color = Color(1.0, 0.18, 0.06, 0.82)
+                    telegraph_material.emission = Color(1.0, 0.07, 0.015)
             AttackPattern.SWEEP:
                 state_timer = telegraph_duration * 1.12
                 if is_instance_valid(telegraph_mesh):
-                    telegraph_mesh.scale = Vector3(1.34, 1.0, 1.34)
+                    var radius_scale := attack_range * 1.72 / 2.18
+                    telegraph_mesh.scale = Vector3(radius_scale, 1.0, radius_scale)
                     telegraph_mesh.rotation = Vector3.ZERO
+                if is_instance_valid(telegraph_material):
+                    telegraph_material.albedo_color = Color(1.0, 0.52, 0.08, 0.82)
+                    telegraph_material.emission = Color(1.0, 0.32, 0.025)
             AttackPattern.SLAM:
                 state_timer = telegraph_duration * 1.38
                 if is_instance_valid(telegraph_mesh):
-                    telegraph_mesh.scale = Vector3(1.72, 1.0, 1.72)
+                    var radius_scale := attack_range * 2.05 / 2.18
+                    telegraph_mesh.scale = Vector3(radius_scale, 1.0, radius_scale)
                     telegraph_mesh.rotation = Vector3.ZERO
+                if is_instance_valid(telegraph_material):
+                    telegraph_material.albedo_color = Color(0.78, 0.24, 1.0, 0.82)
+                    telegraph_material.emission = Color(0.46, 0.06, 1.0)
         if phase >= 2:
             state_timer *= 0.82
     else:
