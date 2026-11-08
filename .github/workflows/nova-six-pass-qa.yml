@@ -106,10 +106,9 @@ for test_script in combat_rules_smoke.gd save_manager_smoke.gd level_catalog_smo
             exit 1
           fi
           cat "$log_file"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$log_file"; then
-            exit 1
-          fi
-          echo "PASS 6: Android profile and main-scene boot passed"
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type" "$log_file"; then
+  exit 1
+fimain-scene boot passed"
 
       - name: Publish six-pass summary
         if: always()
