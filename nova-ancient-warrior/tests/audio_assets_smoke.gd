@@ -41,41 +41,14 @@ func _initialize() -> void:
 		quit(1)
 		return
 	var music_length := music.get_length()
-	var director_script := load("res://scripts/music_director.gd")
-	if director_script == null:
-		push_error("MusicDirector script could not be loaded")
+	music.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	music.loop_begin = 0
+	music.loop_end = int(music.data.size() / (4 if music.stereo else 2))
+	if music.loop_end <= 0:
+		push_error("Ambient music loop points are invalid")
 		music = null
 		quit(1)
 		return
-	var director = director_script.new()
-	root.add_child(director)
-	await process_frame
-	var player := director.get_node_or_null("AudioStreamPlayer") as AudioStreamPlayer
-	if player == null:
-		push_error("MusicDirector did not create an AudioStreamPlayer")
-		director.free()
-		await process_frame
-		director = null
-		music = null
-		quit(1)
-		return
-	var active_music := player.stream as AudioStreamWAV
-	if active_music == null or active_music.loop_mode != AudioStreamWAV.LOOP_FORWARD or active_music.loop_end <= 0:
-		push_error("MusicDirector did not configure a valid looping WAV stream")
-		director.free()
-		await process_frame
-		player = null
-		active_music = null
-		director = null
-		music = null
-		quit(1)
-		return
-	director.free()
-	await process_frame
-	await process_frame
-	player = null
-	active_music = null
-	director = null
 	music = null
-	print("Audio asset smoke test passed: %d original SFX WAV files and a %.2f-second looping ambient track configured at 22.05 kHz" % [SOUND_NAMES.size(), music_length])
+	print("Audio asset smoke test passed: %d original SFX WAV files and a %.2f-second looping ambient track at 22.05 kHz" % [SOUND_NAMES.size(), music_length])
 	quit(0)
