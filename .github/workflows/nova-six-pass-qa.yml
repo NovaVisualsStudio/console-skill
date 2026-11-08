@@ -96,7 +96,7 @@ jobs:
             exit 1
           fi
           cat "$log_file"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$log_file"; then
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|Leaked instance:|ObjectDB instance was leaked|RID allocations of type" "$log_file"; then
             exit 1
           fi
           echo "PASS 6: Android profile and main-scene boot passed"
