@@ -26,24 +26,27 @@ func _initialize() -> void:
 
 	MobileRenderProfile.apply(true, environment, light)
 	if Engine.max_fps != 60:
-		_fail("Android 60 FPS target was not applied")
+		_fail("Android 60 FPS target was not applied", light)
 		return
 	if not environment.glow_enabled or not light.shadow_enabled:
-		_fail("Android visual profile must preserve glow and key-light shadows")
+		_fail("Android visual profile must preserve glow and key-light shadows", light)
 		return
 	if environment.ambient_light_energy < MobileRenderProfile.ANDROID_AMBIENT_FLOOR:
-		_fail("Android ambient lighting is below the visual baseline")
+		_fail("Android ambient lighting is below the visual baseline", light)
 		return
 
 	MobileRenderProfile.apply(false, environment, light)
 	if Engine.max_fps != 60:
-		_fail("Desktop 60 FPS target was not applied")
+		_fail("Desktop 60 FPS target was not applied", light)
 		return
 
+	light.free()
 	print("Renderer target smoke test passed: desktop Forward+, Android GL Compatibility, HD viewport, 60 FPS cap")
 	quit(0)
 
 
-func _fail(message: String) -> void:
+func _fail(message: String, temporary_node: Node = null) -> void:
+	if is_instance_valid(temporary_node):
+		temporary_node.free()
 	push_error(message)
 	quit(1)
