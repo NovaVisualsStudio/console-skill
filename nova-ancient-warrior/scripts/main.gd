@@ -467,8 +467,8 @@ func _apply_level_theme(wave: int) -> void:
 			sky_material.sky_horizon_color = level["sky_horizon"]
 	var next_stage_index := LevelCatalog.stage_index(wave)
 	if next_stage_index != built_stage_index:
-		StageBuilder.build_stage(self, next_stage_index)
-		CampaignLayout.build_stage(self, next_stage_index)
+		StageBuilder.build_stage(self, next_stage_index, graphics_quality)
+		CampaignLayout.build_stage(self, next_stage_index, graphics_quality)
 		built_stage_index = next_stage_index
 		hazard_elapsed = 0.0
 		hazard_damage_cooldown = 0.0
