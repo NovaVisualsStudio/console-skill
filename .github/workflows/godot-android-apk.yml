@@ -137,7 +137,7 @@ jobs:
           fi
           cat "$combat_log"
           grep -q "Combat window smoke test passed" "$combat_log"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$combat_log"; then
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$combat_log"; then
             exit 1
           fi
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
