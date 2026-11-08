@@ -2,6 +2,8 @@
 
 **Status:** production roadmap based on the repository and CI outputs inspected on 2026-11-08. This document distinguishes implemented prototype systems from unimplemented production work.
 
+**Standing source and licence policy:** [NOVA_ASSET_ECOSYSTEM_POLICY.md](NOVA_ASSET_ECOSYSTEM_POLICY.md) defines the source ecosystem, asset selection score, marketplace licence checks, provenance requirements, cinematic writing workflow and Android quality gates. Use it together with this roadmap for every production task.
+
 ## 1. Verified baseline
 
 Current source branch: `nova-full-campaign-polish`  
