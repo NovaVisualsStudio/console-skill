@@ -1,11 +1,6 @@
 name: Nova Warrior Motion Capture and Rigged Character
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/nova-mocap-character.yml"
-      - "nova-ancient-warrior/tools/blender/**"
-      - "nova-ancient-warrior/mocap/**"
   workflow_dispatch:
     inputs:
       video_path:

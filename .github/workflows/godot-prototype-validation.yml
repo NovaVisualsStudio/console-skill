@@ -1,15 +1,6 @@
 name: Nova Ancient Warrior — Godot validation
 
 on:
-  push:
-    branches: [main, nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean, nova-open-source-research, nova-six-toolchain-integration, nova-full-campaign-polish]
-    paths:
-      - "nova-ancient-warrior/**"
-      - ".github/workflows/godot-prototype-validation.yml"
-  pull_request:
-    paths:
-      - "nova-ancient-warrior/**"
-      - ".github/workflows/godot-prototype-validation.yml"
   workflow_dispatch:
 
 permissions:
