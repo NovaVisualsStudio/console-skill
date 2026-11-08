@@ -86,7 +86,7 @@ func _run_tests() -> void:
         await _finish(1, arena)
         return
     Input.action_press("lock_on")
-    await process_frame
+    await create_timer(0.05).timeout
     Input.action_release("lock_on")
     if not is_instance_valid(arena.player.lock_target) or arena.camera_rig.lock_target != arena.player.lock_target:
         push_error("Desktop lock-on input did not select and frame a target.")
