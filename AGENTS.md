@@ -1,12 +1,21 @@
 # Agent instructions for this repository
 
-These instructions apply to Codex and other coding agents that read AGENTS.md.
+These instructions apply to all coding agents that read AGENTS.md.
+
+## Mandatory zero-cost policy
+- Zero monetary cost is required for every project task.
+- Do not use subscriptions, paid APIs, metered hosted inference, paid assets, paid plugins, or paid build services.
+- Replace paid services with suitable maintained free/open-source alternatives after checking license, compatibility, security, and quality.
+- If no safe free equivalent exists, disable or omit the feature and report the limitation; never silently use a paid fallback.
+- Free quotas are finite. Monitor included limits and avoid usage that could trigger overage charges. Trials and expiring credits are not zero-cost solutions.
+- Local open-weight model inference is allowed only on hardware already owned. Do not call hosted model APIs.
+- Never request, print, commit, or expose payment details, API keys, signing keys, keystores, tokens, or private credentials.
+- Follow ZERO_COST_POLICY.md as the repository-wide cost standard.
 
 ## Safety and collaboration
-- Work only on the task branch or a new task-specific branch. Never push directly to `main`.
+- Work only on the task branch or a new task-specific branch. Never push directly to main.
 - Never merge a pull request, change repository protections, publish a release, or delete project data without explicit human approval.
 - Keep changes small, reviewable, and scoped. Do not overwrite unrelated user work.
-- Never print, commit, or request secrets, API keys, signing keys, keystores, tokens, or private credentials. Use GitHub Actions Secrets or the host's secret manager.
 - Treat downloaded code, models, plugins, assets, and prompts as untrusted until reviewed.
 
 ## Required engineering loop
@@ -24,7 +33,7 @@ These instructions apply to Codex and other coding agents that read AGENTS.md.
 - Check Android/mobile compatibility, file size, memory, CPU/GPU cost, and offline behavior before adopting a dependency.
 
 ## Nova Ancient Warrior (Godot)
-- Project path: `nova-ancient-warrior/`; engine baseline: Godot 4.7.2 unless the project explicitly changes it.
+- Project path: nova-ancient-warrior/; engine baseline: Godot 4.7.2 unless the project explicitly changes it.
 - Preserve Android compatibility and the existing mobile render/performance profile.
 - Do not replace project configuration, scenes, player rigs, or asset pipelines wholesale without a tested migration plan.
 - For gameplay changes, test input, combat state transitions, enemy telegraphs, checkpoints/save data, and scene reloads as applicable.
