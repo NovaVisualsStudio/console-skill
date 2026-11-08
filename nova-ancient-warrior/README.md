@@ -51,7 +51,7 @@ A successful cloud export is not device certification. Install on the target pho
 
 ## Automated validation
 
-CI generates and validates the 13 original sound effects, imports the project, strictly parses the main script, runs combat and visual smoke tests, verifies save/currency/upgrade persistence, validates chapter metadata, checks all nine encounter definitions, builds all three chapter dressings, tests timed hazard windows and safe lanes, and performs a headless main-scene smoke run before exporting Android.
+CI generates and imports the 13 original sound effects and skinned hero, runs combat, animation, save, campaign, hazard and Android-profile smoke tests, and launches the actual main scene with project Autoloads enabled while rejecting script-load errors before exporting Android. A standalone `--check-only --script main.gd` call is intentionally not used because it runs outside the scene's Autoload context.
 
 ## Character and motion-capture pipeline
 
@@ -60,7 +60,7 @@ See [the character and mocap production pipeline](../docs/NOVA_CHARACTER_MOCAP_P
 ## Known production boundaries
 
 - Stage geometry is procedural set dressing around the combat arena, not a complete traversal/exploration layout with authored collision puzzles.
-- CI now procedurally generates an original skinned low-poly armoured hero in Blender, including a weighted humanoid rig, hand-attached sword and shield, and Idle/Walk/Run/LightAttack/HeavyAttack/Dodge/Block/Parry/HitReact/Death clips. The runtime adapter selects this rigged GLB when present and preserves the procedural character as a fallback. The markerless mocap candidate remains separate research input, not the hero's final animation source. This generated-asset integration is pending the current branch's Blender-to-Godot CI validation.
+- CI now procedurally generates an original skinned low-poly armoured hero in Blender, including a weighted humanoid rig, hand-attached sword and shield, and Idle/Walk/Run/LightAttack/HeavyAttack/Dodge/Block/Parry/HitReact/Death clips. The runtime adapter selects this rigged GLB when present and preserves the procedural character as a fallback. The markerless mocap candidate remains separate research input, not the hero's final animation source. The 2026-11-08 Godot validation run 140 and Android export run 124 on commit `4d9045e` both completed successfully; the generated GLB imported and passed the rigged-warrior smoke test (20 bones, 10 animation clips).
 - Cinematic coverage includes chapter title cards and boss introduction camera moves; authored dialogue scenes, character voice acting, subtitles and final narrative audio remain to be produced.
 - Android export is checked in CI. On Android, the runtime applies a conservative 45 FPS cap, disables glow and key-light shadows, and halves decorative point lights; desktop preview restores the full lighting profile. Physical-device playtesting, frame-time capture, thermal behaviour and memory profiling are still required.
 - This Godot Android game is not a PS2 executable. A real PS2 port would require a separate PS2SDK implementation and its own memory, rendering and controller constraints.
