@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — HD Realism Production Roadmap
+# Nova Ancient Warrior - HD Realism Production Roadmap
 
 **Status:** production roadmap based on the repository and CI outputs inspected on 2026-11-08. This document distinguishes implemented prototype systems from unimplemented production work.
 
