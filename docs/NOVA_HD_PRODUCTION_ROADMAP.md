@@ -2,13 +2,13 @@
 
 **Status:** production roadmap based on the repository and CI outputs inspected on 2026-11-08. This document distinguishes implemented prototype systems from unimplemented production work.
 
-**Standing source and licence policy:** [NOVA_ASSET_ECOSYSTEM_POLICY.md](NOVA_ASSET_ECOSYSTEM_POLICY.md) defines the source ecosystem, asset selection score, marketplace licence checks, provenance requirements, cinematic writing workflow and Android quality gates. Use it together with this roadmap for every production task.
+**Primary production standard:** [NOVA_PROFESSIONAL_GAME_STANDARD.md](NOVA_PROFESSIONAL_GAME_STANDARD.md) now defines the visual-first platform strategy, gameplay feel, character, animation, world, writing and release bar. [NOVA_ASSET_ECOSYSTEM_POLICY.md](NOVA_ASSET_ECOSYSTEM_POLICY.md) defines source discovery, asset scoring, licence checks and provenance. This roadmap is subordinate to both documents.
 
 ## 1. Verified baseline
 
 Current source branch: `nova-full-campaign-polish`  
 Inspected commit: `4d9045e68866a7ddeebdf7e16fd5f9e679db1b98`  
-Engine: Godot 4.7.2, GDScript, Compatibility / OpenGL ES renderer.
+Engine: Godot 4.7.2, GDScript. The project configuration has since been upgraded to Forward+ for desktop and Mobile/Vulkan for Android; the earlier CI measurements below refer to the previous Compatibility configuration.
 
 Verified in GitHub Actions on the inspected commit:
 
@@ -27,38 +27,25 @@ Verified in GitHub Actions on the inspected commit:
 3. The game has combat, bosses, upgrades, saves, mobile controls, generated SFX and a procedural music layer. It does not yet have authored dialogue scenes, voice acting, subtitles, a finished narrative arc or complete cinematic staging.
 4. CI proves import, headless gameplay checks and cloud APK export. It does not prove visual quality, real-device frame rate, thermal stability, battery use, touch comfort or memory behaviour.
 
-## 2. Visual target and Android rendering strategy
+## 2. Visual target and renderer strategy
 
-The first quality target should be **HD presentation at 1280×720**, with dynamic internal render scaling on weaker devices rather than forcing every phone to render every frame at full native resolution.
+The previous Compatibility-first mobile profile has been superseded. The current target is defined in [NOVA_PROFESSIONAL_GAME_STANDARD.md](NOVA_PROFESSIONAL_GAME_STANDARD.md):
 
-Use measured device tiers, not assumptions:
+- Full HD 1920×1080 is the master art-review target.
+- Desktop uses Godot Forward+ for the highest feature set available in the current engine.
+- Android uses Godot Mobile with Vulkan on compatible high-end devices. The project intentionally no longer disables glow or key-light shadows on Android as a blanket rule.
+- A 60 FPS cap is an initial frame-pacing target, not a measured performance claim.
+- Older GLES-only devices are not the primary quality target. A compatibility fallback may be added later only if it does not compromise the master build.
 
-| Tier | Initial target | Rendering policy |
-|---|---|---|
-| Compatibility / low | Stable 30 FPS; 720p output with 0.70–0.85 internal scale when needed | Godot Compatibility renderer, no glow, no realtime point-light shadows, restrained particles |
-| Balanced | Stable 40–45 FPS | Compatibility renderer first; one tested key shadow only if the target GPU sustains it |
-| High-end | Stable 60 FPS where hardware permits | Benchmark a separate Godot Mobile / Vulkan build against Compatibility before choosing it |
+Godot's Forward+ renderer supports desktop-oriented capabilities such as VoxelGI, SDFGI, SSIL, screen-space reflections and volumetric fog. The Mobile renderer shares the RenderingDevice/Vulkan architecture but omits some Forward+-only effects; use baked LightmapGI, reflection probes, authored shader atmosphere and carefully staged lights where needed on Android.
 
-Frame-time budgets are 33.3 ms at 30 FPS, 22.2 ms at 45 FPS and 16.7 ms at 60 FPS. These are acceptance targets, not claims about current performance.
-
-Current project settings already use a 1280×720 viewport and the Compatibility renderer. Android currently caps the engine at 45 FPS, disables glow and the key-light shadow, and reduces decorative point lights. Keep this safe profile until real-device measurements justify more effects. Godot's Compatibility renderer supports OpenGL ES 3.0 class devices; Godot's Mobile renderer is Vulkan-based and should be tested as an optional higher-tier variant, not assumed to work on every older Android phone.
-
-Performance work should follow Godot's documented guidance:
-
-- Bake static environment lighting where practical.
-- Keep only essential dynamic lights; avoid shadow-casting point lights.
-- Generate/use mesh LOD and visibility ranges for distant geometry.
-- Use occlusion culling where level architecture hides large sections.
-- Reduce animation updates for distant or off-screen characters.
-- Reuse skeletons and materials; keep the number of simultaneous skinned enemies controlled.
-- Compress textures for the target GPU and profile transparent textures separately.
-- Use pooled impact, dust, spark and debris effects instead of allocating them every hit.
+Do not assume visual parity between desktop and Android renderers. Maintain high-quality source assets, then create renderer-specific lighting, effects and material variants. Compare actual captured frames rather than selecting a renderer by name alone.
 
 References:
-- [Godot 4.7 system requirements and renderer compatibility](https://docs.godotengine.org/en/4.7/about/system_requirements.html)
-- [Godot 3D performance optimization](https://docs.godotengine.org/en/latest/tutorials/performance/optimizing_3d_performance.html)
-- [Godot GPU optimization](https://docs.godotengine.org/en/latest/tutorials/performance/gpu_optimization.html)
-- [Godot automatic mesh LOD](https://docs.godotengine.org/en/4.7/tutorials/3d/mesh_lod.html)
+- [Godot 4.7 renderer feature matrix](https://docs.godotengine.org/en/4.7/tutorials/rendering/renderers.html)
+- [Godot 4.7 renderer and platform features](https://docs.godotengine.org/en/4.7/about/list_of_features.html)
+- [Godot 4.7 system requirements](https://docs.godotengine.org/en/4.7/about/system_requirements.html)
+- [NOVA professional high-fidelity standard](NOVA_PROFESSIONAL_GAME_STANDARD.md)
 
 ## 3. Realistic human character pipeline
 
