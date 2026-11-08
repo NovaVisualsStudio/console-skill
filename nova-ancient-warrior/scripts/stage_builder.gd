@@ -1,8 +1,10 @@
 extends RefCounted
 ## Procedural campaign dressing with shared PBR materials; geometry is decorative and avoids extra physics bodies.
 const PBRMaterials = preload("res://scripts/pbr_material_library.gd")
+static var _active_texture_size := PBRMaterials.TEXTURE_SIZE
 
-static func build_stage(parent: Node3D, stage_index: int) -> void:
+static func build_stage(parent: Node3D, stage_index: int, quality: String = "mid") -> void:
+	_active_texture_size = PBRMaterials.HIGH_TEXTURE_SIZE if quality.to_lower() == "high" else PBRMaterials.TEXTURE_SIZE
 	var previous := parent.get_node_or_null("GeneratedStageDressing")
 	if previous != null:
 		parent.remove_child(previous)
@@ -32,6 +34,15 @@ static func _build_sunken_ruins(root: Node3D) -> void:
 		_box(root, "BrokenLintel", Vector3(0.8, 0.65, 1.1), Vector3(x, 0.35, -15.4), stone, Vector3(0.0, 0.0, randf_range(-0.18, 0.18)))
 	_box(root, "DistantGate", Vector3(8.5, 0.65, 0.5), Vector3(0.0, 5.5, -15.7), trim)
 	var trap_steel := _mat(Color(0.68, 0.48, 0.26), 0.62, 0.3, Color(0.28, 0.12, 0.025))
+	# Broken masonry, carved bands and scattered fragments give the temple a stronger silhouette.
+	for side in [-1.0, 1.0]:
+		for index in range(4):
+			var z := -8.0 + float(index) * 5.0
+			_box(root, "RuinWallPier", Vector3(1.15, 2.8, 0.72), Vector3(side * 13.2, 1.4, z), stone)
+			_box(root, "RuinCarvedBand", Vector3(1.32, 0.16, 0.88), Vector3(side * 13.2, 2.1, z), trim)
+	for index in range(12):
+		var angle := TAU * float(index) / 12.0
+		var shard := _box(root, "RuinDebris", Vector3(0.42 + float(index % 3) * 0.16, 0.18, 0.32), Vector3(cos(angle) * 11.8, 0.10, sin(angle) * 11.8), stone, Vector3(0.0, angle, randf_range(-0.2, 0.2)))
 	_box(root, "SpikeTrapPlate", Vector3(12.2, 0.08, 1.0), Vector3(0.0, 0.04, 8.4), stone)
 	for i in range(9):
 		var x := -5.0 + float(i) * 1.25
@@ -48,7 +59,14 @@ static func _build_ember_causeway(root: Node3D) -> void:
 			_box(root, "LavaChannel", Vector3(0.22, 0.025, 21.0), Vector3(x * 0.56, 0.02, 0.0), hot)
 	for side in [-1.0, 1.0]:
 		for i in range(3):
-			_cylinder(root, "ObsidianPillar", 0.52, 5.0, Vector3(side * 14.8, 2.5, -8.0 + float(i) * 8.0), basalt)
+			var z := -8.0 + float(i) * 8.0
+			_cylinder(root, "ObsidianPillar", 0.52, 5.0, Vector3(side * 14.8, 2.5, z), basalt)
+			_cylinder(root, "ObsidianPillarCollar", 0.66, 0.28, Vector3(side * 14.8, 4.45, z), hot)
+	# Jagged basalt outcrops and fractured glowing seams add depth without extra lights.
+	for index in range(10):
+		var side := -1.0 if index % 2 == 0 else 1.0
+		var z := -13.0 + float(index) * 2.7
+		_box(root, "BasaltFracture", Vector3(0.7, randf_range(1.2, 2.8), 0.65), Vector3(side * randf_range(7.5, 11.5), 0.7, z), basalt, Vector3(0.0, randf_range(-0.35, 0.35), randf_range(-0.16, 0.16)))
 
 
 static func _build_obsidian_throne(root: Node3D) -> void:
@@ -67,6 +85,12 @@ static func _build_obsidian_throne(root: Node3D) -> void:
 		var x := -4.0 + float(i) * 2.0
 		if i != 2:
 			_box(root, "RunicFloorLine", Vector3(0.08, 0.02, 16.0), Vector3(x, 0.025, -1.5), rune)
+	# Floating-looking rune shards are anchored to the throne walls as emissive landmarks.
+	for side in [-1.0, 1.0]:
+		for index in range(3):
+			var z := -9.0 + float(index) * 7.0
+			_box(root, "ThroneRuneShard", Vector3(0.18, 1.4, 0.22), Vector3(side * 12.6, 3.0, z), rune, Vector3(0.0, 0.0, side * 0.18))
+			_cylinder(root, "ThroneRuneSocket", 0.72, 0.16, Vector3(side * 12.6, 3.0, z), obsidian)
 
 static func set_rune_intensity(parent: Node3D, intensity: float) -> void:
 	var root := parent.get_node_or_null("GeneratedStageDressing")
@@ -125,4 +149,4 @@ static func _cylinder(parent: Node3D, node_name: String, radius: float, height: 
 
 static func _mat(color: Color, metallic: float, roughness: float, emission: Color = Color.BLACK) -> StandardMaterial3D:
 	var seed_value := int(absf(color.r * 997.0 + color.g * 467.0 + color.b * 193.0 + metallic * 61.0)) + 311
-	return PBRMaterials.create_surface_material(color, metallic, roughness, seed_value, 2.8, emission)
+	return PBRMaterials.create_surface_material(color, metallic, roughness, seed_value, 2.8, emission, _active_texture_size)
