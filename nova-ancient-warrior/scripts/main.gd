@@ -606,6 +606,7 @@ func _play_chapter_intro(chapter: int) -> void:
 			chapter_intro_title.visible = false
 		if is_instance_valid(chapter_intro_subtitle):
 			chapter_intro_subtitle.visible = false
+		_start_dialogue(NarrativeDirector.chapter_dialogue(safe_chapter))
 	)
 
 
@@ -626,7 +627,36 @@ func _start_boss_intro(boss: Node3D) -> void:
 		cinematic_active = false
 		if is_instance_valid(music_director):
 			music_director.call("set_intensity", 0.35)
+		_start_dialogue(NarrativeDirector.boss_dialogue(str(boss.get_meta("boss_kind", "ash_titan"))))
 	)
+
+
+func _start_dialogue(lines: Array[Dictionary]) -> void:
+	if not is_instance_valid(dialogue_panel) or lines.is_empty():
+		cinematic_active = false
+		return
+	dialogue_lines = lines.duplicate(true)
+	dialogue_index = -1
+	dialogue_active = true
+	cinematic_active = true
+	dialogue_panel.visible = true
+	_advance_dialogue()
+
+
+func _advance_dialogue() -> void:
+	dialogue_index += 1
+	if dialogue_index >= dialogue_lines.size():
+		dialogue_panel.visible = false
+		dialogue_active = false
+		cinematic_active = false
+		dialogue_lines.clear()
+		dialogue_index = -1
+		return
+	var line: Dictionary = dialogue_lines[dialogue_index]
+	var use_arabic := TranslationServer.get_locale().begins_with("ar")
+	dialogue_speaker_label.text = str(line.get("speaker", ""))
+	dialogue_text_label.text = str(line.get("text_ar", line.get("text", ""))) if use_arabic else str(line.get("text", ""))
+	dialogue_next_button.text = "التالي" if use_arabic else "CONTINUE"
 
 
 func _handle_wave_cleared() -> void:
