@@ -284,6 +284,7 @@ class Repo(unittest.TestCase):
         self.assertIn('platform="Android"', preset)
         self.assertIn('export_filter="resources"', preset)
         self.assertIn('audio/generated/*.wav', preset)
+        self.assertIn('scenes/main.tscn', preset)
         self.assertIn('scenes/chapters/*.tscn', preset)
         self.assertIn('assets/characters/nova_hero.glb', preset)
         self.assertNotIn('export_filter="all_resources"', preset)
