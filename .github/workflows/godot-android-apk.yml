@@ -147,7 +147,7 @@ jobs:
             --script res://tests/stage_hazard_rules_smoke.gd
           smoke_log="$(mktemp)"
           if ! "$GODOT_BIN" --headless --verbose --path nova-ancient-warrior \
-              --quit-after 240 >"$smoke_log" 2>&1; then
+              --script res://tests/main_scene_shutdown_smoke.gd --quit-after 600 >"$smoke_log" 2>&1; then
             cat "$smoke_log"
             exit 1
           fi
@@ -155,6 +155,7 @@ jobs:
           if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|Leaked instance:|ObjectDB instance was leaked|RID allocations of type" "$smoke_log"; then
             exit 1
           fi
+          grep -q "MAIN_SCENE_GRACEFUL_SHUTDOWN_OK" "$smoke_log"
           mkdir -p artifacts
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --export-debug "Android Debug" \

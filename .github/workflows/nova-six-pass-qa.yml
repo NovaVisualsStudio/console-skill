@@ -91,7 +91,7 @@ jobs:
           set -euo pipefail
           "$GODOT_BIN" --headless --path nova-ancient-warrior --script res://tests/mobile_render_profile_smoke.gd
           log_file="$RUNNER_TEMP/nova-main-scene.log"
-          if ! "$GODOT_BIN" --headless --verbose --path nova-ancient-warrior --quit-after 240 >"$log_file" 2>&1; then
+          if ! "$GODOT_BIN" --headless --verbose --path nova-ancient-warrior --script res://tests/main_scene_shutdown_smoke.gd --quit-after 600 >"$log_file" 2>&1; then
             cat "$log_file"
             exit 1
           fi
@@ -99,7 +99,8 @@ jobs:
           if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|Leaked instance:|ObjectDB instance was leaked|RID allocations of type" "$log_file"; then
             exit 1
           fi
-          echo "PASS 6: Android profile and main-scene boot passed"
+          grep -q "MAIN_SCENE_GRACEFUL_SHUTDOWN_OK" "$log_file"
+          echo "PASS 6: Android profile and graceful main-scene shutdown passed"
 
       - name: Publish six-pass summary
         if: always()

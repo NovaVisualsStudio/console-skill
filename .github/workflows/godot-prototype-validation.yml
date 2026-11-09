@@ -103,7 +103,7 @@ jobs:
         run: |
           set -euo pipefail
           log_file="$(mktemp)"
-          if ! ./Godot_v4.7.2-stable_linux.x86_64 --headless --verbose --path nova-ancient-warrior --quit-after 240 >"$log_file" 2>&1; then
+          if ! ./Godot_v4.7.2-stable_linux.x86_64 --headless --verbose --path nova-ancient-warrior --script res://tests/main_scene_shutdown_smoke.gd --quit-after 600 >"$log_file" 2>&1; then
             cat "$log_file"
             exit 1
           fi
@@ -111,3 +111,4 @@ jobs:
           if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|Leaked instance:|ObjectDB instance was leaked|RID allocations of type" "$log_file"; then
             exit 1
           fi
+          grep -q "MAIN_SCENE_GRACEFUL_SHUTDOWN_OK" "$log_file"

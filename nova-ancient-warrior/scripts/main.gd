@@ -47,6 +47,8 @@ var footstep_timer := 0.0
 var souls_earned := 0
 var cinematic_active := false
 var music_director: Node
+var _shutdown_in_progress := false
+var _quit_request_pending := false
 var arena_environment: Environment
 var arena_floor_material: StandardMaterial3D
 var arena_sun: DirectionalLight3D
@@ -76,6 +78,36 @@ func _ready() -> void:
 	_build_enemies()
 	_build_audio()
 	_update_hud()
+
+
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_WM_CLOSE_REQUEST and what != NOTIFICATION_WM_GO_BACK_REQUEST:
+		return
+	# Godot 4.7.2 Android may deliver more than one Back notification per press.
+	if _quit_request_pending:
+		return
+	_quit_request_pending = true
+	get_tree().set_auto_accept_quit(false)
+	_finish_quit_request.call_deferred()
+
+
+func _finish_quit_request() -> void:
+	await stop_audio_and_wait()
+	get_tree().quit()
+
+
+func stop_audio_and_wait() -> void:
+	if _shutdown_in_progress:
+		return
+	_shutdown_in_progress = true
+	if is_instance_valid(music_director):
+		music_director.call("stop_and_release")
+	for voice in sound_players:
+		if is_instance_valid(voice):
+			voice.stop()
+			voice.stream = null
+	# AudioServer retires stopped playbacks asynchronously; allow one short mix window.
+	await get_tree().create_timer(0.15).timeout
 
 
 func _process(delta: float) -> void:
