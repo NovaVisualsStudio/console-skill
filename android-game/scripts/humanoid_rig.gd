@@ -170,9 +170,11 @@ func _load_and_retarget_animations() -> void:
             if not library.has_animation(safe_name):
                 library.add_animation(safe_name, retargeted)
                 loaded_animation_count += 1
+    if not library.has_animation("NOVA_Death_Fall"):
+        library.add_animation("NOVA_Death_Fall", _make_death_fall_animation())
+        loaded_animation_count += 1
     if library.get_animation_list().size() > 0:
         animation_player.add_animation_library("", library)
-    print("NOVA UAL2 death-like clips: ", library.get_animation_list().filter(func(name): return String(name).to_lower().contains("death") or String(name).to_lower().contains("die") or String(name).to_lower().contains("fall") or String(name).to_lower().contains("knock")))
     source_root.queue_free()
     if loaded_animation_count == 0:
         push_warning("NOVA animation library imported, but no tracks matched the target humanoid skeleton.")
@@ -207,6 +209,34 @@ func _retarget_animation(source: Animation) -> Animation:
                 source.track_get_key_transition(track_index, key_index)
             )
     return result
+
+func _make_death_fall_animation() -> Animation:
+    var animation := Animation.new()
+    animation.resource_name = "NOVA_Death_Fall"
+    animation.length = 1.4
+    animation.loop_mode = Animation.LOOP_NONE
+    _add_bone_rotation_track(animation, "pelvis", [0.0, 0.42, 0.85, 1.4], [0.0, 42.0, 76.0, 82.0])
+    _add_bone_rotation_track(animation, "spine_02", [0.0, 0.42, 0.85, 1.4], [0.0, -22.0, -31.0, -34.0])
+    _add_bone_rotation_track(animation, "spine_03", [0.0, 0.42, 0.85, 1.4], [0.0, -14.0, -22.0, -25.0])
+    _add_bone_rotation_track(animation, "Head", [0.0, 0.42, 0.85, 1.4], [0.0, 22.0, 34.0, 38.0])
+    _add_bone_rotation_track(animation, "upperarm_l", [0.0, 0.42, 0.85, 1.4], [0.0, -38.0, -62.0, -68.0], Vector3(0.0, 0.0, 1.0))
+    _add_bone_rotation_track(animation, "upperarm_r", [0.0, 0.42, 0.85, 1.4], [0.0, 38.0, 62.0, 68.0], Vector3(0.0, 0.0, 1.0))
+    _add_bone_rotation_track(animation, "lowerarm_l", [0.0, 0.42, 0.85, 1.4], [0.0, 38.0, 58.0, 62.0], Vector3(0.0, 0.0, 1.0))
+    _add_bone_rotation_track(animation, "lowerarm_r", [0.0, 0.42, 0.85, 1.4], [0.0, -38.0, -58.0, -62.0], Vector3(0.0, 0.0, 1.0))
+    _add_bone_rotation_track(animation, "thigh_l", [0.0, 0.42, 0.85, 1.4], [0.0, 22.0, 40.0, 44.0])
+    _add_bone_rotation_track(animation, "thigh_r", [0.0, 0.42, 0.85, 1.4], [0.0, -22.0, -40.0, -44.0])
+    return animation
+
+func _add_bone_rotation_track(animation: Animation, bone_name: String, times: Array, angles: Array, axis: Vector3 = Vector3(1.0, 0.0, 0.0)) -> void:
+    var bone_index := skeleton.find_bone(bone_name)
+    if bone_index < 0:
+        return
+    var track_index := animation.add_track(Animation.TYPE_ROTATION_3D)
+    var target_path := "%s:%s" % [String(get_path_to(skeleton)), bone_name]
+    animation.track_set_path(track_index, NodePath(target_path))
+    for key_index in range(times.size()):
+        var rotation := Quaternion(axis.normalized(), deg_to_rad(float(angles[key_index])))
+        animation.track_insert_key(track_index, float(times[key_index]), rotation)
 
 func _find_target_bone(source_name: String) -> int:
     var key := source_name.to_lower().replace("def-", "")
