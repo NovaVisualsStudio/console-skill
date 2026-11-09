@@ -877,28 +877,37 @@ func _build_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	hud = Label.new()
-	hud.position = Vector2(24.0, 18.0)
-	hud.add_theme_font_size_override("font_size", 26)
+	hud.anchor_left = 0.02
+	hud.anchor_right = 0.98
+	hud.offset_left = 0.0
+	hud.offset_right = 0.0
+	hud.offset_top = 14.0
+	hud.offset_bottom = 48.0
+	hud.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hud.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hud.add_theme_font_size_override("font_size", 18)
 	hud.add_theme_color_override("font_color", Color(1.0, 0.84, 0.58))
 	layer.add_child(hud)
 	status_label = Label.new()
-	status_label.anchor_left = 0.5
-	status_label.anchor_right = 0.5
-	status_label.offset_left = -190.0
-	status_label.offset_right = 190.0
-	status_label.offset_top = 20.0
+	status_label.anchor_left = 0.04
+	status_label.anchor_right = 0.96
+	status_label.offset_left = 0.0
+	status_label.offset_right = 0.0
+	status_label.offset_top = 50.0
+	status_label.offset_bottom = 78.0
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	status_label.add_theme_font_size_override("font_size", 20)
+	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	status_label.add_theme_font_size_override("font_size", 18)
 	status_label.add_theme_color_override("font_color", Color(0.92, 0.84, 0.72))
 	status_label.text = LevelCatalog.wave_title(current_wave)
 	layer.add_child(status_label)
 	mission_objective_label = Label.new()
-	mission_objective_label.anchor_left = 0.5
-	mission_objective_label.anchor_right = 0.5
-	mission_objective_label.offset_left = -300.0
-	mission_objective_label.offset_right = 300.0
-	mission_objective_label.offset_top = 52.0
-	mission_objective_label.offset_bottom = 82.0
+	mission_objective_label.anchor_left = 0.08
+	mission_objective_label.anchor_right = 0.92
+	mission_objective_label.offset_left = 0.0
+	mission_objective_label.offset_right = 0.0
+	mission_objective_label.offset_top = 82.0
+	mission_objective_label.offset_bottom = 112.0
 	mission_objective_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mission_objective_label.add_theme_font_size_override("font_size", 16)
 	mission_objective_label.add_theme_color_override("font_color", Color(0.48, 0.88, 1.0))
