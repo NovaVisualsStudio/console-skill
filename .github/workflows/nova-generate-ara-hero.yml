@@ -1,0 +1,88 @@
+name: NOVA realistic hero generation
+
+on:
+  push:
+    branches:
+      - release/nova-ancient-warrior-integration-20261108
+    paths:
+      - "nova-ancient-warrior/tools/ara_export_hero.ts"
+      - ".github/workflows/nova-generate-ara-hero.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-realistic-hero:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout NOVA
+        uses: actions/checkout@v4
+
+      - name: Clone the audited Ara 3D Gen source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/olatunde85/3d-gen.git "$RUNNER_TEMP/ara-3d-gen"
+          git -C "$RUNNER_TEMP/ara-3d-gen" rev-parse HEAD | tee "$RUNNER_TEMP/ara-source-commit.txt"
+
+      - name: Install Node 22 and dependencies
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ${{ runner.temp }}/ara-3d-gen/pnpm-lock.yaml
+
+      - name: Install Ara dependencies
+        shell: bash
+        working-directory: ${{ runner.temp }}/ara-3d-gen
+        run: |
+          set -euo pipefail
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Prepare CC0 MakeHuman assets without downloading unused raw mocap
+        shell: bash
+        working-directory: ${{ runner.temp }}/ara-3d-gen
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("scripts/setup-assets.ts")
+          source = path.read_text()
+          needle = "await fetchMocap();"
+          if needle not in source:
+              raise SystemExit("Ara setup script changed; review the new setup flow before proceeding")
+          source = source.replace(
+              needle,
+              "log('Skipping optional raw CMU downloads; the selected animation clips are already baked into source.');"
+          )
+          path.write_text(source)
+          PY
+          pnpm run setup-assets
+
+      - name: Generate rigged NOVA warrior with sword and full animation library
+        shell: bash
+        working-directory: ${{ runner.temp }}/ara-3d-gen
+        env:
+          NOVA_HERO_OUTPUT: ${{ github.workspace }}/nova-ancient-warrior/assets/characters/nova_hero.glb
+        run: |
+          set -euo pipefail
+          cp "$GITHUB_WORKSPACE/nova-ancient-warrior/tools/ara_export_hero.ts" scripts/nova_export_hero.ts
+          pnpm exec tsx scripts/nova_export_hero.ts
+          test -s "$NOVA_HERO_OUTPUT"
+          file "$NOVA_HERO_OUTPUT"
+          sha256sum "$NOVA_HERO_OUTPUT" | tee "$RUNNER_TEMP/nova-hero.sha256"
+          cat "$RUNNER_TEMP/ara-source-commit.txt"
+
+      - name: Upload generated hero for review and integration
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-realistic-hero-glb
+          path: |
+            nova-ancient-warrior/assets/characters/nova_hero.glb
+            ${{ runner.temp }}/nova-hero.sha256
+            ${{ runner.temp }}/ara-source-commit.txt
+          if-no-files-found: error
+          retention-days: 14
