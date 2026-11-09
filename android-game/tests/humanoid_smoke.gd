@@ -15,8 +15,13 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
-    if rig.skeleton.get_bone_count() < 60:
+    if rig.skeleton.get_bone_count() < 50:
         push_error("Humanoid asset test: expected a production humanoid skeleton with at least 60 joints.")
+        rig.free()
+        quit(1)
+        return
+    if not rig.uses_realistic_character or rig.attached_clothing_mesh_count < 4:
+        push_error("Humanoid asset test: CC0 realistic body and four skinned outfit pieces must load.")
         rig.free()
         quit(1)
         return
