@@ -27,6 +27,11 @@ func _run_puzzle_smoke() -> void:
 		if hint == null or (not hint.text.contains("ANCIENT ORDER") and not hint.text.contains("ترتيب الرموز")):
 			_fail(root, "Chapter %d must visibly communicate the rune order" % chapter)
 			return
+		var wrong_rune := (sequence[0] % 3) + 1
+		var rejected := ExplorationPuzzleDirector.evaluate_rune(wrong_rune, 0, sequence)
+		if bool(rejected.get("accepted", true)) or int(rejected.get("progress", -1)) != 0:
+			_fail(root, "Out-of-order rune must be rejected without advancing puzzle progress")
+			return
 		ExplorationPuzzleDirector.set_expected_order(runes, sequence[0])
 		var expected_material := runes[sequence[0] - 1].get_meta("rune_material") as StandardMaterial3D
 		if expected_material == null or not is_equal_approx(expected_material.emission_energy_multiplier, 2.35):
@@ -34,6 +39,10 @@ func _run_puzzle_smoke() -> void:
 			return
 		for step in range(sequence.size()):
 			var rune := runes[sequence[step] - 1]
+			var accepted := ExplorationPuzzleDirector.evaluate_rune(sequence[step], step, sequence)
+			if not bool(accepted.get("accepted", false)) or int(accepted.get("progress", -1)) != step + 1 or bool(accepted.get("solved", false)) != (step == sequence.size() - 1):
+				_fail(root, "Correct sequence input must advance and solve the puzzle at exactly the third rune")
+				return
 			if not ExplorationPuzzleDirector.activate(rune):
 				_fail(root, "A rune in the chapter sequence should activate once")
 				return
@@ -42,6 +51,10 @@ func _run_puzzle_smoke() -> void:
 				return
 			if step + 1 < sequence.size():
 				ExplorationPuzzleDirector.set_expected_order(runes, sequence[step + 1])
+		var after_solve := ExplorationPuzzleDirector.evaluate_rune(sequence[0], sequence.size(), sequence)
+		if bool(after_solve.get("accepted", true)) or not bool(after_solve.get("solved", false)):
+			_fail(root, "Solved puzzles must reject additional sequence inputs")
+			return
 		if bool(root.get_node("GeneratedExplorationPuzzle").get_meta("solved", false)):
 			_fail(root, "The puzzle director must not mark a puzzle solved before gameplay confirms the final sequence")
 			return
