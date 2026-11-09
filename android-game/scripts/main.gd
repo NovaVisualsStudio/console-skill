@@ -634,9 +634,9 @@ func _save_campaign_progress(next_chapter: int, is_complete: bool, path: String 
     var config := ConfigFile.new()
     config.load(path)
     unlocked_chapter = maxi(unlocked_chapter, next_chapter)
-    chapter_index = clampi(next_chapter, 0, CHAPTER_NAMES.size() - 1)
+    var current_to_save := clampi(next_chapter, 0, CHAPTER_NAMES.size() - 1)
     campaign_complete = is_complete
-    config.set_value("progress", "current_chapter", chapter_index)
+    config.set_value("progress", "current_chapter", current_to_save)
     config.set_value("progress", "unlocked_chapter", unlocked_chapter)
     config.set_value("progress", "campaign_complete", campaign_complete)
     var save_error := config.save(path)
