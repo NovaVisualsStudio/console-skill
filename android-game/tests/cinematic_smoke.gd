@@ -59,6 +59,27 @@ func _run_tests() -> void:
         push_error("Camera lock-on target assignment failed.")
         await _finish(1, arena)
         return
+    # A physical wall between the focus and camera must retract the camera immediately.
+    var focus_point := arena.player.global_position + Vector3.UP * arena.camera_rig.look_height
+    var desired_camera := arena.player.global_position + Vector3(1.05, 3.0, 6.8)
+    var blocker := StaticBody3D.new()
+    blocker.name = "CameraOcclusionTestWall"
+    blocker.position = focus_point.lerp(desired_camera, 0.55)
+    var blocker_shape := CollisionShape3D.new()
+    var blocker_box := BoxShape3D.new()
+    blocker_box.size = Vector3(3.0, 4.0, 0.65)
+    blocker_shape.shape = blocker_box
+    blocker.add_child(blocker_shape)
+    arena.add_child(blocker)
+    await physics_frame
+    var safe_camera_position := arena.camera_rig._constrain_camera_position(focus_point, desired_camera)
+    if safe_camera_position.distance_to(desired_camera) >= 1.0:
+        push_error("Camera collision failed to retract behind a blocking wall.")
+        await _finish(1, arena)
+        return
+    blocker.queue_free()
+    await physics_frame
+
     arena.camera_rig.shake(0.25, 0.2)
     if arena.camera_rig.shake_timer <= 0.0:
         push_error("Camera impact shake did not start.")
