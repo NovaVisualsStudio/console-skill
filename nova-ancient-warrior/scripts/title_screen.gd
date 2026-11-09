@@ -1,0 +1,326 @@
+extends Control
+## Touch-first title screen with a live 3D hero preview, campaign entry and local settings.
+
+const RiggedWarriorVisual = preload("res://scripts/rigged_warrior_visual.gd")
+
+var _continue_button: Button
+var _settings_panel: PanelContainer
+var _credits_panel: PanelContainer
+var _music_slider: HSlider
+var _sfx_slider: HSlider
+var _quality_button: Button
+
+
+func _ready() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_build_hero_preview()
+	_build_ui()
+	_refresh_campaign_state()
+
+
+func _build_hero_preview() -> void:
+	var container := SubViewportContainer.new()
+	container.name = "HeroPreview"
+	container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.stretch = true
+	add_child(container)
+
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(1280, 720)
+	viewport.own_world_3d = true
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	container.add_child(viewport)
+
+	var world := Node3D.new()
+	viewport.add_child(world)
+	var environment_node := WorldEnvironment.new()
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_COLOR
+	environment.background_color = Color(0.018, 0.027, 0.052)
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color(0.42, 0.46, 0.56)
+	environment.ambient_light_energy = 0.72
+	environment_node.environment = environment
+	world.add_child(environment_node)
+
+	var floor := MeshInstance3D.new()
+	var floor_mesh := PlaneMesh.new()
+	floor_mesh.size = Vector2(18.0, 18.0)
+	floor.mesh = floor_mesh
+	floor.position.y = -0.035
+	var floor_material := StandardMaterial3D.new()
+	floor_material.albedo_color = Color(0.045, 0.052, 0.075)
+	floor_material.metallic = 0.32
+	floor_material.roughness = 0.42
+	floor.material_override = floor_material
+	world.add_child(floor)
+
+	var halo := MeshInstance3D.new()
+	var halo_mesh := TorusMesh.new()
+	halo_mesh.inner_radius = 1.55
+	halo_mesh.outer_radius = 1.62
+	halo.mesh = halo_mesh
+	halo.position = Vector3(0.0, 1.55, -0.65)
+	halo.rotation.x = deg_to_rad(90.0)
+	var halo_material := StandardMaterial3D.new()
+	halo_material.albedo_color = Color(0.22, 0.56, 0.86)
+	halo_material.emission_enabled = true
+	halo_material.emission = Color(0.08, 0.22, 0.5)
+	halo_material.emission_energy_multiplier = 1.1
+	halo_material.metallic = 0.5
+	halo.material_override = halo_material
+	world.add_child(halo)
+
+	var key_light := DirectionalLight3D.new()
+	key_light.rotation_degrees = Vector3(-34.0, -28.0, 0.0)
+	key_light.light_energy = 2.1
+	key_light.shadow_enabled = false
+	world.add_child(key_light)
+	var fill_light := OmniLight3D.new()
+	fill_light.position = Vector3(2.4, 2.7, 2.0)
+	fill_light.light_color = Color(0.35, 0.58, 1.0)
+	fill_light.light_energy = 1.1
+	fill_light.omni_range = 7.0
+	fill_light.shadow_enabled = false
+	world.add_child(fill_light)
+
+	var camera := Camera3D.new()
+	camera.position = Vector3(0.25, 1.45, 5.2)
+	camera.fov = 34.0
+	camera.current = true
+	camera.look_at(Vector3(0.0, 0.98, 0.0), Vector3.UP)
+	world.add_child(camera)
+
+	var hero := RiggedWarriorVisual.new()
+	hero.name = "TitleHero"
+	hero.rotation.y = PI
+	world.add_child(hero)
+
+
+func _build_ui() -> void:
+	var left_shade := ColorRect.new()
+	left_shade.name = "MenuShade"
+	left_shade.anchor_right = 0.53
+	left_shade.anchor_bottom = 1.0
+	left_shade.color = Color(0.012, 0.018, 0.032, 0.91)
+	left_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(left_shade)
+
+	var title := Label.new()
+	title.text = "NOVA"
+	title.position = Vector2(72.0, 76.0)
+	title.add_theme_font_size_override("font_size", 76)
+	title.add_theme_color_override("font_color", Color(0.93, 0.84, 0.64))
+	add_child(title)
+
+	var subtitle := Label.new()
+	subtitle.text = "ANCIENT WARRIOR"
+	subtitle.position = Vector2(78.0, 158.0)
+	subtitle.add_theme_font_size_override("font_size", 25)
+	subtitle.add_theme_color_override("font_color", Color(0.78, 0.84, 0.94))
+	add_child(subtitle)
+
+	var tagline := Label.new()
+	tagline.text = "THREE SEALS. THREE KINGDOMS. ONE FINAL OATH."
+	tagline.position = Vector2(80.0, 202.0)
+	tagline.add_theme_font_size_override("font_size", 13)
+	tagline.add_theme_color_override("font_color", Color(0.58, 0.69, 0.83))
+	add_child(tagline)
+
+	var menu := VBoxContainer.new()
+	menu.name = "MainMenuButtons"
+	menu.position = Vector2(76.0, 290.0)
+	menu.custom_minimum_size = Vector2(360.0, 0.0)
+	menu.add_theme_constant_override("separation", 12)
+	add_child(menu)
+
+	var new_game := _make_button("NEW CAMPAIGN", Vector2(350.0, 56.0))
+	new_game.name = "NewCampaignButton"
+	new_game.pressed.connect(_start_new_campaign)
+	menu.add_child(new_game)
+
+	_continue_button = _make_button("CONTINUE", Vector2(350.0, 56.0))
+	_continue_button.name = "ContinueButton"
+	_continue_button.pressed.connect(_continue_campaign)
+	menu.add_child(_continue_button)
+
+	var settings := _make_button("SETTINGS", Vector2(350.0, 50.0))
+	settings.name = "SettingsButton"
+	settings.pressed.connect(func(): _settings_panel.visible = true)
+	menu.add_child(settings)
+
+	var credits := _make_button("CREDITS", Vector2(350.0, 50.0))
+	credits.name = "CreditsButton"
+	credits.pressed.connect(func(): _credits_panel.visible = true)
+	menu.add_child(credits)
+
+	if OS.get_name() != "Android" and OS.get_name() != "iOS":
+		var quit_button := _make_button("QUIT", Vector2(350.0, 46.0))
+		quit_button.name = "QuitButton"
+		quit_button.pressed.connect(func(): get_tree().quit())
+		menu.add_child(quit_button)
+
+	var footer := Label.new()
+	footer.text = "OFFLINE CAMPAIGN  •  MID / HIGH ANDROID PROFILES"
+	footer.position = Vector2(78.0, 670.0)
+	footer.add_theme_font_size_override("font_size", 11)
+	footer.add_theme_color_override("font_color", Color(0.48, 0.57, 0.7))
+	add_child(footer)
+
+	_build_settings_panel()
+	_build_credits_panel()
+
+
+func _make_button(label: String, minimum_size: Vector2) -> Button:
+	var button := Button.new()
+	button.text = label
+	button.custom_minimum_size = minimum_size
+	button.focus_mode = Control.FOCUS_NONE
+	button.add_theme_font_size_override("font_size", 17)
+	return button
+
+
+func _build_settings_panel() -> void:
+	_settings_panel = PanelContainer.new()
+	_settings_panel.name = "SettingsPanel"
+	_settings_panel.anchor_left = 0.5
+	_settings_panel.anchor_right = 0.5
+	_settings_panel.anchor_top = 0.5
+	_settings_panel.anchor_bottom = 0.5
+	_settings_panel.offset_left = -230.0
+	_settings_panel.offset_right = 230.0
+	_settings_panel.offset_top = -220.0
+	_settings_panel.offset_bottom = 220.0
+	_settings_panel.visible = false
+	_settings_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_settings_panel)
+
+	var stack := VBoxContainer.new()
+	stack.add_theme_constant_override("separation", 13)
+	_settings_panel.add_child(stack)
+	var heading := Label.new()
+	heading.text = "SETTINGS"
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	heading.add_theme_font_size_override("font_size", 27)
+	stack.add_child(heading)
+
+	var profile := _save_profile()
+	var music_label := Label.new()
+	music_label.text = "MUSIC VOLUME"
+	stack.add_child(music_label)
+	_music_slider = HSlider.new()
+	_music_slider.min_value = 0.0
+	_music_slider.max_value = 1.0
+	_music_slider.step = 0.05
+	_music_slider.value = float(profile.get("music_volume", 0.72))
+	stack.add_child(_music_slider)
+
+	var sfx_label := Label.new()
+	sfx_label.text = "SOUND EFFECTS"
+	stack.add_child(sfx_label)
+	_sfx_slider = HSlider.new()
+	_sfx_slider.min_value = 0.0
+	_sfx_slider.max_value = 1.0
+	_sfx_slider.step = 0.05
+	_sfx_slider.value = float(profile.get("sfx_volume", 0.85))
+	stack.add_child(_sfx_slider)
+
+	_music_slider.value_changed.connect(_save_audio_options)
+	_sfx_slider.value_changed.connect(_save_audio_options)
+
+	_quality_button = _make_button("", Vector2(400.0, 48.0))
+	_quality_button.pressed.connect(_toggle_graphics_quality)
+	stack.add_child(_quality_button)
+	_refresh_quality_button()
+
+	var close := _make_button("CLOSE", Vector2(400.0, 46.0))
+	close.pressed.connect(func(): _settings_panel.visible = false)
+	stack.add_child(close)
+
+
+func _build_credits_panel() -> void:
+	_credits_panel = PanelContainer.new()
+	_credits_panel.name = "CreditsPanel"
+	_credits_panel.anchor_left = 0.5
+	_credits_panel.anchor_right = 0.5
+	_credits_panel.anchor_top = 0.5
+	_credits_panel.anchor_bottom = 0.5
+	_credits_panel.offset_left = -270.0
+	_credits_panel.offset_right = 270.0
+	_credits_panel.offset_top = -230.0
+	_credits_panel.offset_bottom = 230.0
+	_credits_panel.visible = false
+	_credits_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_credits_panel)
+	var stack := VBoxContainer.new()
+	stack.add_theme_constant_override("separation", 12)
+	_credits_panel.add_child(stack)
+	var heading := Label.new()
+	heading.text = "CREDITS & ASSET NOTICES"
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	heading.add_theme_font_size_override("font_size", 23)
+	stack.add_child(heading)
+	var notice := Label.new()
+	notice.name = "CreditsNotice"
+	notice.text = "NOVA Ancient Warrior is an original project. Hero generation: Ara 3D Gen (MIT). Character data: MakeHuman (CC0 1.0). Motion data: CMU Graphics Lab Motion Capture Database.\n\nThe data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217."
+	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	notice.custom_minimum_size = Vector2(490.0, 250.0)
+	notice.add_theme_font_size_override("font_size", 14)
+	stack.add_child(notice)
+	var close := _make_button("CLOSE", Vector2(490.0, 48.0))
+	close.pressed.connect(func(): _credits_panel.visible = false)
+	stack.add_child(close)
+
+
+func _save_profile() -> Dictionary:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null:
+		return {}
+	var value: Variant = manager.get("profile")
+	return value if value is Dictionary else {}
+
+
+func _refresh_campaign_state() -> void:
+	var profile := _save_profile()
+	var complete := bool(profile.get("campaign_complete", false))
+	var can_continue := int(profile.get("highest_wave", 1)) > 1 or complete
+	_continue_button.disabled = not can_continue
+	_continue_button.text = "REPLAY FINAL CHAPTER" if complete else "CONTINUE"
+
+
+func _start_new_campaign() -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager != null:
+		manager.call("start_new_campaign")
+		manager.call("begin_run")
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+
+func _continue_campaign() -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager != null:
+		manager.call("begin_run")
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+
+func _save_audio_options(_value: float) -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager != null:
+		manager.call("set_audio_options", _music_slider.value, _sfx_slider.value)
+
+
+func _toggle_graphics_quality() -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null:
+		return
+	var profile := _save_profile()
+	var next_quality := "high" if str(profile.get("graphics_quality", "mid")) == "mid" else "mid"
+	manager.call("set_graphics_quality", next_quality)
+	_refresh_quality_button()
+
+
+func _refresh_quality_button() -> void:
+	var profile := _save_profile()
+	var quality := str(profile.get("graphics_quality", "mid")).to_upper()
+	_quality_button.text = "GRAPHICS PROFILE: %s" % quality
