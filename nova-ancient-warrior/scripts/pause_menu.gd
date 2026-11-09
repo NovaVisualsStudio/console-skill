@@ -16,6 +16,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_ui()
+	_apply_language()
 
 
 func _input(event: InputEvent) -> void:
@@ -83,6 +84,7 @@ func _build_ui() -> void:
 	_panel.add_child(stack)
 
 	var heading := Label.new()
+	heading.name = "PauseHeading"
 	heading.text = "PAUSED"
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	heading.add_theme_font_size_override("font_size", 28)
@@ -97,6 +99,7 @@ func _build_ui() -> void:
 
 	var profile := _load_audio_profile()
 	var music_label := Label.new()
+	music_label.name = "MusicVolumeLabel"
 	music_label.text = "MUSIC VOLUME"
 	stack.add_child(music_label)
 	_music_slider = HSlider.new()
@@ -108,6 +111,7 @@ func _build_ui() -> void:
 	stack.add_child(_music_slider)
 
 	var sfx_label := Label.new()
+	sfx_label.name = "SfxVolumeLabel"
 	sfx_label.text = "SOUND EFFECTS"
 	stack.add_child(sfx_label)
 	_sfx_slider = HSlider.new()
@@ -140,3 +144,28 @@ func _load_audio_profile() -> Dictionary:
 
 func _emit_audio_settings(_changed_value: float) -> void:
 	audio_settings_changed.emit(_music_slider.value, _sfx_slider.value)
+
+
+func _apply_language() -> void:
+	var arabic := TranslationServer.get_locale().begins_with("ar")
+	_pause_button.text = "إيقاف مؤقت" if arabic else "PAUSE"
+	var heading := _panel.get_node("SettingsStack/PauseHeading") as Label
+	heading.text = "متوقف مؤقتاً" if arabic else "PAUSED"
+	heading.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+	var resume := _panel.get_node("SettingsStack/ResumeButton") as Button
+	resume.text = "استئناف" if arabic else "RESUME"
+	resume.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+	var music_label := _panel.get_node("SettingsStack/MusicVolumeLabel") as Label
+	music_label.text = "صوت الموسيقى" if arabic else "MUSIC VOLUME"
+	music_label.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+	var sfx_label := _panel.get_node("SettingsStack/SfxVolumeLabel") as Label
+	sfx_label.text = "المؤثرات الصوتية" if arabic else "SOUND EFFECTS"
+	sfx_label.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+	var credits := _panel.get_node("SettingsStack/CreditsLabel") as Label
+	if arabic:
+		credits.text = "الشخصية: Ara 3D Gen / MakeHuman CC0. بيانات الحركة: CMU Graphics Lab.\nThe data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217."
+		credits.text_direction = Control.TEXT_DIRECTION_RTL
+	else:
+		credits.text = "HERO: Ara 3D Gen / MakeHuman CC0. MOTION DATA: CMU Graphics Lab. The data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217."
+		credits.text_direction = Control.TEXT_DIRECTION_LTR
+	_panel.layout_direction = Control.LAYOUT_DIRECTION_RTL if arabic else Control.LAYOUT_DIRECTION_LTR
