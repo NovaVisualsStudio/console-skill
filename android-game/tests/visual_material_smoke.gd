@@ -75,6 +75,8 @@ func _finish(exit_code: int, arena: Node) -> void:
             arena.audio_fx.shutdown()
             arena.audio_fx = null
         arena.free()
+    # Give AudioServer time to release the just-stopped WAV streams and playbacks.
+    await create_timer(0.5).timeout
     await process_frame
     await process_frame
     quit(exit_code)

@@ -116,6 +116,8 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn("normal_texture", visual_test)
         self.assertIn("roughness_texture", visual_test)
         self.assertIn("PBR VISUAL TEST PASS", visual_test)
+        self.assertIn("await create_timer(0.5).timeout", visual_test)
+        self.assertIn("AudioServer time", visual_test)
         license_file = self.read("assets/textures/ASSET_LICENSES.md")
         self.assertIn("CC0 1.0", license_file)
         self.assertIn("stone_wall", license_file)
