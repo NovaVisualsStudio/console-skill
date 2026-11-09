@@ -46,14 +46,18 @@ static func _build_sunken_layout(root: Node3D) -> void:
 	var trim := _material(Color(0.68, 0.48, 0.25), 0.42, 0.55)
 	# Broken processional walkway on the flanks; the central combat lane stays open.
 	for side in [-1.0, 1.0]:
-		_solid_block(root, "SunkenSidePlatform_%s" % ("Left" if side < 0.0 else "Right"), Vector3(3.0, 0.28, 8.0), Vector3(side * 10.6, 0.14, -3.5), stone)
+		var side_label := "Left" if side < 0.0 else "Right"
+		# Three stepped stone rises lead onto a raised flank platform.
+		_solid_block(root, "SunkenSidePlatform_%s" % side_label, Vector3(3.0, 0.56, 8.0), Vector3(side * 10.6, 0.28, -3.5), stone)
 		for step in range(3):
-			var step_x: float = side * (8.2 + float(step) * 1.55)
-			var step_height: float = 0.10 + float(step) * 0.07
-			_solid_block(root, "SunkenFlankStep", Vector3(1.65, step_height, 2.2), Vector3(step_x, step_height * 0.5, -3.5), trim)
+			var step_x: float = side * (7.0 + float(step) * 0.8)
+			var step_height: float = 0.18 + float(step) * 0.18
+			var step_name := "SunkenFlankStep_%s_%d" % [side_label, step + 1]
+			_solid_block(root, step_name, Vector3(1.0, step_height, 2.2), Vector3(step_x, step_height * 0.5, -3.5), trim)
 		for index in range(3):
 			var z := -11.0 + float(index) * 7.0
-			_solid_block(root, "SunkenPillarBase", Vector3(1.5, 0.55, 1.5), Vector3(side * 14.0, 0.275, z), trim)
+			var pillar_name := "SunkenPillarBase_%s_%d" % [side_label, index + 1]
+			_solid_block(root, pillar_name, Vector3(1.5, 0.55, 1.5), Vector3(side * 14.0, 0.275, z), trim)
 	_solid_block(root, "SunkenAltarBase", Vector3(5.4, 0.34, 2.2), Vector3(0.0, 0.17, -13.6), stone)
 	_solid_block(root, "SunkenAltarTop", Vector3(3.6, 0.24, 1.5), Vector3(0.0, 0.46, -13.6), trim)
 	for side in [-1.0, 1.0]:
@@ -68,18 +72,22 @@ static func _build_ember_layout(root: Node3D) -> void:
 	# A broad safe central spine separates the lava channels already evaluated by StageHazardRules.
 	_solid_block(root, "EmberCauseway", Vector3(3.3, 0.06, 25.0), Vector3(0.0, 0.03, -0.2), basalt)
 	for side in [-1.0, 1.0]:
+		var side_label := "Left" if side < 0.0 else "Right"
 		for index in range(3):
 			var z := -10.0 + float(index) * 9.0
-			_solid_block(root, "EmberFlankBastion", Vector3(2.6, 0.42, 2.6), Vector3(side * 12.2, 0.21, z), basalt)
-			_solid_block(root, "EmberBrazier", Vector3(0.72, 1.25, 0.72), Vector3(side * 12.2, 1.045, z), ember)
+			_solid_block(root, "EmberFlankBastion_%s_%d" % [side_label, index + 1], Vector3(2.6, 0.42, 2.6), Vector3(side * 12.2, 0.21, z), basalt)
+			_solid_block(root, "EmberBrazier_%s_%d" % [side_label, index + 1], Vector3(0.72, 1.25, 0.72), Vector3(side * 12.2, 1.045, z), ember)
 	_solid_block(root, "EmberBossDais", Vector3(6.0, 0.28, 2.4), Vector3(0.0, 0.14, -13.8), basalt)
 	# Safe stepping shelves create optional flank lines around the central causeway.
 	for side in [-1.0, 1.0]:
+		var side_label := "Left" if side < 0.0 else "Right"
 		for index in range(3):
 			var z := -7.0 + float(index) * 7.0
-			var flank_name := "EmberFlankStep_%s_%d" % ["Left" if side < 0.0 else "Right", index + 1]
-			_solid_block(root, flank_name, Vector3(2.0, 0.18, 2.0), Vector3(side * 8.2, 0.09, z), basalt)
-		_solid_block(root, "EmberCoverBlock", Vector3(1.8, 1.0, 1.4), Vector3(side * 5.0, 0.5, 5.8), ember)
+			# A lower approach stone and a taller landing make this an actual jump route.
+			_solid_block(root, "EmberFlankApproach_%s_%d" % [side_label, index + 1], Vector3(1.6, 0.21, 2.0), Vector3(side * 6.6, 0.105, z), basalt)
+			var flank_name := "EmberFlankStep_%s_%d" % [side_label, index + 1]
+			_solid_block(root, flank_name, Vector3(2.0, 0.42, 2.0), Vector3(side * 8.2, 0.21, z), basalt)
+		_solid_block(root, "EmberCoverBlock_%s" % side_label, Vector3(1.8, 1.0, 1.4), Vector3(side * 5.0, 0.5, 5.8), ember)
 	_add_arch(root, "EmberEntryArch", Vector3(0.48, 5.8, 0.55), basalt, ember)
 
 
@@ -88,20 +96,23 @@ static func _build_obsidian_layout(root: Node3D) -> void:
 	var rune := _material(Color(0.20, 0.32, 0.78), 0.46, 0.32, Color(0.10, 0.20, 0.9))
 	# Symmetric cover plinths and a throne dais frame the final boss without blocking approach.
 	for side in [-1.0, 1.0]:
-		_solid_block(root, "ObsidianCoverPlinth", Vector3(2.5, 0.62, 3.2), Vector3(side * 11.2, 0.31, 1.0), obsidian)
+		var side_label := "Left" if side < 0.0 else "Right"
+		_solid_block(root, "ObsidianCoverPlinth_%s" % side_label, Vector3(2.5, 0.62, 3.2), Vector3(side * 11.2, 0.31, 1.0), obsidian)
 		for index in range(3):
 			var z := -10.0 + float(index) * 8.0
-			_solid_block(root, "ObsidianRunePillar", Vector3(1.0, 3.6, 1.0), Vector3(side * 14.0, 1.8, z), rune)
+			_solid_block(root, "ObsidianRunePillar_%s_%d" % [side_label, index + 1], Vector3(1.0, 3.6, 1.0), Vector3(side * 14.0, 1.8, z), rune)
 	_solid_block(root, "ObsidianThroneDais", Vector3(7.0, 0.42, 3.0), Vector3(0.0, 0.21, -13.8), obsidian)
 	_solid_block(root, "ObsidianThroneStep", Vector3(4.8, 0.22, 1.2), Vector3(0.0, 0.53, -12.2), rune)
 	for side in [-1.0, 1.0]:
+		var side_label := "Left" if side < 0.0 else "Right"
 		for index in range(3):
 			var z: float = [-8.0, -4.0, 4.0][index]
-			# Outer traversal shelves stay clear of the enemy spawn ring and throne plinths.
-			var walk_name := "ObsidianSideWalk_%s_%d" % ["Left" if side < 0.0 else "Right", index + 1]
-			_solid_block(root, walk_name, Vector3(2.2, 0.20, 2.6), Vector3(side * 13.0, 0.10, z), obsidian)
+			# A half-height approach step leads to the raised obsidian walkway.
+			_solid_block(root, "ObsidianWalkApproach_%s_%d" % [side_label, index + 1], Vector3(2.2, 0.30, 2.2), Vector3(side * 10.8, 0.15, z), obsidian)
+			var walk_name := "ObsidianSideWalk_%s_%d" % [side_label, index + 1]
+			_solid_block(root, walk_name, Vector3(2.2, 0.60, 2.6), Vector3(side * 13.0, 0.30, z), obsidian)
 		# Keep the opening combat spawn ring clear; guard stones sit beyond the approach lane.
-		_solid_block(root, "ObsidianGuardStone", Vector3(2.0, 0.9, 1.1), Vector3(side * 10.0, 0.45, 3.6), obsidian)
+		_solid_block(root, "ObsidianGuardStone_%s" % side_label, Vector3(2.0, 0.9, 1.1), Vector3(side * 10.0, 0.45, 3.6), obsidian)
 	_add_arch(root, "ObsidianEntryArch", Vector3(0.48, 6.2, 0.55), obsidian, rune)
 
 
