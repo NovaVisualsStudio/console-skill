@@ -46,6 +46,19 @@ func _run_combat_window_smoke() -> void:
 		await _finish(1, game, "SaveManager autoload was not initialized for the main scene")
 		return
 	print("Combat window test: main scene and SaveManager autoload booted")
+	var hud := game.get("hud") as Label
+	var original_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("ar")
+	game.call("_update_hud")
+	if hud == null or not hud.text.contains("الفصل") or hud.text_direction != Control.TEXT_DIRECTION_RTL:
+		await _finish(1, game, "In-game HUD did not switch to Arabic and right-to-left layout")
+		return
+	TranslationServer.set_locale(original_locale)
+	game.call("_update_hud")
+	if hud.text_direction != Control.TEXT_DIRECTION_LTR:
+		await _finish(1, game, "In-game HUD did not restore its original layout direction")
+		return
+	print("Combat window test: in-game HUD supports Arabic and English layout")
 	var music_director := game.get_node_or_null("MusicDirector")
 	if music_director == null:
 		await _finish(1, game, "Main scene did not create MusicDirector")
