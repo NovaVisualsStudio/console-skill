@@ -167,7 +167,15 @@ func _apply_character_materials(root: Node) -> void:
             mesh_instance.material_overlay = hit_flash_material
             mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
         _apply_character_materials(child)
-    primary_material = hit_flash_material
+    # Keep the character's real surface material separate from the transient hit overlay.
+    # Combat feedback may tint primary_material; hit_flash_material remains the overlay.
+    primary_material = null
+    if primary_mesh != null and primary_mesh.mesh != null:
+        for surface_index in range(primary_mesh.mesh.get_surface_count()):
+            var active_material := primary_mesh.get_active_material(surface_index)
+            if active_material is StandardMaterial3D:
+                primary_material = active_material as StandardMaterial3D
+                break
 func _load_cc0_surface(asset_id: String, tint: Color, roughness: float, metallic: float, tiling: float) -> StandardMaterial3D:
     var tier := OS.get_environment("NOVA_TEXTURE_TIER").to_lower()
     if tier.is_empty():
