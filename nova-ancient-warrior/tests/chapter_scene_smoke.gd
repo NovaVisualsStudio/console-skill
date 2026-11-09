@@ -82,3 +82,10 @@ func _run_chapter_scene_smoke() -> void:
 	assert(observed_layout_sizes.size() == 3, "All three chapter scenes must be tested")
 	print("Chapter scene smoke test passed: three independent PackedScenes with unique collision layouts and dressing")
 	quit(0)
+
+
+func _fail(scene: Node3D, message: String) -> void:
+	push_error(message)
+	if is_instance_valid(scene):
+		scene.free()
+	quit(1)
