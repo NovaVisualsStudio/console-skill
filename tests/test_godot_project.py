@@ -100,6 +100,31 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn("_save_campaign_progress", main_script)
         self.assertIn("campaign_complete", campaign_test)
 
+    def test_cc0_pbr_environment_assets_are_imported_and_tested(self):
+        fetcher = self.read("tools/fetch_cc0_textures.py")
+        self.assertIn("api.polyhaven.com/files/", fetcher)
+        self.assertIn("md5", fetcher)
+        self.assertIn("1k", fetcher)
+        self.assertIn("nor_gl", fetcher)
+        self.assertIn("dl.polyhaven.org", fetcher)
+        main_script = self.read("scripts/main.gd")
+        for token in ("rock_tile_floor_diff_1k.jpg", "stone_wall_diff_1k.jpg",
+                      "_make_pbr_material", "_apply_pbr_material", "PolyHavenCredits",
+                      "POWERED BY POLY HAVEN"):
+            self.assertIn(token, main_script)
+        visual_test = self.read("tests/visual_material_smoke.gd")
+        self.assertIn("normal_texture", visual_test)
+        self.assertIn("roughness_texture", visual_test)
+        self.assertIn("PBR VISUAL TEST PASS", visual_test)
+        license_file = self.read("assets/textures/ASSET_LICENSES.md")
+        self.assertIn("CC0 1.0", license_file)
+        self.assertIn("stone_wall", license_file)
+        self.assertIn("rock_tile_floor", license_file)
+        workflow = self.read("../.github/workflows/godot-android-prototype.yml")
+        self.assertIn("fetch_cc0_textures.py", workflow)
+        self.assertIn("visual_material_smoke.gd", workflow)
+        self.assertIn("thirteen gates", workflow)
+
     def test_cc0_humanoid_assets_are_documented(self):
         manifest = self.read("assets/ASSET_MANIFEST.md")
         humanoid = self.read("scripts/humanoid_rig.gd")

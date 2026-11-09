@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+"""Fetch small, verifiable CC0 PBR maps from Poly Haven for the NOVA arena."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+import sys
+from pathlib import Path
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
+
+ROOT = Path(__file__).resolve().parents[1]
+OUTPUT = ROOT / "assets" / "textures"
+API_BASE = "https://api.polyhaven.com/files/"
+USER_AGENT = "NovaAncientWarrior-CC0AssetFetcher/1.0"
+MAX_FILE_BYTES = 6 * 1024 * 1024
+
+ASSETS = {
+    "stone_wall": {
+        "maps": {
+            "diff": ("_diff_1k.jpg", "_diffuse_1k.jpg"),
+            "nor_gl": ("_nor_gl_1k.jpg",),
+            "rough": ("_rough_1k.jpg",),
+        },
+    },
+    "rock_tile_floor": {
+        "maps": {
+            "diff": ("_diff_1k.jpg", "_diffuse_1k.jpg"),
+            "nor_gl": ("_nor_gl_1k.jpg",),
+            "rough": ("_rough_1k.jpg",),
+        },
+    },
+}
+
+
+def request_bytes(url: str, limit: int | None = None) -> bytes:
+    request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json, image/jpeg"})
+    with urlopen(request, timeout=90) as response:
+        if response.status != 200:
+            raise RuntimeError(f"HTTP {response.status} while fetching {url}")
+        payload = response.read((limit + 1) if limit is not None else -1)
+    if limit is not None and len(payload) > limit:
+        raise RuntimeError(f"Downloaded file exceeds {limit} bytes: {url}")
+    return payload
+
+
+def iter_file_records(node, path=()):
+    if isinstance(node, dict):
+        if isinstance(node.get("url"), str) and isinstance(node.get("md5"), str):
+            yield path, node
+            return
+        for key, value in node.items():
+            yield from iter_file_records(value, path + (str(key),))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            yield from iter_file_records(value, path + (str(index),))
+
+
+def select_map(files: dict, asset_id: str, map_name: str, suffixes: tuple[str, ...]) -> dict:
+    matches = []
+    for _, record in iter_file_records(files):
+        url = record["url"]
+        parsed = urlparse(url)
+        filename = Path(parsed.path).name.lower()
+        if parsed.scheme != "https" or parsed.netloc != "dl.polyhaven.org":
+            continue
+        if not parsed.path.startswith("/file/ph-assets/Textures/jpg/1k/"):
+            continue
+        if not filename.startswith(asset_id + "_") or not filename.endswith(".jpg"):
+            continue
+        if any(filename.endswith(suffix) for suffix in suffixes):
+            matches.append(record)
+    if len(matches) != 1:
+        available = [
+            Path(urlparse(record["url"]).path).name
+            for _, record in iter_file_records(files)
+            if isinstance(record.get("url"), str)
+        ]
+        raise RuntimeError(
+            f"Expected exactly one 1K JPG {map_name} map for {asset_id}; "
+            f"found {len(matches)}. Available files: {available[:30]}"
+        )
+    return matches[0]
+
+
+def download_asset(asset_id: str, map_name: str, record: dict) -> tuple[Path, str, int]:
+    url = record["url"]
+    expected_md5 = record["md5"].lower()
+    if not re.fullmatch(r"[0-9a-f]{32}", expected_md5):
+        raise RuntimeError(f"Invalid MD5 metadata for {asset_id}/{map_name}")
+    size = int(record.get("size", record.get("size_bytes", 0)) or 0)
+    if size > MAX_FILE_BYTES:
+        raise RuntimeError(f"Asset file too large for Android 1K budget ({size} bytes): {url}")
+    payload = request_bytes(url, MAX_FILE_BYTES)
+    if not payload.startswith(b"\xff\xd8\xff"):
+        raise RuntimeError(f"Expected a JPEG image, got invalid bytes: {url}")
+    actual_md5 = hashlib.md5(payload).hexdigest()
+    if actual_md5 != expected_md5:
+        raise RuntimeError(f"MD5 mismatch for {asset_id}/{map_name}: {actual_md5} != {expected_md5}")
+    filename = f"{asset_id}_{map_name}_1k.jpg"
+    destination = OUTPUT / filename
+    destination.write_bytes(payload)
+    return destination, actual_md5, len(payload)
+
+
+def main() -> int:
+    OUTPUT.mkdir(parents=True, exist_ok=True)
+    total_bytes = 0
+    for asset_id, metadata in ASSETS.items():
+        api_payload = request_bytes(API_BASE + asset_id)
+        try:
+            files = json.loads(api_payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise RuntimeError(f"Invalid Poly Haven files metadata for {asset_id}") from exc
+        for map_name, suffixes in metadata["maps"].items():
+            record = select_map(files, asset_id, map_name, suffixes)
+            destination, digest, size = download_asset(asset_id, map_name, record)
+            total_bytes += size
+            print(f"CC0 PBR OK: {destination.name} ({size:,} bytes, md5={digest})")
+    print(f"Downloaded and verified six 1K JPG maps ({total_bytes:,} bytes total).")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except Exception as exc:
+        print(f"CC0 texture fetch failed: {exc}", file=sys.stderr)
+        raise

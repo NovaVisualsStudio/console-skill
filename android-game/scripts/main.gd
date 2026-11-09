@@ -103,16 +103,25 @@ func _build_world() -> void:
     moon.shadow_enabled = true
     add_child(moon)
 
-    _add_box("ArenaFloor", Vector3(0, -0.55, 0), Vector3(42, 1.1, 42),
-        Color(0.105, 0.12, 0.16) if stage == 0 else (Color(0.055, 0.13, 0.16) if stage == 1 else Color(0.16, 0.055, 0.05)), true, 0.92, 0.18)
-    _add_box("NorthWall", Vector3(0, 3.0, -21), Vector3(42, 6, 1.2),
-        Color(0.13, 0.12, 0.14) if stage == 0 else (Color(0.07, 0.16, 0.18) if stage == 1 else Color(0.20, 0.075, 0.065)), true, 0.92, 0.08)
-    _add_box("SouthWall", Vector3(0, 3.0, 21), Vector3(42, 6, 1.2),
-        Color(0.13, 0.12, 0.14) if stage == 0 else (Color(0.07, 0.16, 0.18) if stage == 1 else Color(0.20, 0.075, 0.065)), true, 0.92, 0.08)
-    _add_box("WestWall", Vector3(-21, 3.0, 0), Vector3(1.2, 6, 42),
-        Color(0.13, 0.12, 0.14) if stage == 0 else (Color(0.07, 0.16, 0.18) if stage == 1 else Color(0.20, 0.075, 0.065)), true, 0.92, 0.08)
-    _add_box("EastWall", Vector3(21, 3.0, 0), Vector3(1.2, 6, 42),
-        Color(0.13, 0.12, 0.14) if stage == 0 else (Color(0.07, 0.16, 0.18) if stage == 1 else Color(0.20, 0.075, 0.065)), true, 0.92, 0.08)
+    var stage_floor_tint := Color(0.82, 0.86, 0.94) if stage == 0 else (Color(0.74, 0.92, 0.98) if stage == 1 else Color(0.96, 0.74, 0.66))
+    var stage_wall_tint := Color(0.72, 0.72, 0.78) if stage == 0 else (Color(0.65, 0.82, 0.85) if stage == 1 else Color(0.88, 0.62, 0.54))
+    var floor_pbr := _make_pbr_material("rock_tile_floor", stage_floor_tint, 10.0)
+    var wall_pbr := _make_pbr_material("stone_wall", stage_wall_tint, 6.0)
+    var portal_pbr := _make_pbr_material("stone_wall", Color(0.78, 0.72, 0.62), 3.0)
+
+    var floor_root := _add_box("ArenaFloor", Vector3(0, -0.55, 0), Vector3(42, 1.1, 42),
+        stage_floor_tint, true, 0.92, 0.18)
+    _apply_pbr_material(floor_root, floor_pbr)
+    var north_wall_root := _add_box("NorthWall", Vector3(0, 3.0, -21), Vector3(42, 6, 1.2),
+        stage_wall_tint, true, 0.92, 0.08)
+    var south_wall_root := _add_box("SouthWall", Vector3(0, 3.0, 21), Vector3(42, 6, 1.2),
+        stage_wall_tint, true, 0.92, 0.08)
+    var west_wall_root := _add_box("WestWall", Vector3(-21, 3.0, 0), Vector3(1.2, 6, 42),
+        stage_wall_tint, true, 0.92, 0.08)
+    var east_wall_root := _add_box("EastWall", Vector3(21, 3.0, 0), Vector3(1.2, 6, 42),
+        stage_wall_tint, true, 0.92, 0.08)
+    for wall_root in [north_wall_root, south_wall_root, west_wall_root, east_wall_root]:
+        _apply_pbr_material(wall_root, wall_pbr)
 
     _add_ritual_ring(7.6, CHAPTER_RINGS[stage])
     _add_ritual_ring(10.2, CHAPTER_RINGS[stage].darkened(0.42))
@@ -120,12 +129,15 @@ func _build_world() -> void:
         Color(0.15, 0.16, 0.21), false, 0.72, 0.36)
     _add_box("PortalCore", Vector3(0, 5.2, -19.9), Vector3(7.2, 8.2, 0.55),
         CHAPTER_FOG[stage].darkened(0.48), false, 0.38, 0.72)
-    _add_box("PortalLeftPillar", Vector3(-4.1, 4.0, -19.5), Vector3(1.1, 8.0, 1.25),
+    var portal_left := _add_box("PortalLeftPillar", Vector3(-4.1, 4.0, -19.5), Vector3(1.1, 8.0, 1.25),
         Color(0.30, 0.26, 0.22), true, 0.78, 0.35)
-    _add_box("PortalRightPillar", Vector3(4.1, 4.0, -19.5), Vector3(1.1, 8.0, 1.25),
+    var portal_right := _add_box("PortalRightPillar", Vector3(4.1, 4.0, -19.5), Vector3(1.1, 8.0, 1.25),
         Color(0.30, 0.26, 0.22), true, 0.78, 0.35)
-    _add_box("PortalLintel", Vector3(0, 8.1, -19.5), Vector3(9.2, 1.1, 1.5),
+    var portal_lintel := _add_box("PortalLintel", Vector3(0, 8.1, -19.5), Vector3(9.2, 1.1, 1.5),
         Color(0.35, 0.29, 0.22), true, 0.84, 0.22)
+    _apply_pbr_material(portal_left, portal_pbr)
+    _apply_pbr_material(portal_right, portal_pbr)
+    _apply_pbr_material(portal_lintel, portal_pbr)
 
     for x in [-14.0, 14.0]:
         for z in [-12.0, -3.0, 6.0, 15.0]:
@@ -236,6 +248,45 @@ func _add_box(node_name: String, position: Vector3, size: Vector3, color: Color,
     root.add_child(instance)
     add_child(root)
     return root
+
+func _make_pbr_material(asset_id: String, tint: Color, tiling: float) -> StandardMaterial3D:
+    var texture_root := "res://assets/textures/"
+    var diffuse := load(texture_root + asset_id + "_diff_1k.jpg") as Texture2D
+    var normal_map := load(texture_root + asset_id + "_nor_gl_1k.jpg") as Texture2D
+    var roughness_map := load(texture_root + asset_id + "_rough_1k.jpg") as Texture2D
+    if diffuse == null or normal_map == null or roughness_map == null:
+        push_error("NOVA missing CC0 PBR maps for: " + asset_id)
+        return null
+    var material := StandardMaterial3D.new()
+    material.albedo_color = tint
+    material.albedo_texture = diffuse
+    material.normal_enabled = true
+    material.normal_texture = normal_map
+    material.normal_scale = 0.78
+    material.roughness = 0.90
+    material.roughness_texture = roughness_map
+    material.metallic = 0.0
+    material.uv1_scale = Vector3.ONE * maxf(1.0, tiling)
+    return material
+
+func _apply_pbr_material(target: Node, material: StandardMaterial3D) -> void:
+    if material == null:
+        push_error("NOVA cannot apply a missing PBR material.")
+        return
+    var mesh_instance := _find_mesh_instance(target)
+    if mesh_instance == null:
+        push_error("NOVA PBR target has no MeshInstance3D: " + target.name)
+        return
+    mesh_instance.material_override = material
+
+func _find_mesh_instance(node: Node) -> MeshInstance3D:
+    if node is MeshInstance3D:
+        return node as MeshInstance3D
+    for child in node.get_children():
+        var found := _find_mesh_instance(child)
+        if found != null:
+            return found
+    return null
 
 func _add_cylinder(node_name: String, position: Vector3, radius: float, height: float,
         color: Color, solid: bool, roughness: float, metallic: float) -> MeshInstance3D:
@@ -478,6 +529,21 @@ func _build_hud() -> void:
     letterbox_bottom.custom_minimum_size = Vector2(0, 34)
     letterbox_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
     layer.add_child(letterbox_bottom)
+
+    var poly_haven_credit := Label.new()
+    poly_haven_credit.name = "PolyHavenCredits"
+    poly_haven_credit.text = "ENVIRONMENT MATERIALS  ·  POWERED BY POLY HAVEN  ·  CC0"
+    poly_haven_credit.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+    poly_haven_credit.offset_left = 0.0
+    poly_haven_credit.offset_right = 0.0
+    poly_haven_credit.offset_top = -29.0
+    poly_haven_credit.offset_bottom = -8.0
+    poly_haven_credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    poly_haven_credit.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    poly_haven_credit.add_theme_font_size_override("font_size", 9)
+    poly_haven_credit.add_theme_color_override("font_color", Color(0.76, 0.80, 0.88, 0.78))
+    poly_haven_credit.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    layer.add_child(poly_haven_credit)
 
     _add_control_button(layer, "↑", Vector2(94, -208), "move_forward")
     _add_control_button(layer, "↓", Vector2(94, -78), "move_back")
