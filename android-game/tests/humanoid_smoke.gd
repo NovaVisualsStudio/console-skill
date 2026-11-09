@@ -132,10 +132,16 @@ func _run() -> void:
         quit(1)
         return
     var cached_locomotion_count := rig._animation_selection_cache.size()
+    var animation_scans_before_repeat := rig._animation_clip_list_fetch_count
     for _repeat in range(8):
         rig.play_locomotion("run", 1.0)
     if rig._animation_selection_cache.size() != cached_locomotion_count:
         push_error("Humanoid performance test: repeated locomotion lookup expanded the cache.")
+        rig.free()
+        quit(1)
+        return
+    if rig._animation_clip_list_fetch_count != animation_scans_before_repeat:
+        push_error("Humanoid performance test: locomotion fetched the animation list again after caching.")
         rig.free()
         quit(1)
         return
@@ -146,9 +152,15 @@ func _run() -> void:
         quit(1)
         return
     var cached_attack_count := rig._attack_variant_cache.size()
+    var animation_scans_before_attack_repeat := rig._animation_clip_list_fetch_count
     rig.play_attack_variant(2, false, 0.0)
     if rig._attack_variant_cache.size() != cached_attack_count:
         push_error("Humanoid performance test: repeated combo lookup expanded the cache.")
+        rig.free()
+        quit(1)
+        return
+    if rig._animation_clip_list_fetch_count != animation_scans_before_attack_repeat:
+        push_error("Humanoid performance test: repeated combo fetched the animation list again after caching.")
         rig.free()
         quit(1)
         return
