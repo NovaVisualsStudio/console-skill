@@ -21,7 +21,7 @@ func _run_title_screen_smoke() -> void:
 		"SettingsPanel/SettingsStack/MusicVolumeSlider",
 		"SettingsPanel/SettingsStack/SfxVolumeSlider",
 		"SettingsPanel/SettingsStack/QualityButton",
-		"CreditsPanel/CreditsNotice"
+		"CreditsPanel/CreditsStack/CreditsNotice"
 	]:
 		if menu.get_node_or_null(node_path) == null:
 			_fail(menu, "Title screen is missing required control: %s" % node_path)
