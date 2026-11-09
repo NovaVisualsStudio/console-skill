@@ -3,6 +3,16 @@ extends RefCounted
 
 const ROOT_NAME := "GeneratedMissionRelics"
 
+static func relic_sequence(stage_index: int) -> Array[int]:
+	match clampi(stage_index, 0, 2):
+		0:
+			return [2, 1, 3]
+		1:
+			return [3, 1, 2]
+		_:
+			return [1, 3, 2]
+
+
 static func relic_positions(stage_index: int) -> Array[Vector3]:
 	match clampi(stage_index, 0, 2):
 		0:
@@ -45,6 +55,7 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 		relic.set_meta("collected", false)
 		relic.set_meta("base_y", positions[index].y)
 		relic.set_meta("phase", float(index) * 2.1)
+		relic.set_meta("sequence_order", index + 1)
 		var crystal := MeshInstance3D.new()
 		var crystal_mesh := SphereMesh.new()
 		crystal_mesh.radius = 0.34
@@ -53,6 +64,14 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 		crystal.scale = Vector3(0.72, 1.0, 0.72)
 		crystal.material_override = material
 		relic.add_child(crystal)
+		var number_marker := Label3D.new()
+		number_marker.text = str(index + 1)
+		number_marker.font_size = 40
+		number_marker.pixel_size = 0.012
+		number_marker.position = Vector3(0.0, 0.72, 0.0)
+		number_marker.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		number_marker.modulate = glow.lightened(0.35)
+		relic.add_child(number_marker)
 		var ring := MeshInstance3D.new()
 		var ring_mesh := TorusMesh.new()
 		ring_mesh.inner_radius = 0.34
