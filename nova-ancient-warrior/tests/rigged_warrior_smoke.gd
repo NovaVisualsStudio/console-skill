@@ -22,7 +22,7 @@ func _run_rigged_hero_smoke() -> void:
 	if animation_player == null:
 		_fail(visual, "Generated Nova hero has no AnimationPlayer")
 		return
-	var required := ["Idle", "Walk", "Run", "Sword idle", "Sword slash", "Sword thrust", "Sword block", "Sword combo", "Death (fall backward)", "Forward roll"]
+	var required := ["Idle", "Walk", "Run", "Sword idle", "Sword slash", "Sword thrust", "Sword block", "Sword combo", "Side dodge left", "Side dodge right", "Hit from front", "Death (fall backward)", "Forward roll"]
 	var names := animation_player.get_animation_list()
 	for required_name in required:
 		var found := false
@@ -70,7 +70,18 @@ func _run_rigged_hero_smoke() -> void:
 		_fail(visual, "Guard must select the sword block clip")
 		return
 	visual.call("play_parry")
+	visual.call("play_dodge", Vector3.LEFT)
+	if "sidedodgeleft" not in str(animation_player.current_animation).to_lower().replace(" ", ""):
+		_fail(visual, "Left dodge must select the left motion-captured evade")
+		return
+	visual.call("play_dodge", Vector3.RIGHT)
+	if "sidedodgeright" not in str(animation_player.current_animation).to_lower().replace(" ", ""):
+		_fail(visual, "Right dodge must select the right motion-captured evade")
+		return
 	visual.call("hit_react")
+	if "hitfromfront" not in str(animation_player.current_animation).to_lower().replace(" ", ""):
+		_fail(visual, "Hit reaction must select a directional reaction clip")
+		return
 	print("Rigged Nova hero smoke test passed: %d bones, %d animation clips, %d mesh nodes, %d textured PBR materials" % [skeleton.get_bone_count(), names.size(), mesh_nodes.size(), textured_materials])
 	visual.free()
 	quit(0)
