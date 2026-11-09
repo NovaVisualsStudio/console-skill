@@ -27,6 +27,11 @@ jobs:
           git clone --depth 1 https://github.com/olatunde85/3d-gen.git "$RUNNER_TEMP/ara-3d-gen"
           git -C "$RUNNER_TEMP/ara-3d-gen" rev-parse HEAD | tee "$RUNNER_TEMP/ara-source-commit.txt"
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+
       - name: Install Node 22 and dependencies
         uses: actions/setup-node@v4
         with:
