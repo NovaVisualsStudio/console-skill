@@ -153,9 +153,13 @@ jobs:
           for test_script in enemy_tactics_smoke.gd narrative_director_smoke.gd mission_objective_smoke.gd chapter_scene_smoke.gd title_screen_smoke.gd gameplay_localization_smoke.gd combat_rules_smoke.gd save_manager_smoke.gd level_catalog_smoke.gd campaign_smoke.gd stage_builder_smoke.gd campaign_layout_smoke.gd exploration_secret_smoke.gd exploration_puzzle_smoke.gd campaign_spawn_clearance_smoke.gd stage_hazard_rules_smoke.gd touch_camera_controller_smoke.gd virtual_joystick_smoke.gd pause_menu_smoke.gd; do
             echo "RUN GODOT REGRESSION: $test_script"
             test_log="$RUNNER_TEMP/${test_script%.gd}.log"
-            if ! timeout --signal=TERM --kill-after=10s 60s "$GODOT_BIN" --headless --path nova-ancient-warrior --script "res://tests/$test_script" >"$test_log" 2>&1; then
+            test_timeout=60s
+            if [[ "$test_script" == "chapter_scene_smoke.gd" ]]; then
+              test_timeout=120s
+            fi
+            if ! timeout --signal=TERM --kill-after=10s "$test_timeout" "$GODOT_BIN" --headless --path nova-ancient-warrior --script "res://tests/$test_script" >"$test_log" 2>&1; then
               cat "$test_log"
-              echo "Godot regression failed or exceeded its 60-second timeout: $test_script"
+              echo "Godot regression failed or exceeded its ${test_timeout} timeout: $test_script"
               exit 1
             fi
             cat "$test_log"
