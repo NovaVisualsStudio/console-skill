@@ -7,6 +7,7 @@ var _continue_button: Button
 var _progress_label: Label
 var _settings_panel: PanelContainer
 var _credits_panel: PanelContainer
+var _controls_panel: PanelContainer
 var _music_slider: HSlider
 var _sfx_slider: HSlider
 var _quality_button: Button
@@ -163,6 +164,11 @@ func _build_ui() -> void:
 	settings.pressed.connect(func(): _settings_panel.visible = true)
 	menu.add_child(settings)
 
+	var how_to_play := _make_button("HOW TO PLAY", Vector2(350.0, 50.0))
+	how_to_play.name = "HowToPlayButton"
+	how_to_play.pressed.connect(func(): _controls_panel.visible = true)
+	menu.add_child(how_to_play)
+
 	var credits := _make_button("CREDITS", Vector2(350.0, 50.0))
 	credits.name = "CreditsButton"
 	credits.pressed.connect(func(): _credits_panel.visible = true)
@@ -177,13 +183,14 @@ func _build_ui() -> void:
 	var footer := Label.new()
 	footer.name = "FooterLabel"
 	footer.text = "OFFLINE CAMPAIGN  •  MID / HIGH ANDROID PROFILES"
-	footer.position = Vector2(78.0, 670.0)
+	footer.position = Vector2(78.0, 690.0)
 	footer.add_theme_font_size_override("font_size", 11)
 	footer.add_theme_color_override("font_color", Color(0.48, 0.57, 0.7))
 	add_child(footer)
 
 	_build_settings_panel()
 	_build_credits_panel()
+	_build_controls_panel()
 
 
 func _make_button(label: String, minimum_size: Vector2) -> Button:
@@ -300,6 +307,43 @@ func _build_credits_panel() -> void:
 	var close := _make_button("CLOSE", Vector2(490.0, 48.0))
 	close.name = "CreditsCloseButton"
 	close.pressed.connect(func(): _credits_panel.visible = false)
+	stack.add_child(close)
+
+
+func _build_controls_panel() -> void:
+	_controls_panel = PanelContainer.new()
+	_controls_panel.name = "ControlsPanel"
+	_controls_panel.anchor_left = 0.5
+	_controls_panel.anchor_right = 0.5
+	_controls_panel.anchor_top = 0.5
+	_controls_panel.anchor_bottom = 0.5
+	_controls_panel.offset_left = -280.0
+	_controls_panel.offset_right = 280.0
+	_controls_panel.offset_top = -235.0
+	_controls_panel.offset_bottom = 235.0
+	_controls_panel.visible = false
+	_controls_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_controls_panel)
+	var stack := VBoxContainer.new()
+	stack.name = "ControlsStack"
+	stack.add_theme_constant_override("separation", 12)
+	_controls_panel.add_child(stack)
+	var heading := Label.new()
+	heading.name = "ControlsHeading"
+	heading.text = "HOW TO PLAY"
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	heading.add_theme_font_size_override("font_size", 24)
+	stack.add_child(heading)
+	var notice := Label.new()
+	notice.name = "ControlsNotice"
+	notice.text = "ANDROID: Left joystick moves. Drag the right side to orbit the camera. ATTACK: tap sword. HEAVY: use the heavy-strike button. GUARD: hold shield; tap just before impact for a perfect parry. DODGE: evade to avoid damage. LOCK: lock onto a target. JUMP: clear hazards. INTERACT: collect the numbered seal fragments in the displayed order. Each chapter has a different sequence. Defeat the boss after the gate opens."
+	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	notice.custom_minimum_size = Vector2(510.0, 300.0)
+	notice.add_theme_font_size_override("font_size", 15)
+	stack.add_child(notice)
+	var close := _make_button("CLOSE", Vector2(510.0, 48.0))
+	close.name = "ControlsCloseButton"
+	close.pressed.connect(func(): _controls_panel.visible = false)
 	stack.add_child(close)
 
 
