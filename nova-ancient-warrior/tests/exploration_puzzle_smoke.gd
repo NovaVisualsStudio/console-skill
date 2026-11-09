@@ -24,7 +24,7 @@ func _run_puzzle_smoke() -> void:
 			_fail(root, "Chapter %d sequence must contain three unique rune indices" % chapter)
 			return
 		var hint := root.get_node_or_null("GeneratedExplorationPuzzle/PuzzleSequenceHint") as Label3D
-		if hint == null or not hint.text.contains("ANCIENT ORDER"):
+		if hint == null or (not hint.text.contains("ANCIENT ORDER") and not hint.text.contains("ترتيب الرموز")):
 			_fail(root, "Chapter %d must visibly communicate the rune order" % chapter)
 			return
 		ExplorationPuzzleDirector.set_expected_order(runes, sequence[0])
