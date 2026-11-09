@@ -1376,6 +1376,7 @@ func _update_hud() -> void:
 		hud.text = "NOVA  |  CHAPTER %d  |  WAVE %d/9  |  HP %d  |  SCORE %d  |  RUN SOULS %d  |  COMBO x%d  |  BANK %d" % [
 			CombatRules.chapter_for_wave(current_wave), current_wave, health, score, souls_earned, combo_display, banked_souls
 		]
+	_update_mission_objective_ui()
 
 
 func _refresh_upgrade_panel() -> void:
