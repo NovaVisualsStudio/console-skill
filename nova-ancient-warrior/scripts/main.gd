@@ -1121,7 +1121,6 @@ func _build_hud() -> void:
 	pause_menu.resume_requested.connect(_on_resume_requested)
 	pause_menu.audio_settings_changed.connect(_on_audio_settings_changed)
 	pause_menu.language_changed.connect(_on_language_changed)
-	pause_menu.language_changed.connect(_on_language_changed)
 	layer.add_child(pause_menu)
 
 
