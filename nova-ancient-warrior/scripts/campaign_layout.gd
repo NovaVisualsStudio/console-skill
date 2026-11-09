@@ -48,7 +48,7 @@ static func _build_sunken_layout(root: Node3D) -> void:
 	for side in [-1.0, 1.0]:
 		_solid_block(root, "SunkenSidePlatform", Vector3(3.0, 0.28, 8.0), Vector3(side * 10.6, 0.14, -3.5), stone)
 		for step in range(3):
-			var step_x: float = side * (5.6 + float(step) * 1.55)
+			var step_x: float = side * (8.2 + float(step) * 1.55)
 			var step_height: float = 0.10 + float(step) * 0.07
 			_solid_block(root, "SunkenFlankStep", Vector3(1.65, step_height, 2.2), Vector3(step_x, step_height * 0.5, -3.5), trim)
 		for index in range(3):
