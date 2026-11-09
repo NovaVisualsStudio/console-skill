@@ -1,11 +1,11 @@
-# NOVA Ancient Warrior — 3D asset manifest
+# NOVA Ancient Warrior - 3D asset manifest
 
 All third-party assets below are free to use and released under CC0 1.0. No paid tier, API credit, or subscription is used by the asset pipeline.
 
 | Asset | Creator | Source | Licence | Use |
 |---|---|---|---|---|
-| Quaternius Universal Base Characters — Superhero Male FullBody | Quaternius | https://quaternius.itch.io/universal-base-characters | CC0 1.0 | Main humanoid mesh, UVs, skin and 65-joint humanoid skeleton |
-| Quaternius Universal Animation Library 2 — Standard | Quaternius | https://quaternius.itch.io/universal-animation-library-2 | CC0 1.0 | Retargetable locomotion, melee combos, reactions, parkour and death clips |
+| Quaternius Universal Base Characters - Superhero Male FullBody | Quaternius | https://quaternius.itch.io/universal-base-characters | CC0 1.0 | Main humanoid mesh, UVs, skin and 65-joint humanoid skeleton |
+| Quaternius Universal Animation Library 2 - Standard | Quaternius | https://quaternius.itch.io/universal-animation-library-2 | CC0 1.0 | Retargetable locomotion, melee combos, reactions, parkour and death clips |
 
 ## Provenance
 
