@@ -274,14 +274,14 @@ func _update_stage_hazards(delta: float) -> void:
 		rune_hazard_lit = rune_pulse
 		StageBuilder.set_rune_intensity(active_chapter_scene if is_instance_valid(active_chapter_scene) else self, 1.0 if rune_hazard_lit else 0.0)
 	if bool(hazard.get("warning", false)) and hazard_warning_cooldown <= 0.0:
-		status_label.text = "%s CHARGING - MOVE!" % str(hazard.get("label", "ARENA HAZARD"))
+		status_label.text = "تحذير: خطر في الساحة، تحرك الآن!" if _is_arabic() else "%s CHARGING - MOVE!" % str(hazard.get("label", "ARENA HAZARD"))
 		_play_sfx_or_tone("hazard_warning", 720.0, 0.16, 0.20)
 		hazard_warning_cooldown = 1.0
 	if bool(hazard.get("active", false)) and hazard_damage_cooldown <= 0.0:
 		_damage_player(int(hazard.get("damage", 10)))
 		_play_sfx_or_tone("hazard_burst", 58.0, 0.24, 0.24)
 		if not game_over:
-			status_label.text = "%s HIT - GET CLEAR!" % str(hazard.get("label", "ARENA HAZARD"))
+			status_label.text = "أصابتك منطقة الخطر، ابتعد عنها!" if _is_arabic() else "%s HIT - GET CLEAR!" % str(hazard.get("label", "ARENA HAZARD"))
 		hazard_damage_cooldown = 1.12
 
 
@@ -292,7 +292,7 @@ func _is_lock_target_valid() -> bool:
 func _toggle_lock_on() -> void:
 	if _is_lock_target_valid():
 		locked_target = null
-		status_label.text = "TARGET LOCK RELEASED"
+		status_label.text = "تم إلغاء تثبيت الهدف" if _is_arabic() else "TARGET LOCK RELEASED"
 		_update_hud()
 		return
 	locked_target = null
@@ -305,9 +305,9 @@ func _toggle_lock_on() -> void:
 			nearest_distance = distance
 			locked_target = enemy
 	if _is_lock_target_valid():
-		status_label.text = "TARGET LOCKED: %s" % locked_target.name.to_upper()
+		status_label.text = ("تم تثبيت الهدف: %s" % _localized_boss_name(current_wave)) if _is_arabic() else "TARGET LOCKED: %s" % locked_target.name.to_upper()
 	else:
-		status_label.text = "NO TARGET IN RANGE"
+		status_label.text = "لا يوجد هدف في المدى" if _is_arabic() else "NO TARGET IN RANGE"
 	_update_hud()
 
 
@@ -704,8 +704,23 @@ func _advance_dialogue() -> void:
 		dialogue_index = -1
 		return
 	var line: Dictionary = dialogue_lines[dialogue_index]
-	var use_arabic := TranslationServer.get_locale().begins_with("ar")
-	dialogue_speaker_label.text = str(line.get("speaker", ""))
+	var use_arabic := _is_arabic()
+	var speaker := str(line.get("speaker", ""))
+	if use_arabic:
+		var speakers := {
+			"THE WAYFINDER": "دليل الطريق",
+			"NOVA": "نوفا",
+			"THE ASH TITAN": "عملاق الرماد",
+			"THE EMBER WARLORD": "قائد الحرب النارية",
+			"THE OBSIDIAN SOVEREIGN": "حاكم العرش الأسود"
+		}
+		dialogue_speaker_label.text = str(speakers.get(speaker, speaker))
+		dialogue_speaker_label.text_direction = Control.TEXT_DIRECTION_RTL
+		dialogue_text_label.text_direction = Control.TEXT_DIRECTION_RTL
+	else:
+		dialogue_speaker_label.text = speaker
+		dialogue_speaker_label.text_direction = Control.TEXT_DIRECTION_LTR
+		dialogue_text_label.text_direction = Control.TEXT_DIRECTION_LTR
 	dialogue_text_label.text = str(line.get("text_ar", line.get("text", ""))) if use_arabic else str(line.get("text", ""))
 	dialogue_next_button.text = "التالي" if use_arabic else "CONTINUE"
 
@@ -829,7 +844,7 @@ func _handle_wave_cleared() -> void:
 	if cleared_wave >= CombatRules.CAMPAIGN_WAVES:
 		game_over = true
 		_save_run(true)
-		status_label.text = "THE OBSIDIAN SOVEREIGN HAS FALLEN | CAMPAIGN COMPLETE"
+		status_label.text = "سقط حاكم العرش الأسود | اكتملت الحملة" if _is_arabic() else "THE OBSIDIAN SOVEREIGN HAS FALLEN | CAMPAIGN COMPLETE"
 		restart_button.text = "REPLAY FINAL CHAPTER"
 		restart_button.visible = true
 		upgrade_panel.visible = true
@@ -840,9 +855,9 @@ func _handle_wave_cleared() -> void:
 		return
 	wave_transitioning = true
 	if CombatRules.is_boss_wave(cleared_wave):
-		status_label.text = "%s DEFEATED | CHAPTER %d UNLOCKED" % [CombatRules.boss_display_name(cleared_wave), CombatRules.chapter_for_wave(cleared_wave) + 1]
+		status_label.text = ("%s هُزم | فُتح الفصل %d" % [_localized_boss_name(cleared_wave), CombatRules.chapter_for_wave(cleared_wave) + 1]) if _is_arabic() else "%s DEFEATED | CHAPTER %d UNLOCKED" % [CombatRules.boss_display_name(cleared_wave), CombatRules.chapter_for_wave(cleared_wave) + 1]
 	else:
-		status_label.text = "WAVE %d CLEARED | PREPARE FOR THE NEXT ATTACK" % cleared_wave
+		status_label.text = ("تم اجتياز الموجة %d | استعد للهجوم التالي" % cleared_wave) if _is_arabic() else "WAVE %d CLEARED | PREPARE FOR THE NEXT ATTACK" % cleared_wave
 	_play_tone(660.0, 0.18, 0.18)
 	var transition := get_tree().create_timer(1.65)
 	transition.timeout.connect(func():
@@ -1121,7 +1136,7 @@ func _on_pause_requested() -> void:
 	get_tree().paused = true
 	pause_menu.call("set_paused", true)
 	if is_instance_valid(status_label):
-		status_label.text = "PAUSED"
+		status_label.text = "متوقف مؤقتاً" if _is_arabic() else "PAUSED"
 
 
 func _on_resume_requested() -> void:
@@ -1149,7 +1164,7 @@ func _cycle_graphics_quality() -> void:
 		MobileRenderProfile.apply(OS.get_name() == "Android", arena_environment, arena_sun, graphics_quality)
 	_refresh_quality_button()
 	if is_instance_valid(status_label):
-		status_label.text = "GRAPHICS: %s | DETAIL COUNT UPDATES AFTER RESTART" % graphics_quality.to_upper()
+		status_label.text = ("جودة الرسوم: %s | يتغير مستوى التفاصيل بعد إعادة التشغيل" % ("مرتفعة" if graphics_quality == "high" else "متوسطة")) if _is_arabic() else "GRAPHICS: %s | DETAIL COUNT UPDATES AFTER RESTART" % graphics_quality.to_upper()
 
 
 func _refresh_quality_button() -> void:
@@ -1200,7 +1215,7 @@ func _update_enemies(delta: float) -> void:
 				visual.call("phase_change", phase)
 			if is_instance_valid(music_director):
 				music_director.call("set_intensity", 0.68 if phase == 2 else 1.0)
-			status_label.text = "%s | PHASE %d" % [CombatRules.boss_display_name(current_wave), phase]
+			status_label.text = ("%s | المرحلة %d" % [_localized_boss_name(current_wave), phase]) if _is_arabic() else "%s | PHASE %d" % [CombatRules.boss_display_name(current_wave), phase]
 
 		var attack_state := str(enemy.get_meta("attack_state", "approach"))
 		var attack_timer := maxf(0.0, float(enemy.get_meta("attack_timer", 0.0)))
@@ -1395,7 +1410,7 @@ func _damage_player(amount: int, source: Node3D = null) -> void:
 				var source_visual := source.get_node_or_null("WarriorVisual")
 				if source_visual != null:
 					source_visual.call("hit_react")
-			status_label.text = "PERFECT PARRY  |  +75 SCORE"
+			status_label.text = "صد مثالي  |  +75 نقطة" if _is_arabic() else "PERFECT PARRY  |  +75 SCORE"
 			_play_sfx_or_tone("parry", 980.0, 0.12, 0.24)
 			_update_hud()
 			return
@@ -1411,7 +1426,7 @@ func _damage_player(amount: int, source: Node3D = null) -> void:
 	if health <= 0:
 		game_over = true
 		_save_run(false)
-		status_label.text = "YOU FELL | SOULS SAVED | FORGE YOUR WARRIOR"
+		status_label.text = "سقطت في المعركة | الأرواح محفوظة | طوّر محاربك" if _is_arabic() else "YOU FELL | SOULS SAVED | FORGE YOUR WARRIOR"
 		restart_button.text = "CONTINUE CAMPAIGN"
 		restart_button.visible = true
 		upgrade_panel.visible = true
@@ -1425,10 +1440,26 @@ func _update_hud() -> void:
 		var combo_display := combo_display_step + 1 if combo_timer > 0.0 else 1
 		var profile: Dictionary = _save_profile()
 		var banked_souls := int(profile.get("total_souls", 0))
-		hud.text = "NOVA  |  CHAPTER %d  |  WAVE %d/9  |  HP %d  |  SCORE %d  |  RUN SOULS %d  |  COMBO x%d  |  BANK %d" % [
-			CombatRules.chapter_for_wave(current_wave), current_wave, health, score, souls_earned, combo_display, banked_souls
-		]
+		if _is_arabic():
+			hud.text = "نوفا  |  الفصل %d  |  الموجة %d/9  |  الصحة %d  |  النقاط %d  |  أرواح الجولة %d  |  الضربات ×%d  |  الرصيد %d" % [
+				CombatRules.chapter_for_wave(current_wave), current_wave, health, score, souls_earned, combo_display, banked_souls
+			]
+			hud.text_direction = Control.TEXT_DIRECTION_RTL
+		else:
+			hud.text = "NOVA  |  CHAPTER %d  |  WAVE %d/9  |  HP %d  |  SCORE %d  |  RUN SOULS %d  |  COMBO x%d  |  BANK %d" % [
+				CombatRules.chapter_for_wave(current_wave), current_wave, health, score, souls_earned, combo_display, banked_souls
+			]
+			hud.text_direction = Control.TEXT_DIRECTION_LTR
 	_update_mission_objective_ui()
+
+
+func _is_arabic() -> bool:
+	return TranslationServer.get_locale().begins_with("ar")
+
+
+func _localized_boss_name(wave: int) -> String:
+	var level := LevelCatalog.get_level(wave)
+	return str(level.get("boss_name_ar", level.get("boss_name", ""))) if _is_arabic() else str(level.get("boss_name", ""))
 
 
 func _refresh_upgrade_panel() -> void:
@@ -1456,10 +1487,10 @@ func _purchase_upgrade(upgrade_name: String) -> void:
 	if not game_over:
 		return
 	if _save_call("purchase_upgrade", [upgrade_name]):
-		status_label.text = "%s UPGRADED | EFFECTIVE NEXT RUN" % upgrade_name.to_upper()
+		status_label.text = ("تم تطوير %s | يظهر التأثير في الجولة القادمة" % upgrade_name) if _is_arabic() else "%s UPGRADED | EFFECTIVE NEXT RUN" % upgrade_name.to_upper()
 		_play_sfx_or_tone("upgrade", 820.0, 0.16, 0.2)
 	else:
-		status_label.text = "NOT ENOUGH SOULS OR MAX LEVEL REACHED"
+		status_label.text = "الأرواح غير كافية أو وصلت إلى المستوى الأقصى" if _is_arabic() else "NOT ENOUGH SOULS OR MAX LEVEL REACHED"
 	_refresh_upgrade_panel()
 	_update_hud()
 
