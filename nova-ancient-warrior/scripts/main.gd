@@ -1206,16 +1206,11 @@ func _on_resume_requested() -> void:
 
 func _on_language_changed(_language: String) -> void:
 	_apply_gameplay_language()
-	if is_instance_valid(status_label) and not dialogue_active:
-		status_label.text = LevelCatalog.wave_title(current_wave)
-
-
-func _on_language_changed(_language: String) -> void:
-	_apply_gameplay_language()
-	if is_instance_valid(status_label):
-		status_label.text = "متوقف مؤقتاً" if _is_arabic() else "PAUSED"
 	if dialogue_active and dialogue_index >= 0 and dialogue_index < dialogue_lines.size():
 		_render_current_dialogue_line()
+	elif is_instance_valid(status_label):
+		var paused := is_instance_valid(pause_menu) and bool(pause_menu.call("is_paused"))
+		status_label.text = ("متوقف مؤقتاً" if _is_arabic() else "PAUSED") if paused else LevelCatalog.wave_title(current_wave)
 
 
 func _on_audio_settings_changed(music_volume: float, sfx_volume: float) -> void:
