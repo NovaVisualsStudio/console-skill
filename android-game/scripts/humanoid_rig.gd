@@ -390,30 +390,58 @@ func attach_to_bone(bone_name: String) -> Node3D:
 func play_action(action: String, blend: float = 0.14) -> void:
     if animation_player == null or loaded_animation_count == 0:
         return
-    var search_terms := {
+    var available := animation_player.get_animation_list()
+    var selected := _select_action_animation(action, available)
+    if not selected.is_empty():
+        _play_animation(selected, blend)
+
+func _select_action_animation(action: String, available: Array[StringName]) -> String:
+    var terms := {
         "idle": ["idle_loop", "idle_stand", "idle"],
         "walk": ["walk_loop", "walk", "jog"],
         "run": ["sprint", "run", "jog"],
-        "attack": ["sword_attack", "melee_attack", "attack", "combo", "punch"],
-        "heavy": ["heavy_attack", "sword_attack", "combo", "attack", "punch"],
+        "attack": ["light_attack", "sword_attack", "melee_attack", "attack", "combo", "punch"],
+        "heavy": ["heavy_attack", "sword_heavy", "heavy_combo", "heavy", "sword_attack", "combo", "attack", "punch"],
         "dodge": ["roll", "dodge", "evade"],
         "guard": ["block", "guard", "sword_idle", "idle"],
         "hit": ["hit", "knockback"],
         "death": ["death"]
     }
-    var available := animation_player.get_animation_list()
-    for term in search_terms.get(action, []):
+    # Never let a light attack silently select a heavy-only clip when a light
+    # melee alternative exists in the imported library.
+    if action == "attack":
         for animation_name in available:
-            var name_text := String(animation_name)
-            if name_text.to_lower() == String(term):
-                _play_animation(name_text, blend)
-                return
-    for term in search_terms.get(action, []):
+            var candidate := String(animation_name)
+            var lowered := candidate.to_lower()
+            if lowered.contains("heavy"):
+                continue
+            if lowered.contains("light_attack") or lowered.contains("sword_attack") or lowered.contains("melee_attack"):
+                return candidate
         for animation_name in available:
-            var name_text := String(animation_name)
-            if name_text.to_lower().contains(String(term)):
-                _play_animation(name_text, blend)
-                return
+            var candidate := String(animation_name)
+            var lowered := candidate.to_lower()
+            if not lowered.contains("heavy") and (lowered.contains("combo") or lowered.contains("attack") or lowered.contains("punch")):
+                return candidate
+    elif action == "heavy":
+        for animation_name in available:
+            var candidate := String(animation_name)
+            var lowered := candidate.to_lower()
+            if lowered.contains("heavy") and (lowered.contains("attack") or lowered.contains("combo") or lowered.contains("sword")):
+                return candidate
+    for term in terms.get(action, []):
+        for animation_name in available:
+            var candidate := String(animation_name)
+            if candidate.to_lower() == String(term):
+                return candidate
+    for term in terms.get(action, []):
+        for animation_name in available:
+            var candidate := String(animation_name)
+            var lowered := candidate.to_lower()
+            if action == "attack" and lowered.contains("heavy"):
+                continue
+            if lowered.contains(String(term)):
+                return candidate
+    return ""
 
 func _play_animation(animation_name: String, blend: float) -> void:
     if animation_player.current_animation != animation_name or not animation_player.is_playing():
