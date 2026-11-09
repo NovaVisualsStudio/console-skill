@@ -7,6 +7,7 @@ const ENEMY_SPEED := 1.65
 const ATTACK_RANGE := 2.35
 const ARENA_LIMIT := 16.0
 const CombatRules = preload("res://scripts/combat_rules.gd")
+const EnemyTactics = preload("res://scripts/enemy_tactics.gd")
 const WarriorVisual = preload("res://scripts/warrior_visual.gd")
 const MusicDirector = preload("res://scripts/music_director.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
@@ -528,6 +529,7 @@ func _spawn_wave() -> void:
 		enemy.set_meta("boss_kind", boss_kind)
 		enemy.set_meta("boss_phase", 1)
 		enemy.set_meta("enemy_variant", enemy_variant)
+		enemy.set_meta("flank_sign", -1.0 if i % 2 == 0 else 1.0)
 		enemy.set_meta("windup_duration", (0.76 if boss_wave else 0.46 - float(CombatRules.chapter_for_wave(current_wave) - 1) * 0.035))
 		enemy.set_meta("recovery_duration", 1.05 if boss_wave else 0.78)
 		enemy.set_meta("attack_state", "approach")
@@ -953,14 +955,28 @@ func _update_enemies(delta: float) -> void:
 						desired_range = 4.8
 					_:
 						desired_range = 2.1
-			if distance > desired_range:
-				var chase_speed := enemy_speed
+			var tactical_plan: Dictionary = EnemyTactics.plan_movement(
+				distance,
+				desired_range,
+				attack_cooldown_value,
+				int(enemy.get_meta("enemy_variant", 0)),
+				is_boss,
+				phase,
+				float(enemy.get_meta("flank_sign", 1.0))
+			)
+			var tactical_action := str(tactical_plan.get("action", EnemyTactics.ACTION_APPROACH))
+			if tactical_action == EnemyTactics.ACTION_APPROACH or tactical_action == EnemyTactics.ACTION_FLANK:
+				var movement_direction: Vector3 = EnemyTactics.movement_direction(
+					offset,
+					float(tactical_plan.get("lateral_weight", 0.0))
+				)
+				var chase_speed := enemy_speed * float(tactical_plan.get("speed_scale", 1.0))
 				if is_boss and boss_kind == "ember_warlord":
 					chase_speed *= 1.18
-				enemy.global_position += offset.normalized() * chase_speed * delta
+				enemy.global_position += movement_direction * chase_speed * delta
 				if visual != null:
-					visual.call("set_locomotion", 0.52, delta)
-			elif CombatRules.should_start_enemy_windup(distance, attack_cooldown_value, desired_range):
+					visual.call("set_locomotion", 0.52 if tactical_action == EnemyTactics.ACTION_APPROACH else 0.38, delta)
+			elif tactical_action == EnemyTactics.ACTION_WINDUP:
 				attack_state = "windup"
 				var windup := float(enemy.get_meta("windup_duration", 0.42))
 				if is_boss and phase >= 2:
