@@ -1,6 +1,6 @@
 # Nova Ancient Warrior - Third-Person Action Prototype
 
-Nova Ancient Warrior is an original third-person 3D action game prototype built with Godot 4.7.2 and GDScript. The current build contains a nine-encounter combat campaign across three themed chapters, three bosses, local progression, save data, touch controls, generated audio and an original rigged hero. It is not yet a finished commercial game.
+Nova Ancient Warrior is an original third-person 3D action game prototype built with Godot 4.7.2 and GDScript. The current branch contains a nine-encounter combat campaign across three dedicated chapter PackedScenes, three bosses, local progression, save data, Arabic/English UI, touch controls, generated audio and an imported rigged humanoid hero. It is not yet a finished commercial game or a device-certified release.
 
 ## Current campaign
 
@@ -17,7 +17,7 @@ Nova Ancient Warrior is an original third-person 3D action game prototype built 
 - Enemy approach, telegraph, strike and recovery states, with three enemy stat archetypes and three boss attack profiles.
 - Versioned offline save data, wave resume, checkpoints, campaign progression and permanent Soul Forge upgrades.
 - Touch controls for movement, attack, heavy attack, jump, lock-on, dodge and block.
-- Pause overlay with resume control and persistent music / sound-effect volume sliders; pause input remains active while the game simulation is frozen.
+- Title screen with a live 3D hero preview, new campaign, save-aware continue/replay, settings, tutorial and credits.\n- Arabic/English language selection persists in the offline save profile; title screen, pause menu, HUD, touch captions, mission prompts, chapter cards, upgrades and dialogue support both languages.\n- Pause overlay with resume control, persistent music / sound-effect volume sliders and in-game language switching; pause input remains active while the game simulation is frozen.
 - Keyboard controls: WASD or arrows to move, J or Enter to attack, H for heavy attack, I to block, Tab to lock on, Shift or K to dodge, Space to jump, and R to restart.
 - Original ambient music baked to a looping WAV at build time, plus 13 generated WAV sound effects; runtime playback uses an imported stream rather than a per-frame audio generator.
 - Right-side touch dragging rotates the third-person camera; the separate lower-right action cluster remains reserved for combat controls.
@@ -27,9 +27,9 @@ Nova Ancient Warrior is an original third-person 3D action game prototype built 
 
 ## Character and animation status
 
-Blender generates an original stylized low-poly armoured hero with a weighted humanoid skeleton, attached sword and shield, and ten animation clips: Idle, Walk, Run, LightAttack, HeavyAttack, Dodge, Block, Parry, HitReact and Death. Godot CI imports this generated GLB and runs character and animation smoke tests.
+The runtime player now uses a generated humanoid GLB produced by the reproducible Ara 3D Gen pipeline, with MakeHuman CC0 character data and a curated CMU Graphics Lab motion-capture set. The currently committed asset is approximately 27.18 MB, 1.857 m tall, with a 69-bone game rig and 22 PBR material slots. Godot CI imports the GLB and checks its skeleton, material slots and required locomotion/combat animation clips. A procedural visual remains as a fallback if the GLB cannot be loaded.
 
-This is a functional prototype character, not a photorealistic human. It does not yet have production facial anatomy, facial blend shapes, realistic skin and cloth materials, detailed armour sculpting, or a professionally authored motion-capture animation library. The separate markerless motion-capture workflow is experimental research output and is not yet the final player animation source.
+The asset is a significant upgrade over the original low-poly placeholder, but it is not yet approved as a photorealistic, final-quality human. Final visual sign-off must inspect face anatomy, skin/cloth response, armour detail, deformation under every combat animation, weapon grip/socket alignment and the quality of the retargeted motion. Facial blend shapes, facial performance capture and professional voice/performance capture are not yet part of the shipped game.
 
 ## Rendering and Android compatibility
 
@@ -72,7 +72,7 @@ The repository-wide Python test suite is separate from the Godot QA workflow. Ru
 
 ## Cinematics, story and world status
 
-Current presentation includes chapter title cards, boss introduction camera moves and combat feedback. Authored dialogue scenes, voice acting, subtitles, a complete narrative soundtrack and final story cinematics remain outstanding. The chapter environments are procedural combat arenas rather than complete authored exploration spaces.
+Current presentation includes chapter title cards, boss introduction camera moves, original branching-free story dialogue overlays and Arabic/English subtitles for chapter and boss conversations. Voice acting, a complete narrative soundtrack, facial performance and final story cinematics remain outstanding. The chapter environments are separate procedural combat arenas rather than complete authored exploration spaces.
 
 ## Asset provenance
 
