@@ -772,9 +772,9 @@ func _update_mission_relic_interaction() -> void:
 				cache_is_nearest = false
 				nearest_distance = distance
 	interact_button.visible = nearby and not cinematic_active and not game_over
+	_update_mission_objective_ui()
 	if nearby and cache_is_nearest:
 		interact_button.text = "افتح الصندوق السري" if _is_arabic() else "OPEN SECRET CACHE"
-	_update_mission_objective_ui()
 
 
 func _try_collect_mission_relic() -> void:
