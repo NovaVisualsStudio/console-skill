@@ -77,6 +77,59 @@ func _run_tests() -> void:
             await _finish(1, arena)
             return
 
+    # Exercise the actual Android touch widgets, not just their node names.
+    var forward_button := arena.find_child("move_forward", true, false) as Button
+    var light_button := arena.find_child("light_attack", true, false) as Button
+    var heavy_button := arena.find_child("heavy_attack", true, false) as Button
+    var dodge_button := arena.find_child("dodge", true, false) as Button
+    var guard_button := arena.find_child("guard", true, false) as Button
+    if forward_button == null or light_button == null or heavy_button == null or dodge_button == null or guard_button == null:
+        push_error("Android touch controls are missing or are not real Buttons.")
+        await _finish(1, arena)
+        return
+
+    forward_button.button_down.emit()
+    await physics_frame
+    if not Input.is_action_pressed("move_forward"):
+        push_error("Android movement button did not hold its mapped movement action.")
+        await _finish(1, arena)
+        return
+    forward_button.button_up.emit()
+    if Input.is_action_pressed("move_forward"):
+        push_error("Android movement button did not release its mapped movement action.")
+        await _finish(1, arena)
+        return
+
+    light_button.pressed.emit()
+    if arena.player.current_state != NovaPlayer.CombatState.ATTACK or arena.player.attack_startup_timer <= 0.0:
+        push_error("Android LIGHT button did not start the player's light attack.")
+        await _finish(1, arena)
+        return
+    await create_timer(0.44).timeout
+    var stamina_before_touch_heavy := arena.player.stamina
+    heavy_button.pressed.emit()
+    if arena.player.current_state != NovaPlayer.CombatState.ATTACK or not is_equal_approx(arena.player.stamina, stamina_before_touch_heavy - 30.0):
+        push_error("Android HEAVY button did not trigger the stamina-cost heavy attack.")
+        await _finish(1, arena)
+        return
+    await create_timer(0.80).timeout
+    guard_button.button_down.emit()
+    if not arena.player.guard_active:
+        push_error("Android GUARD button did not activate guarding on press.")
+        await _finish(1, arena)
+        return
+    guard_button.button_up.emit()
+    if arena.player.guard_active:
+        push_error("Android GUARD button did not release guarding on lift.")
+        await _finish(1, arena)
+        return
+    dodge_button.pressed.emit()
+    if arena.player.current_state != NovaPlayer.CombatState.DODGE or not arena.player.invulnerable:
+        push_error("Android DODGE button did not activate dodge and its invulnerability window.")
+        await _finish(1, arena)
+        return
+    await create_timer(0.46).timeout
+
     # The desktop Tab action must use the same lock-on path as the Android button.
     arena.player.lock_target = null
     arena.camera_rig.clear_lock_target()
