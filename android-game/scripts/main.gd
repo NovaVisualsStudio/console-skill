@@ -434,6 +434,7 @@ func _spawn_encounter() -> void:
     camera_rig = CAMERA_SCRIPT.new() as NovaCameraRig
     camera_rig.follow_target = player
     add_child(camera_rig)
+    player.movement_camera = camera_rig.camera
 
 func _make_enemy(spawn: Vector3, boss_enemy: bool) -> void:
     var enemy := ENEMY_SCRIPT.new() as NovaEnemy
