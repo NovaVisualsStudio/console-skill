@@ -200,7 +200,7 @@ func _physics_process(delta: float) -> void:
 		dodge_direction.y = 0.0
 		dodge_direction = dodge_direction.normalized()
 		if dodge_direction.length_squared() <= 0.01:
-			dodge_direction = Vector3.FORWARD
+			dodge_direction = -player.global_transform.basis.z
 		var dodge_local_direction: Vector3 = player.global_transform.basis.inverse() * dodge_direction
 		dodge_remaining = 0.28
 		dodge_cooldown = 0.88
