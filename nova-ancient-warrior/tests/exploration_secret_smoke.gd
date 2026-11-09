@@ -1,6 +1,11 @@
 extends SceneTree
 
 const ExplorationSecretDirector = preload("res://scripts/exploration_secret_director.gd")
+const EXPECTED_POSITIONS := [
+	Vector3(-10.6, 0.45, -3.5),
+	Vector3(8.2, 0.31, -7.0),
+	Vector3(-13.0, 0.49, -8.0)
+]
 
 
 func _initialize() -> void:
@@ -19,15 +24,10 @@ func _run_secret_smoke() -> void:
 		if cache.get_node_or_null("CacheBase") == null or cache.get_node_or_null("CacheLid") == null or cache.get_node_or_null("CacheRune") == null or cache.get_node_or_null("SecretMarker") == null:
 			_fail(root, "Chapter %d secret cache is missing visual components" % chapter)
 			return
-		var expected_positions := [
-	Vector3(-10.6, 0.45, -3.5),
-	Vector3(8.2, 0.31, -7.0),
-	Vector3(-13.0, 0.49, -8.0)
-]
 		if int(cache.get_meta("chapter_index", -1)) != chapter or bool(cache.get_meta("collected", true)):
 			_fail(root, "Chapter %d cache metadata is invalid" % chapter)
 			return
-		if not cache.position.is_equal_approx(expected_positions[chapter]):
+		if not cache.position.is_equal_approx(EXPECTED_POSITIONS[chapter]):
 			_fail(root, "Chapter %d cache is not aligned with its intended flank traversal platform" % chapter)
 			return
 		if chapter == 0:
