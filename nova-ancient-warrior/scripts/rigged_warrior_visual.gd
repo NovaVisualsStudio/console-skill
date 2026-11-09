@@ -9,6 +9,7 @@ var _model: Node3D
 var _animation_player: AnimationPlayer
 var _one_shot := false
 var _blocking := false
+var _jumping := false
 var _active_animation := ""
 
 
@@ -81,6 +82,20 @@ func play_parry() -> void:
 		_play_action("sword_block")
 
 
+func play_jump() -> void:
+	if _model is WarriorVisual:
+		return
+	_jumping = true
+	_play_action("jump_start", 1.5)
+
+
+func play_jump_land() -> void:
+	if _model is WarriorVisual:
+		return
+	_jumping = false
+	_play_action("jump_land", 1.35)
+
+
 func play_dodge(direction: Vector3) -> void:
 	if _model is WarriorVisual:
 		return
@@ -147,7 +162,9 @@ func _on_animation_finished(animation_name: StringName) -> void:
 	if str(animation_name) != _active_animation:
 		return
 	_one_shot = false
-	if _blocking:
+	if _jumping:
+		_play_loop("jump_air")
+	elif _blocking:
 		_play_loop("sword_block")
 	else:
 		_play_loop("idle")
