@@ -735,6 +735,18 @@ func _build_hud() -> void:
 	status_label.add_theme_color_override("font_color", Color(0.92, 0.84, 0.72))
 	status_label.text = LevelCatalog.wave_title(current_wave)
 	layer.add_child(status_label)
+	mission_objective_label = Label.new()
+	mission_objective_label.anchor_left = 0.5
+	mission_objective_label.anchor_right = 0.5
+	mission_objective_label.offset_left = -300.0
+	mission_objective_label.offset_right = 300.0
+	mission_objective_label.offset_top = 52.0
+	mission_objective_label.offset_bottom = 82.0
+	mission_objective_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mission_objective_label.add_theme_font_size_override("font_size", 16)
+	mission_objective_label.add_theme_color_override("font_color", Color(0.48, 0.88, 1.0))
+	mission_objective_label.visible = false
+	layer.add_child(mission_objective_label)
 	chapter_intro_title = Label.new()
 	chapter_intro_title.name = "ChapterIntroTitle"
 	chapter_intro_title.anchor_left = 0.5
@@ -822,6 +834,23 @@ func _build_hud() -> void:
 	_add_touch_button(layer, "LOCK", "lock_on", Vector2(-312.0, -210.0), Vector2(112.0, 56.0), true)
 	_add_touch_button(layer, "DODGE", "dodge", Vector2(-168.0, -48.0), Vector2(132.0, 56.0), true)
 	_add_touch_button(layer, "BLOCK", "block", Vector2(-312.0, -48.0), Vector2(132.0, 56.0), true)
+	interact_button = Button.new()
+	interact_button.name = "InteractButton"
+	interact_button.text = "INTERACT"
+	interact_button.focus_mode = Control.FOCUS_NONE
+	interact_button.custom_minimum_size = Vector2(132.0, 48.0)
+	interact_button.anchor_left = 1.0
+	interact_button.anchor_right = 1.0
+	interact_button.anchor_top = 1.0
+	interact_button.anchor_bottom = 1.0
+	interact_button.offset_left = -312.0
+	interact_button.offset_right = -180.0
+	interact_button.offset_top = -278.0
+	interact_button.offset_bottom = -230.0
+	interact_button.visible = false
+	interact_button.button_down.connect(func(): Input.action_press("interact"))
+	interact_button.button_up.connect(func(): Input.action_release("interact"))
+	layer.add_child(interact_button)
 	restart_button = Button.new()
 	restart_button.name = "RestartButton"
 	restart_button.text = "RESTART"
