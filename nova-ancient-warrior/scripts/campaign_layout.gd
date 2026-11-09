@@ -94,9 +94,9 @@ static func _build_obsidian_layout(root: Node3D) -> void:
 	_solid_block(root, "ObsidianThroneDais", Vector3(7.0, 0.42, 3.0), Vector3(0.0, 0.21, -13.8), obsidian)
 	_solid_block(root, "ObsidianThroneStep", Vector3(4.8, 0.22, 1.2), Vector3(0.0, 0.53, -12.2), rune)
 	for side in [-1.0, 1.0]:
-		for index in range(3):
-			var z := -7.0 + float(index) * 6.0
-			_solid_block(root, "ObsidianSideWalk", Vector3(2.2, 0.20, 2.6), Vector3(side * 9.0, 0.10, z), obsidian)
+		for z in [-8.0, -4.0, 4.0]:
+			# Outer traversal shelves stay clear of the enemy spawn ring and throne plinths.
+			_solid_block(root, "ObsidianSideWalk", Vector3(2.2, 0.20, 2.6), Vector3(side * 13.0, 0.10, z), obsidian)
 		# Keep the opening combat spawn ring clear; guard stones sit beyond the approach lane.
 		_solid_block(root, "ObsidianGuardStone", Vector3(2.0, 0.9, 1.1), Vector3(side * 10.0, 0.45, 3.6), obsidian)
 	_add_arch(root, "ObsidianEntryArch", Vector3(0.48, 6.2, 0.55), obsidian, rune)
