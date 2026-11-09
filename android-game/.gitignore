@@ -9,3 +9,6 @@ build/
 assets/characters/quaternius-standard-male.glb
 assets/animations/*.glb
 assets/animations/LICENSE-UAL2-CC0.txt
+
+# CharacterCreator generated CC0 human, hair and outfit binaries
+assets/characters/charactercreator-*.glb
