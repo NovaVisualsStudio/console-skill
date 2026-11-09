@@ -104,12 +104,14 @@ class GodotProjectIntegrity(unittest.TestCase):
         fetcher = self.read("tools/fetch_cc0_textures.py")
         self.assertIn("api.polyhaven.com/files/", fetcher)
         self.assertIn("md5", fetcher)
-        self.assertIn("1k", fetcher)
+        self.assertIn("2k", fetcher)
+        self.assertIn("4k", fetcher)
+        self.assertIn("NOVA_TEXTURE_TIER", fetcher)
         self.assertIn("nor_gl", fetcher)
         self.assertIn("dl.polyhaven.org", fetcher)
         main_script = self.read("scripts/main.gd")
-        for token in ("rock_tile_floor", "stone_wall", "_diff_1k.jpg", "_nor_gl_1k.jpg",
-                      "_rough_1k.jpg", "_make_pbr_material", "_apply_pbr_material",
+        for token in ("rock_tile_floor", "stone_wall", "_diff_", "_nor_gl_",
+                      "_rough_", "_make_pbr_material", "_apply_pbr_material",
                       "PolyHavenCredits", "POWERED BY POLY HAVEN"):
             self.assertIn(token, main_script)
         visual_test = self.read("tests/visual_material_smoke.gd")
@@ -119,7 +121,8 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn("compress/mode", visual_test)
         self.assertIn("mipmaps/generate", visual_test)
         self.assertIn("compress/normal_map", visual_test)
-        self.assertIn("six mobile-compressed 1K maps are verified", visual_test)
+        self.assertIn("six mobile-compressed %s maps are verified", visual_test)
+        self.assertIn("4096 if texture_tier == \"4k\" else 2048", visual_test)
         self.assertIn("write_import_settings", fetcher)
         self.assertIn('compress/mode": "2"', fetcher)
         self.assertIn('mipmaps/generate": "true"', fetcher)
