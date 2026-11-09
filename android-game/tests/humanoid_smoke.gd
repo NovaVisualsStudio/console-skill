@@ -5,6 +5,19 @@ const HUMANOID_SCRIPT = preload("res://scripts/humanoid_rig.gd")
 func _initialize() -> void:
     call_deferred("_run")
 
+func _count_pbr_surface_meshes(node: Node, asset_id: String, tier: String) -> int:
+    var count := 0
+    if node is MeshInstance3D:
+        var mesh_instance := node as MeshInstance3D
+        var material := mesh_instance.material_override as StandardMaterial3D
+        if material != null and material.albedo_texture != null:
+            if material.albedo_texture.resource_path.to_lower().contains(asset_id + "_diff_" + tier + ".jpg"):
+                if material.normal_enabled and material.normal_texture != null and material.roughness_texture != null:
+                    count += 1
+    for child in node.get_children():
+        count += _count_pbr_surface_meshes(child, asset_id, tier)
+    return count
+
 func _run() -> void:
     var rig := HUMANOID_SCRIPT.new() as NovaHumanoidRig
     root.add_child(rig)
@@ -39,6 +52,16 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    var texture_tier := OS.get_environment("NOVA_TEXTURE_TIER").to_lower()
+    if texture_tier.is_empty():
+        texture_tier = String(ProjectSettings.get_setting("nova/graphics/texture_tier", "2k")).to_lower()
+    var metal_armor_meshes := _count_pbr_surface_meshes(rig.skeleton, "metal_plate", texture_tier)
+    var leather_armor_meshes := _count_pbr_surface_meshes(rig.skeleton, "leather_red_02", texture_tier)
+    if metal_armor_meshes < 1 or leather_armor_meshes < 1:
+        push_error("Humanoid PBR test: metal plate or leather CC0 maps were not applied to bone-attached armor.")
+        rig.free()
+        quit(1)
+        return
     var right_hand_attachment := rig.attach_to_bone("hand_r")
     if right_hand_attachment == rig or not (right_hand_attachment is BoneAttachment3D):
         push_error("Humanoid weapon test: right-hand bone attachment failed.")
@@ -61,6 +84,20 @@ func _run() -> void:
         if is_melee and clip_name.contains("heavy"):
             has_heavy_melee_clip = true
 
+    rig.play_locomotion("walk", 0.55)
+    await process_frame
+    if rig.animation_player.current_animation.is_empty() or rig.animation_player.speed_scale < 0.70:
+        push_error("Humanoid locomotion test: walk transition or cadence scaling failed.")
+        rig.free()
+        quit(1)
+        return
+    rig.play_locomotion("run", 1.0)
+    await process_frame
+    if rig.animation_player.current_animation.is_empty() or rig.animation_player.speed_scale < 1.15:
+        push_error("Humanoid locomotion test: run transition or cadence scaling failed.")
+        rig.free()
+        quit(1)
+        return
     rig.play_attack_variant(2, false, 0.0)
     await process_frame
     if String(rig.animation_player.current_animation).is_empty():
@@ -130,7 +167,7 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
-    print("HUMANOID TEST PASS: %d bones, %d retargeted clips, %d skinned outfit meshes, idle=%s, light=%s, heavy=%s, death=%s." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count, rig.attached_clothing_mesh_count, idle_name, attack_pose_name, heavy_name, death_name])
+    print("HUMANOID TEST PASS: %d bones, %d retargeted clips, %d skinned outfit meshes, %d metal and %d leather PBR meshes, idle=%s, light=%s, heavy=%s, death=%s." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count, rig.attached_clothing_mesh_count, metal_armor_meshes, leather_armor_meshes, idle_name, attack_pose_name, heavy_name, death_name])
     rig.free()
     await process_frame
     quit(0)
