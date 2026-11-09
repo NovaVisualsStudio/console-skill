@@ -46,7 +46,7 @@ ASSETS = {
     },
     "leather_red_02": {
         "maps": {
-            "diff": (f"_diff_{TEXTURE_TIER}.jpg", f"_diffuse_{TEXTURE_TIER}.jpg"),
+            "diff": (f"_coll2_{TEXTURE_TIER}.jpg", f"_diff_{TEXTURE_TIER}.jpg", f"_diffuse_{TEXTURE_TIER}.jpg"),
             "nor_gl": (f"_nor_gl_{TEXTURE_TIER}.jpg",),
             "rough": (f"_rough_{TEXTURE_TIER}.jpg",),
         },
