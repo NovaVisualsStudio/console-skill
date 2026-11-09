@@ -22,6 +22,8 @@ func _initialize() -> void:
 		assert(MissionObjectives.collect(relics[0]), "First collection must succeed")
 		assert(not MissionObjectives.collect(relics[0]), "Collected relic must not be collectible twice")
 		assert(not relics[0].visible, "Collected relic must disappear")
+	MissionObjectives.clear_stage(parent)
+	assert(parent.get_node_or_null("GeneratedMissionRelics") == null, "Boss-wave resume must clear relic objectives")
 	parent.queue_free()
 	print("Mission objective smoke test passed: three chapter layouts, relic creation and one-time collection")
 	quit(0)
