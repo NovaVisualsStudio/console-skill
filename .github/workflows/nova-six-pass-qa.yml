@@ -107,6 +107,20 @@ jobs:
           fi
           echo "PASS 3: Godot imported project resources within the 100 MB safety ceiling"
 
+      - name: "Diagnose exploration puzzle script compilation"
+        shell: bash
+        run: |
+          set -euo pipefail
+          puzzle_log="$RUNNER_TEMP/exploration-puzzle-compile.log"
+          if ! "$GODOT_BIN" --headless --path nova-ancient-warrior --script res://tests/exploration_puzzle_compile_smoke.gd >"$puzzle_log" 2>&1; then
+            cat "$puzzle_log"
+            exit 1
+          fi
+          cat "$puzzle_log"
+          if grep -E "SCRIPT ERROR:|ERROR:|ObjectDB instance was leaked|Leaked instance:|resources still in use" "$puzzle_log"; then
+            exit 1
+          fi
+
       - name: "PASS 4/6 — character, animation and audio integrity"
         shell: bash
         run: |
