@@ -104,7 +104,7 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
-    cached_peer.free()
+    cached_peer.queue_free()
     await process_frame
     var available_clips := rig.animation_player.get_animation_list()
     var has_light_melee_clip := false
