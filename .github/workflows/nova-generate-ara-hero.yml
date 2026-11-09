@@ -6,8 +6,6 @@ on:
       - release/nova-ancient-warrior-integration-20261108
     paths:
       - "nova-ancient-warrior/tools/ara_export_hero.ts"
-      - "nova-ancient-warrior/scripts/rigged_warrior_visual.gd"
-      - "nova-ancient-warrior/tests/rigged_warrior_smoke.gd"
       - ".github/workflows/nova-generate-ara-hero.yml"
   workflow_dispatch:
 
@@ -74,7 +72,7 @@ jobs:
           PY
           pnpm run setup-assets
 
-      - name: Generate rigged NOVA warrior with sword and full animation library
+      - name: Generate rigged NOVA warrior with sword and curated mobile animation set
         shell: bash
         working-directory: ${{ runner.temp }}/ara-3d-gen
         env:
