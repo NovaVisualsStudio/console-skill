@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: nova-six-pass-${{ github.ref }}
+  group: nova-six-pass-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
