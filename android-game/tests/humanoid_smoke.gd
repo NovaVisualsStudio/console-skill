@@ -61,6 +61,13 @@ func _run() -> void:
         if is_melee and clip_name.contains("heavy"):
             has_heavy_melee_clip = true
 
+    rig.play_attack_variant(2, false, 0.0)
+    await process_frame
+    if String(rig.animation_player.current_animation).is_empty():
+        push_error("Humanoid animation test: combo variant selection returned no usable clip.")
+        rig.free()
+        quit(1)
+        return
     rig.play_action("idle")
     await process_frame
     var idle_name := String(rig.animation_player.current_animation)
