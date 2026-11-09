@@ -24,10 +24,10 @@ static func rune_positions(stage_index: int) -> Array[Vector3]:
 		0:
 			return [Vector3(-7.5, 0.0, -13.0), Vector3(7.5, 0.0, -13.0), Vector3(0.0, 0.0, -9.5)]
 		1:
-		# The central rune rests on the raised safe causeway (top surface y = 0.06).
-		return [Vector3(-12.0, 0.0, -12.0), Vector3(12.0, 0.0, -12.0), Vector3(0.0, 0.06, -5.5)]
+			# The central rune rests on the raised safe causeway (top surface y = 0.06).
+			return [Vector3(-12.0, 0.0, -12.0), Vector3(12.0, 0.0, -12.0), Vector3(0.0, 0.06, -5.5)]
 		_:
-		return [Vector3(-11.0, 0.0, -11.0), Vector3(11.0, 0.0, -11.0), Vector3(0.0, 0.0, 9.0)]
+			return [Vector3(-11.0, 0.0, -11.0), Vector3(11.0, 0.0, -11.0), Vector3(0.0, 0.0, 9.0)]
 
 
 static func clear_stage(parent: Node3D) -> void:
