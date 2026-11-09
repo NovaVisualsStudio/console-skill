@@ -45,8 +45,14 @@ func _run_visual_smoke() -> void:
 	boss.call("phase_change", 3)
 	boss.call("telegraph", true)
 	boss.call("hit_react")
-	if boss.get_node_or_null("EmberHornLeft") == null or boss.get_node_or_null("EmberFlameCore") == null:
-		push_error("Ember Warlord signature horns and flame core are missing")
+	var ember_ring := boss.get_node_or_null("BossTelegraphRing") as MeshInstance3D
+	if boss.get_node_or_null("EmberHornLeft") == null or boss.get_node_or_null("EmberFlameCore") == null or ember_ring == null or not ember_ring.visible:
+		push_error("Ember Warlord signature horns, flame core and readable charge telegraph are required")
+		quit(1)
+		return
+	boss.call("telegraph", false)
+	if ember_ring.visible:
+		push_error("Boss attack telegraph must disappear after the strike begins")
 		quit(1)
 		return
 	boss.queue_free()
@@ -57,8 +63,9 @@ func _run_visual_smoke() -> void:
 	ash_boss.set("boss_kind", "ash_titan")
 	get_root().add_child(ash_boss)
 	await process_frame
-	if ash_boss.get_node_or_null("AshTitanMaulHead") == null:
-		push_error("Ash Titan signature maul is missing")
+	var ash_ring := ash_boss.get_node_or_null("BossTelegraphRing") as MeshInstance3D
+	if ash_boss.get_node_or_null("AshTitanMaulHead") == null or ash_ring == null or not is_equal_approx((ash_ring.mesh as TorusMesh).outer_radius, 2.45):
+		push_error("Ash Titan signature maul and close-range ground warning ring are required")
 		quit(1)
 		return
 	ash_boss.queue_free()
@@ -69,8 +76,9 @@ func _run_visual_smoke() -> void:
 	final_boss.set("boss_kind", "obsidian_sovereign")
 	get_root().add_child(final_boss)
 	await process_frame
-	if final_boss.get_node_or_null("ObsidianCrownSpire") == null or final_boss.get_node_or_null("ObsidianRuneOrb") == null:
-		push_error("Obsidian Sovereign signature crown and rune orb are missing")
+	var sovereign_ring := final_boss.get_node_or_null("BossTelegraphRing") as MeshInstance3D
+	if final_boss.get_node_or_null("ObsidianCrownSpire") == null or final_boss.get_node_or_null("ObsidianRuneOrb") == null or sovereign_ring == null or not is_equal_approx((sovereign_ring.mesh as TorusMesh).outer_radius, 3.32):
+		push_error("Obsidian Sovereign signature crown, rune orb and wide rune-burst warning ring are required")
 		quit(1)
 		return
 	final_boss.queue_free()
