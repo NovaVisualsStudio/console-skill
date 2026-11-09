@@ -249,6 +249,11 @@ func _build_settings_panel() -> void:
 	_music_slider.value_changed.connect(_save_audio_options)
 	_sfx_slider.value_changed.connect(_save_audio_options)
 
+	_language_button = _make_button("", Vector2(400.0, 48.0))
+	_language_button.name = "LanguageButton"
+	_language_button.pressed.connect(_toggle_language)
+	stack.add_child(_language_button)
+
 	_quality_button = _make_button("", Vector2(400.0, 48.0))
 	_quality_button.name = "QualityButton"
 	_quality_button.pressed.connect(_toggle_graphics_quality)
@@ -256,6 +261,7 @@ func _build_settings_panel() -> void:
 	_refresh_quality_button()
 
 	var close := _make_button("CLOSE", Vector2(400.0, 46.0))
+	close.name = "SettingsCloseButton"
 	close.pressed.connect(func(): _settings_panel.visible = false)
 	stack.add_child(close)
 
@@ -292,6 +298,7 @@ func _build_credits_panel() -> void:
 	notice.add_theme_font_size_override("font_size", 14)
 	stack.add_child(notice)
 	var close := _make_button("CLOSE", Vector2(490.0, 48.0))
+	close.name = "CreditsCloseButton"
 	close.pressed.connect(func(): _credits_panel.visible = false)
 	stack.add_child(close)
 
