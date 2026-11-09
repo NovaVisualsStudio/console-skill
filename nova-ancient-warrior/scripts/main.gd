@@ -504,7 +504,6 @@ func _spawn_wave() -> void:
 	var boss_kind := CombatRules.boss_kind_for_wave(current_wave)
 	var boss_to_intro: Node3D = null
 	for i in range(enemy_count):
-		var angle := TAU * float(i) / float(enemy_count) + 0.4
 		var enemy := Node3D.new()
 		var enemy_variant := i % 3
 		enemy.name = CombatRules.boss_display_name(current_wave).replace(" ", "_") if boss_wave else "AshEnemy_W%d_%d" % [current_wave, i + 1]
