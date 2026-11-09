@@ -104,11 +104,11 @@ func _build_world() -> void:
     _add_box("NorthWall", Vector3(0, 3.0, -21), Vector3(42, 6, 1.2),
         Color(0.13, 0.12, 0.14) if stage == 0 else (Color(0.07, 0.16, 0.18) if stage == 1 else Color(0.20, 0.075, 0.065)), true, 0.92, 0.08)
     _add_box("SouthWall", Vector3(0, 3.0, 21), Vector3(42, 6, 1.2),
-        Color(0.13, 0.12, 0.14), true, 0.92, 0.08)
+        Color(0.13, 0.12, 0.14) if stage == 0 else (Color(0.07, 0.16, 0.18) if stage == 1 else Color(0.20, 0.075, 0.065)), true, 0.92, 0.08)
     _add_box("WestWall", Vector3(-21, 3.0, 0), Vector3(1.2, 6, 42),
-        Color(0.13, 0.12, 0.14), true, 0.92, 0.08)
+        Color(0.13, 0.12, 0.14) if stage == 0 else (Color(0.07, 0.16, 0.18) if stage == 1 else Color(0.20, 0.075, 0.065)), true, 0.92, 0.08)
     _add_box("EastWall", Vector3(21, 3.0, 0), Vector3(1.2, 6, 42),
-        Color(0.13, 0.12, 0.14), true, 0.92, 0.08)
+        Color(0.13, 0.12, 0.14) if stage == 0 else (Color(0.07, 0.16, 0.18) if stage == 1 else Color(0.20, 0.075, 0.065)), true, 0.92, 0.08)
 
     _add_ritual_ring(7.6, CHAPTER_RINGS[stage])
     _add_ritual_ring(10.2, CHAPTER_RINGS[stage].darkened(0.42))
