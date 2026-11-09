@@ -124,6 +124,12 @@ jobs:
           test -s android-game/scripts/player.gd
           test -s android-game/scripts/humanoid_rig.gd
           test -s android-game/assets/characters/quaternius-standard-male.glb
+          test -s android-game/assets/characters/charactercreator-base-body.glb
+          test -s android-game/assets/characters/charactercreator-tshirt.glb
+          test -s android-game/assets/characters/charactercreator-jeans.glb
+          test -s android-game/assets/characters/charactercreator-boots.glb
+          test -s android-game/assets/characters/charactercreator-trenchcoat.glb
+          test -s android-game/assets/characters/charactercreator-hair-short02.glb
           test -s android-game/assets/animations/UAL2_Standard.glb
           test -s android-game/scripts/enemy.gd
           test -s android-game/icon.svg
