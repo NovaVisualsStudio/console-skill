@@ -1445,21 +1445,17 @@ func _update_enemies(delta: float) -> void:
 				var damage := int(enemy.get_meta("damage", 9))
 				var hit_range := 2.0
 				if is_boss:
+					hit_range = CombatRules.boss_attack_range(boss_kind, phase)
 					match boss_kind:
 						"ember_warlord":
-							hit_range = 5.0
 							if distance <= hit_range:
 								enemy.global_position += offset.normalized() * minf(3.0, maxf(0.0, distance - 1.15))
 						"obsidian_sovereign":
-							hit_range = 5.8
 							damage += 8 if phase >= 2 else 0
 						_:
-							hit_range = 2.65
 							damage += 5 if phase >= 2 else 0
 					if phase == 3:
 						damage = int(float(damage) * 1.25)
-						if boss_kind == "obsidian_sovereign":
-							hit_range = 6.5
 				if distance <= hit_range:
 					_damage_player(damage, enemy)
 					_play_sfx_or_tone("heavy_swing" if is_boss else "sword_swing", 125.0 if not is_boss else (78.0 if boss_kind == "obsidian_sovereign" else 92.0), 0.16, 0.22)
