@@ -47,6 +47,16 @@ func _run() -> void:
             stage_arena.free()
             quit(1)
             return
+        if stage_index == 1 and stage_arena.find_child("SanctumBrokenArchLeft", true, false) == null:
+            push_error("Campaign test: Sunken Sanctum is missing its distinct broken cathedral architecture.")
+            stage_arena.free()
+            quit(1)
+            return
+        if stage_index == 2 and stage_arena.find_child("CrownObsidianMonolith", true, false) == null:
+            push_error("Campaign test: Crown of Ash is missing its distinct obsidian skyline.")
+            stage_arena.free()
+            quit(1)
+            return
         stage_arena.free()
-    print("CAMPAIGN TEST PASS: three chapters, persistent saves, and both later chapter environments verified.")
+    print("CAMPAIGN TEST PASS: persistent progression plus distinct Sunken Sanctum and Crown of Ash landmarks verified.")
     quit(0)

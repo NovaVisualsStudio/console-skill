@@ -16,6 +16,7 @@ var player: Node3D
 var is_boss := false
 var difficulty_scale := 1.0
 var chapter_variant := 0
+var boss_archetype := 0
 var active := false
 var health := 80
 var max_health := 80
@@ -42,12 +43,26 @@ func _ready() -> void:
     add_to_group("enemies")
     if is_boss:
         add_to_group("boss")
-        health = 620
-        max_health = 620
-        move_speed = 1.55
-        attack_range = 3.65
-        attack_damage = 28
-        telegraph_duration = 0.95
+        match clampi(boss_archetype, 0, 2):
+            0: # Ashen Warden: deliberate frontal pressure and sweeping control.
+                health = 620
+                move_speed = 1.55
+                attack_range = 3.65
+                attack_damage = 28
+                telegraph_duration = 0.95
+            1: # Drowned Sentinel: longer reach, slower wind-up, lane and perimeter denial.
+                health = 700
+                move_speed = 1.38
+                attack_range = 4.15
+                attack_damage = 25
+                telegraph_duration = 1.12
+            2: # Crowned Tyrant: heavier damage and faster pressure in a compact arena.
+                health = 760
+                move_speed = 1.78
+                attack_range = 3.85
+                attack_damage = 32
+                telegraph_duration = 0.86
+        max_health = health
     health = maxi(1, roundi(float(health) * difficulty_scale))
     max_health = health
     move_speed *= 1.0 + (difficulty_scale - 1.0) * 0.22
@@ -76,7 +91,13 @@ func _build_enemy() -> void:
     humanoid.tint_color = enemy_tints[palette_index] if not is_boss else boss_tints[palette_index]
     humanoid.armor_style = "enemy" if not is_boss else "boss"
     humanoid.accent_color = accent_tints[palette_index]
-    humanoid.character_scale = 1.0 if not is_boss else 1.55
+    if is_boss and boss_archetype == 1:
+        humanoid.tint_color = Color(0.045, 0.19, 0.25)
+        humanoid.accent_color = Color(0.08, 0.72, 0.82)
+    elif is_boss and boss_archetype == 2:
+        humanoid.tint_color = Color(0.24, 0.055, 0.035)
+        humanoid.accent_color = Color(1.0, 0.28, 0.045)
+    humanoid.character_scale = 1.0 if not is_boss else (1.43 if boss_archetype == 1 else (1.66 if boss_archetype == 2 else 1.55))
     add_child(humanoid)
     body_mesh = humanoid.primary_mesh
     body_material = humanoid.primary_material
@@ -102,7 +123,8 @@ func _build_enemy_weapon() -> void:
     if attachment == humanoid:
         return
     var weapon := Node3D.new()
-    weapon.name = "WardenBlade" if is_boss else "GuardianSword"
+    var boss_names := ["WardenGreatsword", "SentinelTrident", "TyrantCleaver"]
+    weapon.name = boss_names[clampi(boss_archetype, 0, 2)] if is_boss else "GuardianSword"
     weapon.position = Vector3(0.0, -0.10, 0.02)
     attachment.add_child(weapon)
     var grip := MeshInstance3D.new()
@@ -116,11 +138,31 @@ func _build_enemy_weapon() -> void:
     weapon.add_child(grip)
     var blade := MeshInstance3D.new()
     var blade_mesh := BoxMesh.new()
-    blade_mesh.size = Vector3(0.13, 0.78, 0.055) if not is_boss else Vector3(0.20, 1.22, 0.075)
+    var boss_blade_sizes := [Vector3(0.30, 1.48, 0.12), Vector3(0.18, 1.78, 0.10), Vector3(0.46, 1.36, 0.16)]
+    blade_mesh.size = Vector3(0.13, 0.78, 0.055) if not is_boss else boss_blade_sizes[clampi(boss_archetype, 0, 2)]
     blade.mesh = blade_mesh
-    blade.position.y = 0.48 if not is_boss else 0.73
-    blade.material_override = _material(Color(0.48, 0.57, 0.66), 0.24, 0.94)
+    blade.position.y = 0.48 if not is_boss else (0.96 if boss_archetype == 1 else 0.80)
+    var blade_colors := [Color(0.62, 0.68, 0.78), Color(0.10, 0.72, 0.82), Color(0.82, 0.24, 0.08)]
+    blade.material_override = _material(Color(0.48, 0.57, 0.66) if not is_boss else blade_colors[clampi(boss_archetype, 0, 2)], 0.24, 0.94)
     weapon.add_child(blade)
+    if is_boss and boss_archetype == 1:
+        for prong_side in [-1.0, 1.0]:
+            var prong := MeshInstance3D.new()
+            var prong_mesh := BoxMesh.new()
+            prong_mesh.size = Vector3(0.085, 0.82, 0.075)
+            prong.mesh = prong_mesh
+            prong.position = Vector3(prong_side * 0.24, 0.88, 0.0)
+            prong.rotation.z = -prong_side * 0.18
+            prong.material_override = blade.material_override
+            weapon.add_child(prong)
+    elif is_boss and boss_archetype == 2:
+        var cleaver_spine := MeshInstance3D.new()
+        var spine_mesh := BoxMesh.new()
+        spine_mesh.size = Vector3(0.56, 0.18, 0.19)
+        cleaver_spine.mesh = spine_mesh
+        cleaver_spine.position.y = 1.38
+        cleaver_spine.material_override = blade.material_override
+        weapon.add_child(cleaver_spine)
     var guard := MeshInstance3D.new()
     var guard_mesh := BoxMesh.new()
     guard_mesh.size = Vector3(0.34, 0.075, 0.10) if not is_boss else Vector3(0.48, 0.10, 0.14)
@@ -250,14 +292,21 @@ func _begin_telegraph() -> void:
     _strike_done = false
     last_attack_hit = false
     if is_boss:
-        var pattern_count := 5 if phase >= 2 else 2
-        var pattern_index := attack_pattern_index % pattern_count
-        if pattern_index == 0:
-            current_attack_pattern = AttackPattern.MELEE
-        elif pattern_index == 1:
-            current_attack_pattern = AttackPattern.SWEEP
-        else:
-            current_attack_pattern = AttackPattern.SLAM
+        var pattern_sequence: Array = []
+        match clampi(boss_archetype, 0, 2):
+            0:
+                pattern_sequence = [AttackPattern.MELEE, AttackPattern.SWEEP] if phase == 1 else [
+                    AttackPattern.MELEE, AttackPattern.SWEEP, AttackPattern.SLAM,
+                    AttackPattern.THRUST, AttackPattern.RING_BURST]
+            1:
+                pattern_sequence = [AttackPattern.THRUST, AttackPattern.RING_BURST] if phase == 1 else [
+                    AttackPattern.THRUST, AttackPattern.RING_BURST, AttackPattern.SLAM,
+                    AttackPattern.SWEEP, AttackPattern.MELEE]
+            2:
+                pattern_sequence = [AttackPattern.SLAM, AttackPattern.MELEE] if phase == 1 else [
+                    AttackPattern.SLAM, AttackPattern.MELEE, AttackPattern.SWEEP,
+                    AttackPattern.THRUST, AttackPattern.RING_BURST]
+        current_attack_pattern = pattern_sequence[attack_pattern_index % pattern_sequence.size()]
         attack_pattern_index += 1
         match current_attack_pattern:
             AttackPattern.MELEE:
@@ -353,9 +402,19 @@ func take_damage(amount: int, source_position: Vector3 = Vector3.ZERO, heavy: bo
     health_changed.emit(health, max_health)
     if is_boss and phase == 1 and health <= int(float(max_health) * 0.5):
         phase = 2
-        move_speed = 2.05
-        attack_damage = 38
-        telegraph_duration = 0.72
+        match clampi(boss_archetype, 0, 2):
+            0:
+                move_speed = 2.05
+                attack_damage = 38
+                telegraph_duration = 0.72
+            1:
+                move_speed = 1.92
+                attack_damage = 34
+                telegraph_duration = 0.82
+            2:
+                move_speed = 2.35
+                attack_damage = 44
+                telegraph_duration = 0.64
         phase_changed.emit(phase)
         if body_material != null:
             body_material.albedo_color = Color(0.34, 0.065, 0.12)
