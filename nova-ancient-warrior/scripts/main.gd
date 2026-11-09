@@ -9,6 +9,7 @@ const ARENA_LIMIT := 16.0
 const CombatRules = preload("res://scripts/combat_rules.gd")
 const EnemyTactics = preload("res://scripts/enemy_tactics.gd")
 const NarrativeDirector = preload("res://scripts/narrative_director.gd")
+const MissionObjectiveDirector = preload("res://scripts/mission_objective_director.gd")
 const WarriorVisual = preload("res://scripts/warrior_visual.gd")
 const MusicDirector = preload("res://scripts/music_director.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
@@ -80,6 +81,11 @@ var dialogue_next_button: Button
 var dialogue_lines: Array[Dictionary] = []
 var dialogue_index := -1
 var dialogue_active := false
+var mission_relics: Array[Node3D] = []
+var mission_relic_count := 0
+var boss_gate_pending := false
+var mission_objective_label: Label
+var interact_button: Button
 var touch_camera_controller := TouchCameraController.new()
 const CAMERA_DISTANCE := 10.3
 
@@ -112,6 +118,8 @@ func _get_touch_ui_exclusions() -> Array[Rect2]:
 			exclusions.append(control.get_global_rect())
 	if is_instance_valid(dialogue_panel) and dialogue_panel.visible:
 		exclusions.append(dialogue_panel.get_global_rect())
+	if is_instance_valid(interact_button) and interact_button.visible:
+		exclusions.append(interact_button.get_global_rect())
 	if is_instance_valid(pause_menu):
 		for control_name in ["PauseButton", "PausePanel"]:
 			var pause_control := pause_menu.get_node_or_null(control_name) as Control
@@ -121,6 +129,7 @@ func _get_touch_ui_exclusions() -> Array[Rect2]:
 
 
 func _process(delta: float) -> void:
+	_animate_mission_relics(delta)
 	if cinematic_active:
 		return
 	if is_instance_valid(player) and is_instance_valid(camera):
@@ -236,6 +245,9 @@ func _physics_process(delta: float) -> void:
 	if is_instance_valid(hero_visual):
 		hero_visual.call("set_locomotion", planar_speed / PLAYER_SPEED, delta)
 	_update_stage_hazards(delta)
+	_update_mission_relic_interaction()
+	if Input.is_action_just_pressed("interact"):
+		_try_collect_mission_relic()
 	_update_enemies(delta)
 
 
@@ -325,6 +337,7 @@ func _setup_input() -> void:
 	_add_key_action("heavy_attack", KEY_H)
 	_add_key_action("block", KEY_I)
 	_add_key_action("lock_on", KEY_TAB)
+	_add_key_action("interact", KEY_E)
 	_add_key_action("restart", KEY_R)
 
 
@@ -504,6 +517,9 @@ func _apply_level_theme(wave: int) -> void:
 		hazard_warning_cooldown = 0.0
 		rune_hazard_lit = false
 		StageBuilder.set_rune_intensity(self, 0.0)
+		mission_relics = MissionObjectiveDirector.build_stage(self, next_stage_index)
+		mission_relic_count = 0
+		boss_gate_pending = false
 
 
 func _spawn_wave() -> void:
