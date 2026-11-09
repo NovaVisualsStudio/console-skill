@@ -4,7 +4,7 @@
 
 ## 1. تنزيل المحاكي من المصدر الرسمي
 
-- [صفحة تنزيل Play! الرسمية](https://purei.org/downloads.php) — اختر إصدار Android أو خيار Google Play المتاح هناك.
+- [صفحة تنزيل Play! الرسمية](https://purei.org/downloads.php): اختر إصدار Android أو خيار Google Play المتاح هناك.
 - [مستودع Play! الرسمي على GitHub](https://github.com/jpd002/Play-).
 - [متتبع توافق Play! الرسمي](https://github.com/jpd002/Play-Compatibility).
 
@@ -21,9 +21,9 @@
 
 ## 3. تشغيل ELF على Android
 
-**الخيار A — تطبيق Play! المستقل:** افتح التطبيق بعد تثبيته، وابحث عن طريقة إضافة/فتح ملف لعبة إن كانت متاحة في نسخة Android التي تستخدمها. لا تفترض أن كل إصدار Android يتيح اختيار ELF مباشرة؛ توثيق المشروع يذكر خيار `--elf` لسطر أوامر Windows/macOS/Linux، ولا يضمن واجهة Android مماثلة.
+**الخيار A: تطبيق Play! المستقل:** افتح التطبيق بعد تثبيته، وابحث عن طريقة إضافة/فتح ملف لعبة إن كانت متاحة في نسخة Android التي تستخدمها. لا تفترض أن كل إصدار Android يتيح اختيار ELF مباشرة؛ توثيق المشروع يذكر خيار `--elf` لسطر أوامر Windows/macOS/Linux، ولا يضمن واجهة Android مماثلة.
 
-**الخيار B — RetroArch مع Play! core:** إذا لم يوفّر التطبيق المستقل فتح ELF، فتوثيق Play! core في RetroArch يذكر صراحةً أن امتداد `.elf` مدعوم. ثبّت RetroArch من مصدره الرسمي، ثم تحقق من توفر Play! core لجهازك وإصدار Android لديك قبل المتابعة. هذه طريقة بديلة وليست جزءاً مدمجاً في هذا المستودع.
+**الخيار B: RetroArch مع Play! core:** إذا لم يوفّر التطبيق المستقل فتح ELF، فتوثيق Play! core في RetroArch يذكر صراحةً أن امتداد `.elf` مدعوم. ثبّت RetroArch من مصدره الرسمي، ثم تحقق من توفر Play! core لجهازك وإصدار Android لديك قبل المتابعة. هذه طريقة بديلة وليست جزءاً مدمجاً في هذا المستودع.
 
 - [توثيق Play! core وامتدادات الملفات المدعومة](https://docs.libretro.com/library/play/).
 - [الموقع الرسمي لـ RetroArch](https://www.retroarch.com/).

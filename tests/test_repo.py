@@ -63,8 +63,11 @@ class Repo(unittest.TestCase):
             top = relpath.split("/", 1)[0]
             if not top.startswith(".git"):
                 root.add(top)
-        self.assertEqual(sorted(root),
-                         sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "ps2-game", "tests"] + SKILLS))
+        expected_root = [
+            ".agents", ".claude-plugin", ".github", "LICENSE", "README.md",
+            "docs", "nova-ancient-warrior", "ps2-game", "tests",
+        ] + SKILLS
+        self.assertEqual(sorted(root), sorted(expected_root))
 
     def test_frontmatter_name_description_hint(self):
         for s in SKILLS:
