@@ -109,10 +109,24 @@ jobs:
             echo "Generated hero and provenance are byte-identical to the validated branch asset; no commit is required."
           else
             git commit -m "Add validated Ara-generated realistic NOVA hero"
-            git push origin "HEAD:$GITHUB_REF_NAME"
+            pushed=false
+            for attempt in 1 2 3; do
+              git fetch origin "$GITHUB_REF_NAME"
+              git rebase "origin/$GITHUB_REF_NAME"
+              if git push origin "HEAD:$GITHUB_REF_NAME"; then
+                pushed=true
+                break
+              fi
+              echo "Push raced with another feature-branch update (attempt $attempt); rebasing onto the newest head."
+            done
+            if [[ "$pushed" != true ]]; then
+              echo "Could not publish the validated hero after three fetch/rebase attempts."
+              exit 1
+            fi
           fi
 
       - name: Upload generated hero for review and integration
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: nova-realistic-hero-glb
