@@ -98,8 +98,10 @@ func hit_react() -> void:
 func _find_animation(fragment: String) -> String:
 	if _animation_player == null:
 		return ""
+	var wanted := fragment.to_lower().replace("_", "").replace("-", "").replace(" ", "")
 	for animation_name in _animation_player.get_animation_list():
-		if fragment.to_lower() in animation_name.to_lower():
+		var candidate := str(animation_name).to_lower().replace("_", "").replace("-", "").replace(" ", "")
+		if wanted in candidate:
 			return animation_name
 	return ""
 
