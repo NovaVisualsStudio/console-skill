@@ -6,7 +6,6 @@ on:
       - release/nova-ancient-warrior-integration-20261108
     paths:
       - "nova-ancient-warrior/tools/ara_export_hero.ts"
-      - ".github/workflows/nova-generate-ara-hero.yml"
   workflow_dispatch:
 
 concurrency:
@@ -104,8 +103,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add nova-ancient-warrior/assets/characters/nova_hero.glb nova-ancient-warrior/assets/characters/nova_hero.sha256 nova-ancient-warrior/assets/characters/ara_source_commit.txt
-          git commit -m "Add validated Ara-generated realistic NOVA hero"
-          git push origin "HEAD:$GITHUB_REF_NAME"
+          if git diff --cached --quiet; then
+            echo "Generated hero and provenance are byte-identical to the validated branch asset; no commit is required."
+          else
+            git commit -m "Add validated Ara-generated realistic NOVA hero"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
 
       - name: Upload generated hero for review and integration
         uses: actions/upload-artifact@v4
