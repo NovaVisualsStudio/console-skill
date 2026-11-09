@@ -11,6 +11,7 @@ var profile: Dictionary = {}
 
 func _ready() -> void:
 	load_profile()
+	TranslationServer.set_locale(str(profile.get("language", "en")))
 
 
 func start_new_campaign() -> bool:
@@ -42,7 +43,8 @@ func _default_profile() -> Dictionary:
 		"upgrade_guard": 0,
 		"music_volume": 0.72,
 		"sfx_volume": 0.85,
-		"graphics_quality": "mid"
+		"graphics_quality": "mid",
+		"language": "en"
 	}
 
 
@@ -73,6 +75,8 @@ func load_profile() -> bool:
 	profile["sfx_volume"] = clampf(float(profile["sfx_volume"]), 0.0, 1.0)
 	var graphics_quality := str(profile.get("graphics_quality", "mid")).to_lower()
 	profile["graphics_quality"] = "high" if graphics_quality == "high" else "mid"
+	var language := str(profile.get("language", "en")).to_lower()
+	profile["language"] = "ar" if language.begins_with("ar") else "en"
 	profile["schema_version"] = SCHEMA_VERSION
 	return true
 
@@ -159,6 +163,12 @@ func _upgrade_key(upgrade_name: String) -> String:
 func set_audio_options(music: float, sfx: float) -> bool:
 	profile["music_volume"] = clampf(music, 0.0, 1.0)
 	profile["sfx_volume"] = clampf(sfx, 0.0, 1.0)
+	return save_profile()
+
+
+func set_language(language: String) -> bool:
+	profile["language"] = "ar" if language.to_lower().begins_with("ar") else "en"
+	TranslationServer.set_locale(str(profile["language"]))
 	return save_profile()
 
 
