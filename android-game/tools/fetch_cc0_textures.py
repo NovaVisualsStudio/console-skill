@@ -105,7 +105,7 @@ def write_import_settings(destination: Path, map_name: str) -> Path:
     ]
     lines.extend(f"{key}={value}" for key, value in params.items())
     sidecar = Path(str(destination) + ".import")
-    sidecar.write_text("\\n".join(lines) + "\\n", encoding="utf-8")
+    sidecar.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return sidecar
 
 
