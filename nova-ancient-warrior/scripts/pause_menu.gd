@@ -121,6 +121,14 @@ func _build_ui() -> void:
 	_music_slider.value_changed.connect(_emit_audio_settings)
 	_sfx_slider.value_changed.connect(_emit_audio_settings)
 
+	var credits := Label.new()
+	credits.name = "CreditsLabel"
+	credits.text = "HERO: Ara 3D Gen / MakeHuman CC0. MOTION DATA: CMU Graphics Lab. The data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217."
+	credits.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	credits.add_theme_font_size_override("font_size", 10)
+	credits.add_theme_color_override("font_color", Color(0.72, 0.74, 0.78))
+	stack.add_child(credits)
+
 
 func _load_audio_profile() -> Dictionary:
 	var manager := get_node_or_null("/root/SaveManager")
