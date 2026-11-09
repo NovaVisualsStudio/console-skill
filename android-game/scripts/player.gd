@@ -43,6 +43,7 @@ var guard_active := false
 var input_enabled := true
 var dodge_direction := Vector3.ZERO
 var lock_target: Node3D
+var movement_camera: Camera3D
 var weapon_pivot: Node3D
 var body_pivot: Node3D
 var humanoid: NovaHumanoidRig
@@ -183,7 +184,7 @@ func _physics_process(delta: float) -> void:
         velocity.z = move_toward(velocity.z, 0.0, WALK_SPEED * 10.0 * delta)
     else:
         var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-        var move_direction := Vector3(input_vector.x, 0.0, input_vector.y)
+        var move_direction := _get_camera_relative_direction(input_vector)
         if move_direction.length_squared() > 0.01:
             move_direction = move_direction.normalized()
             if not is_instance_valid(lock_target):
@@ -203,6 +204,26 @@ func _physics_process(delta: float) -> void:
 
     if is_instance_valid(body_pivot) and current_state == CombatState.MOVE:
         body_pivot.position.y = 0.025 * sin(Time.get_ticks_msec() * 0.012)
+
+func _get_camera_relative_direction(input_vector: Vector2) -> Vector3:
+    var camera_forward := Vector3.FORWARD
+    var camera_right := Vector3.RIGHT
+    if is_instance_valid(movement_camera):
+        var camera_basis := movement_camera.global_transform.basis
+        camera_forward = -camera_basis.z
+        camera_forward.y = 0.0
+        camera_right = camera_basis.x
+        camera_right.y = 0.0
+        if camera_forward.length_squared() > 0.001:
+            camera_forward = camera_forward.normalized()
+        else:
+            camera_forward = Vector3.FORWARD
+        if camera_right.length_squared() > 0.001:
+            camera_right = camera_right.normalized()
+        else:
+            camera_right = Vector3.RIGHT
+    var direction := camera_right * input_vector.x + camera_forward * -input_vector.y
+    return direction.normalized() if direction.length_squared() > 1.0 else direction
 
 func _sync_humanoid_animation() -> void:
     if not is_instance_valid(humanoid):
@@ -364,11 +385,12 @@ func perform_dodge() -> bool:
     stamina_regen_delay = 0.65
     stamina_changed.emit(stamina, MAX_STAMINA)
     var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-    dodge_direction = Vector3(input_vector.x, 0.0, input_vector.y)
+    dodge_direction = _get_camera_relative_direction(input_vector)
     if dodge_direction.length_squared() <= 0.01:
         dodge_direction = -global_transform.basis.z
-    dodge_direction = dodge_direction.normalized()
-    if is_instance_valid(lock_target):
+        dodge_direction.y = 0.0
+        dodge_direction = dodge_direction.normalized()
+    if not is_instance_valid(lock_target):
         rotation.y = atan2(-dodge_direction.x, -dodge_direction.z)
     dodge_timer = DODGE_DURATION
     invulnerable = true
