@@ -6,6 +6,7 @@ const CombatRules = preload("res://scripts/combat_rules.gd")
 const PLAYER_SPAWN := Vector3(0.0, 0.0, 3.5)
 const ACTOR_RADIUS := 0.46
 const ACTOR_HEIGHT := 1.8
+const WALKABLE_SURFACE_TOLERANCE := 0.12
 
 
 func _initialize() -> void:
@@ -48,7 +49,8 @@ func _overlaps_blocker(layout: Node3D, spawn: Vector3) -> bool:
 		var shape := collision.shape as BoxShape3D
 		var center := collision.global_position
 		var half := shape.size * 0.5
-		if center.y + half.y <= 0.0 or center.y - half.y >= ACTOR_HEIGHT:
+		# Thin floor plates/causeways may overlap the actor foot plane slightly; they are walkable support surfaces, not spawn blockers.
+		if center.y + half.y <= WALKABLE_SURFACE_TOLERANCE or center.y - half.y >= ACTOR_HEIGHT:
 			continue
 		var nearest_x := clampf(spawn.x, center.x - half.x, center.x + half.x)
 		var nearest_z := clampf(spawn.z, center.z - half.z, center.z + half.z)
