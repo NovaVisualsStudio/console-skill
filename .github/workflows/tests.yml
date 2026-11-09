@@ -6,7 +6,7 @@ on:
   pull_request:
 
 concurrency:
-  group: nova-python-tests-${{ github.ref }}
+  group: nova-python-tests-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
