@@ -44,7 +44,10 @@ func _ready() -> void:
     _build_world()
     _spawn_encounter()
     _build_hud()
-    _start_cinematic_intro()
+    if campaign_complete:
+        _show_campaign_complete()
+    else:
+        _start_cinematic_intro()
 
 func _process(delta: float) -> void:
     if not combat_started:
@@ -675,6 +678,18 @@ func _on_enemy_defeated(is_boss_enemy: bool) -> void:
         for enemy in active_enemies:
             if is_instance_valid(enemy):
                 enemy.deactivate()
+
+func _show_campaign_complete() -> void:
+    combat_started = true
+    player.input_enabled = false
+    for enemy in active_enemies:
+        if is_instance_valid(enemy):
+            enemy.deactivate()
+    intro_label.visible = false
+    result_label.visible = true
+    result_label.text = "THE THREE REALMS ARE RESTORED"
+    continue_button.text = "REPLAY CAMPAIGN"
+    continue_button.visible = true
 
 func _on_player_defeated() -> void:
     result_label.visible = true
