@@ -24,7 +24,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          ARA_COMMIT="87222b353929814822b5ca2e2f1acf61743b02e2"
           git clone --depth 1 https://github.com/olatunde85/3d-gen.git "$RUNNER_TEMP/ara-3d-gen"
+          git -C "$RUNNER_TEMP/ara-3d-gen" fetch --depth 1 origin "$ARA_COMMIT"
+          git -C "$RUNNER_TEMP/ara-3d-gen" checkout --detach "$ARA_COMMIT"
           git -C "$RUNNER_TEMP/ara-3d-gen" rev-parse HEAD | tee "$RUNNER_TEMP/ara-source-commit.txt"
 
       - name: Install pnpm
