@@ -176,6 +176,17 @@ func _run_tests() -> void:
         await _finish(1, test_root)
         return
     var stamina_after_heavy := player.stamina
+    await physics_frame
+    var has_heavy_animation := false
+    for clip_name in player.humanoid.animation_player.get_animation_list():
+        var lowered_clip := String(clip_name).to_lower()
+        if lowered_clip.contains("heavy") and (lowered_clip.contains("attack") or lowered_clip.contains("combo") or lowered_clip.contains("sword")):
+            has_heavy_animation = true
+            break
+    if has_heavy_animation and not String(player.humanoid.animation_player.current_animation).to_lower().contains("heavy"):
+        push_error("Heavy attack animation was overwritten by the generic attack state synchronizer.")
+        await _finish(1, test_root)
+        return
     await create_timer(0.35).timeout
     if not is_equal_approx(player.stamina, stamina_after_heavy):
         push_error("Stamina regenerated before the heavy-attack recovery delay elapsed.")
