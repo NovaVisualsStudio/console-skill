@@ -379,3 +379,50 @@ func _toggle_language() -> void:
 		TranslationServer.set_locale(next_language)
 	_apply_language()
 	_refresh_campaign_state()
+
+
+func _apply_language() -> void:
+	var arabic := _is_arabic()
+	var texts := {
+		"SubtitleLabel": "المحارب القديم" if arabic else "ANCIENT WARRIOR",
+		"TaglineLabel": "ثلاثة أختام. ثلاث ممالك. عهد أخير." if arabic else "THREE SEALS. THREE KINGDOMS. ONE FINAL OATH.",
+		"FooterLabel": "حملة بلا اتصال  •  إعدادات Android متوسطة / عالية" if arabic else "OFFLINE CAMPAIGN  •  MID / HIGH ANDROID PROFILES",
+		"SettingsHeading": "الإعدادات" if arabic else "SETTINGS",
+		"MusicVolumeLabel": "صوت الموسيقى" if arabic else "MUSIC VOLUME",
+		"SfxVolumeLabel": "المؤثرات الصوتية" if arabic else "SOUND EFFECTS",
+		"SettingsCloseButton": "إغلاق" if arabic else "CLOSE",
+		"CreditsHeading": "الاعتمادات وإشعارات الأصول" if arabic else "CREDITS & ASSET NOTICES",
+		"CreditsCloseButton": "إغلاق" if arabic else "CLOSE",
+		"NewCampaignButton": "حملة جديدة" if arabic else "NEW CAMPAIGN",
+		"SettingsButton": "الإعدادات" if arabic else "SETTINGS",
+		"CreditsButton": "الاعتمادات" if arabic else "CREDITS",
+		"QuitButton": "خروج" if arabic else "QUIT"
+	}
+	for node_name in texts:
+		var node := find_child(node_name, true, false)
+		if node is Label:
+			var label := node as Label
+			label.text = texts[node_name]
+			label.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+		elif node is Button:
+			var button := node as Button
+			button.text = texts[node_name]
+			button.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+
+	var notice := find_child("CreditsNotice", true, false) as Label
+	if notice != null:
+		if arabic:
+			notice.text = "مشروع NOVA Ancient Warrior أصلي. توليد البطل: Ara 3D Gen (MIT). بيانات الشخصية: MakeHuman (CC0 1.0). بيانات الحركة: CMU Graphics Lab Motion Capture Database.\n\nThe data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217."
+			notice.text_direction = Control.TEXT_DIRECTION_RTL
+		else:
+			notice.text = "NOVA Ancient Warrior is an original project. Hero generation: Ara 3D Gen (MIT). Character data: MakeHuman (CC0 1.0). Motion data: CMU Graphics Lab Motion Capture Database.\n\nThe data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217."
+			notice.text_direction = Control.TEXT_DIRECTION_LTR
+
+	if is_instance_valid(_settings_panel):
+		_settings_panel.layout_direction = Control.LAYOUT_DIRECTION_RTL if arabic else Control.LAYOUT_DIRECTION_LTR
+	if is_instance_valid(_credits_panel):
+		_credits_panel.layout_direction = Control.LAYOUT_DIRECTION_RTL if arabic else Control.LAYOUT_DIRECTION_LTR
+	if is_instance_valid(_language_button):
+		_language_button.text = "اللغة: العربية" if arabic else "LANGUAGE: ENGLISH"
+		_language_button.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+	_refresh_quality_button()
