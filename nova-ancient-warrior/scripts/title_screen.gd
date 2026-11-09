@@ -161,17 +161,17 @@ func _build_ui() -> void:
 
 	var settings := _make_button("SETTINGS", Vector2(350.0, 50.0))
 	settings.name = "SettingsButton"
-	settings.pressed.connect(func(): _settings_panel.visible = true)
+	settings.pressed.connect(_open_settings)
 	menu.add_child(settings)
 
 	var how_to_play := _make_button("HOW TO PLAY", Vector2(350.0, 50.0))
 	how_to_play.name = "HowToPlayButton"
-	how_to_play.pressed.connect(func(): _controls_panel.visible = true)
+	how_to_play.pressed.connect(_open_controls)
 	menu.add_child(how_to_play)
 
 	var credits := _make_button("CREDITS", Vector2(350.0, 50.0))
 	credits.name = "CreditsButton"
-	credits.pressed.connect(func(): _credits_panel.visible = true)
+	credits.pressed.connect(_open_credits)
 	menu.add_child(credits)
 
 	if OS.get_name() != "Android" and OS.get_name() != "iOS":
@@ -191,6 +191,24 @@ func _build_ui() -> void:
 	_build_settings_panel()
 	_build_credits_panel()
 	_build_controls_panel()
+
+
+func _open_settings() -> void:
+	_credits_panel.visible = false
+	_controls_panel.visible = false
+	_settings_panel.visible = true
+
+
+func _open_controls() -> void:
+	_settings_panel.visible = false
+	_credits_panel.visible = false
+	_controls_panel.visible = true
+
+
+func _open_credits() -> void:
+	_settings_panel.visible = false
+	_controls_panel.visible = false
+	_credits_panel.visible = true
 
 
 func _make_button(label: String, minimum_size: Vector2) -> Button:
