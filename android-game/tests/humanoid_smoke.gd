@@ -43,6 +43,11 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    if rig.primary_material == rig.hit_flash_material:
+        push_error("Humanoid material test: primary surface material must not alias the transient hit-flash overlay.")
+        rig.free()
+        quit(1)
+        return
     var hair_mesh_found := false
     for child in rig.skeleton.get_children():
         if child is MeshInstance3D and String(child.name).to_lower().contains("hairshort02"):
@@ -99,7 +104,7 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
-    cached_peer.free()
+    cached_peer.queue_free()
     await process_frame
     var available_clips := rig.animation_player.get_animation_list()
     var has_light_melee_clip := false
@@ -126,6 +131,18 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    # Exercise the optional-run fallback even when the imported pack lacks a run clip.
+    var selected_walk_clip := String(rig._animation_selection_cache.get("walk", ""))
+    rig._animation_selection_cache["run"] = ""
+    rig.play_locomotion("run", 1.0)
+    await process_frame
+    if selected_walk_clip.is_empty() or rig.animation_player.current_animation != selected_walk_clip:
+        push_error("Humanoid locomotion test: run did not safely fall back to the cached walk clip.")
+        rig.free()
+        quit(1)
+        return
+    rig._animation_selection_cache.erase("run")
+    rig.play_locomotion("run", 1.0)
     if not rig._animation_selection_cache.has("run") or not rig._animation_selection_cache.has("walk"):
         push_error("Humanoid performance test: locomotion selection was not cached.")
         rig.free()

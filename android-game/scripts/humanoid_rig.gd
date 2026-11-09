@@ -138,36 +138,48 @@ func _apply_character_materials(root: Node) -> void:
         if child is MeshInstance3D:
             var mesh_instance := child as MeshInstance3D
             var mesh_name := mesh_instance.name.to_lower()
+            var fallback_material: StandardMaterial3D = armor
+            if mesh_name.contains("eye"):
+                fallback_material = eyes
+            elif mesh_name.contains("eyebrow") or mesh_name.contains("hair"):
+                fallback_material = hair
+            elif mesh_name.contains("head") or mesh_name.contains("body") or mesh_name.contains("skin"):
+                fallback_material = skin
             var has_source_material := false
             if mesh_instance.mesh != null:
                 for surface_index in range(mesh_instance.mesh.get_surface_count()):
                     var source_material := mesh_instance.get_active_material(surface_index)
-                    if source_material != null:
-                        has_source_material = true
-                        if source_material is StandardMaterial3D:
-                            var refined := (source_material as StandardMaterial3D).duplicate() as StandardMaterial3D
-                            if mesh_name.contains("hair"):
-                                refined.roughness = clampf(refined.roughness, 0.62, 0.88)
-                                refined.metallic = 0.0
-                            elif mesh_name.contains("head") or mesh_name.contains("body") or mesh_name.contains("skin"):
-                                refined.roughness = clampf(refined.roughness, 0.48, 0.74)
-                                refined.metallic = 0.0
-                            mesh_instance.set_surface_override_material(surface_index, refined)
+                    if source_material == null:
+                        # Some CC0 outfit meshes have mixed populated and empty surfaces.
+                        # Fill only the empty slots so we preserve every authored texture.
+                        mesh_instance.set_surface_override_material(surface_index, fallback_material)
+                        continue
+                    has_source_material = true
+                    if source_material is StandardMaterial3D:
+                        var refined := (source_material as StandardMaterial3D).duplicate() as StandardMaterial3D
+                        if mesh_name.contains("hair"):
+                            refined.roughness = clampf(refined.roughness, 0.62, 0.88)
+                            refined.metallic = 0.0
+                        elif mesh_name.contains("head") or mesh_name.contains("body") or mesh_name.contains("skin"):
+                            refined.roughness = clampf(refined.roughness, 0.48, 0.74)
+                            refined.metallic = 0.0
+                        mesh_instance.set_surface_override_material(surface_index, refined)
             if not has_source_material:
-                if mesh_name.contains("eye"):
-                    mesh_instance.material_override = eyes
-                elif mesh_name.contains("eyebrow") or mesh_name.contains("hair"):
-                    mesh_instance.material_override = hair
-                elif mesh_name.contains("head"):
-                    mesh_instance.material_override = skin
-                else:
-                    mesh_instance.material_override = armor
+                mesh_instance.material_override = fallback_material
             if primary_mesh == null or mesh_name.contains("body") or mesh_name.contains("base_body"):
                 primary_mesh = mesh_instance
             mesh_instance.material_overlay = hit_flash_material
             mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
         _apply_character_materials(child)
-    primary_material = hit_flash_material
+    # Keep the character's real surface material separate from the transient hit overlay.
+    # Combat feedback may tint primary_material; hit_flash_material remains the overlay.
+    primary_material = null
+    if primary_mesh != null and primary_mesh.mesh != null:
+        for surface_index in range(primary_mesh.mesh.get_surface_count()):
+            var active_material := primary_mesh.get_active_material(surface_index)
+            if active_material is StandardMaterial3D:
+                primary_material = active_material as StandardMaterial3D
+                break
 func _load_cc0_surface(asset_id: String, tint: Color, roughness: float, metallic: float, tiling: float) -> StandardMaterial3D:
     var tier := OS.get_environment("NOVA_TEXTURE_TIER").to_lower()
     if tier.is_empty():
@@ -477,8 +489,10 @@ func play_locomotion(action: String, speed_ratio: float) -> void:
     if animation_player == null or loaded_animation_count == 0:
         return
     var selected := _select_action_animation(action)
+    # Run is optional in third-party CC0 packs. Fall back through the same
+    # cached selector so packs with walk but no run never trigger an arity error.
     if selected.is_empty() and action == "run":
-        selected = _select_action_animation("walk", available)
+        selected = _select_action_animation("walk")
     if selected.is_empty():
         return
     var ratio := clampf(speed_ratio, 0.45, 1.25)
@@ -536,7 +550,10 @@ func _select_action_animation(action: String) -> String:
 
 func _get_available_animation_list() -> Array[StringName]:
     _animation_clip_list_fetch_count += 1
-    return animation_player.get_animation_list()
+    var available: Array[StringName] = []
+    for animation_name in animation_player.get_animation_list():
+        available.append(StringName(animation_name))
+    return available
 
 func _select_action_animation_uncached(action: String, available: Array[StringName]) -> String:
     var terms := {
