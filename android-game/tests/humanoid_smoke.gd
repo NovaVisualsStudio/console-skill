@@ -35,7 +35,7 @@ func _run() -> void:
         quit(1)
         return
     var right_hand_attachment := rig.attach_to_bone("hand_r")
-    if right_hand_attachment == rig or not right_hand_attachment is BoneAttachment3D:
+    if right_hand_attachment == rig or not (right_hand_attachment is BoneAttachment3D):
         push_error("Humanoid weapon test: right-hand bone attachment failed.")
         rig.free()
         quit(1)
