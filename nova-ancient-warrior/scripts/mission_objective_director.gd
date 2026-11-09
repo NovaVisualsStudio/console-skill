@@ -1,0 +1,74 @@
+extends RefCounted
+## Lightweight chapter exploration objective: recover three seal fragments before each boss.
+
+const ROOT_NAME := "GeneratedMissionRelics"
+
+static func relic_positions(stage_index: int) -> Array[Vector3]:
+	match clampi(stage_index, 0, 2):
+		0:
+			return [Vector3(-11.6, 0.0, -8.8), Vector3(11.6, 0.0, -8.8), Vector3(0.0, 0.0, 12.0)]
+		1:
+			return [Vector3(-9.2, 0.0, -10.5), Vector3(9.2, 0.0, -10.5), Vector3(0.0, 0.0, 11.8)]
+		_:
+			return [Vector3(-12.0, 0.0, 8.8), Vector3(12.0, 0.0, 8.8), Vector3(0.0, 0.0, 12.0)]
+
+
+static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
+	var previous := parent.get_node_or_null(ROOT_NAME)
+	if previous != null:
+		parent.remove_child(previous)
+		previous.free()
+	var root := Node3D.new()
+	root.name = ROOT_NAME
+	parent.add_child(root)
+
+	var palettes := [
+		Color(0.22, 0.82, 0.95),
+		Color(1.0, 0.24, 0.07),
+		Color(0.38, 0.48, 1.0)
+	]
+	var glow := palettes[clampi(stage_index, 0, 2)]
+	var material := StandardMaterial3D.new()
+	material.albedo_color = glow.lightened(0.18)
+	material.metallic = 0.52
+	material.roughness = 0.24
+	material.emission_enabled = true
+	material.emission = glow
+	material.emission_energy_multiplier = 1.65
+
+	var result: Array[Node3D] = []
+	var positions := relic_positions(stage_index)
+	for index in range(positions.size()):
+		var relic := Node3D.new()
+		relic.name = "SealFragment_%d" % (index + 1)
+		relic.position = positions[index]
+		relic.set_meta("collected", false)
+		relic.set_meta("base_y", positions[index].y)
+		relic.set_meta("phase", float(index) * 2.1)
+		var crystal := MeshInstance3D.new()
+		var crystal_mesh := SphereMesh.new()
+		crystal_mesh.radius = 0.34
+		crystal_mesh.height = 0.88
+		crystal.mesh = crystal_mesh
+		crystal.scale = Vector3(0.72, 1.0, 0.72)
+		crystal.material_override = material
+		relic.add_child(crystal)
+		var ring := MeshInstance3D.new()
+		var ring_mesh := TorusMesh.new()
+		ring_mesh.inner_radius = 0.34
+		ring_mesh.outer_radius = 0.43
+		ring.mesh = ring_mesh
+		ring.rotation.x = deg_to_rad(90.0)
+		ring.material_override = material
+		relic.add_child(ring)
+		root.add_child(relic)
+		result.append(relic)
+	return result
+
+
+static func collect(relic: Node3D) -> bool:
+	if not is_instance_valid(relic) or bool(relic.get_meta("collected", false)):
+		return false
+	relic.set_meta("collected", true)
+	relic.visible = false
+	return true
