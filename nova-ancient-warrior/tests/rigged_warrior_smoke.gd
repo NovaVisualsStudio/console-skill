@@ -24,6 +24,9 @@ func _run_rigged_hero_smoke() -> void:
 		return
 	var required := ["Idle", "Walk", "Run", "Sword idle", "Sword slash", "Sword thrust", "Sword block", "Sword combo", "Side dodge left", "Side dodge right", "Hit from front", "Death (fall backward)", "Forward roll"]
 	var names := animation_player.get_animation_list()
+	if names.size() > 25:
+		_fail(visual, "Mobile hero export must not ship the entire unused animation catalog")
+		return
 	for required_name in required:
 		var found := false
 		for actual_name in names:
