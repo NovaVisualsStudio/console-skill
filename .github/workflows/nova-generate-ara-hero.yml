@@ -36,6 +36,15 @@ jobs:
           git -C "$RUNNER_TEMP/ara-3d-gen" checkout --detach "$ARA_COMMIT"
           git -C "$RUNNER_TEMP/ara-3d-gen" rev-parse HEAD | tee "$RUNNER_TEMP/ara-source-commit.txt"
 
+      - name: Restore audited CC0 MakeHuman assets
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.temp }}/ara-3d-gen/vendor/mh
+            ${{ runner.temp }}/ara-3d-gen/vendor/sys
+            ${{ runner.temp }}/ara-3d-gen/public/assets
+          key: ara-3d-gen-cc0-assets-87222b353929814822b5ca2e2f1acf61743b02e2-v1
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -91,7 +100,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot"
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" \
+            -o "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
           GODOT_BIN="$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+          test -s "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           for attempt in 1 2 3 4 5 6; do
