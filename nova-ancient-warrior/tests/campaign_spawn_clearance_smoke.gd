@@ -25,7 +25,6 @@ func _run_spawn_clearance() -> void:
 		var wave_start := chapter * CombatRules.WAVES_PER_CHAPTER + 1
 		for wave in range(wave_start, wave_start + CombatRules.WAVES_PER_CHAPTER):
 			var count := CombatRules.wave_enemy_count(wave)
-			var boss_wave := CombatRules.is_boss_wave(wave)
 			for index in range(count):
 				var spawn := CombatRules.wave_enemy_spawn_position(wave, index)
 				if _overlaps_blocker(layout, spawn):
