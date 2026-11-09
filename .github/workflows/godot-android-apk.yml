@@ -5,6 +5,12 @@ on:
   push:
     branches:
       - release/nova-ancient-warrior-integration-20261108
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "nova-ancient-warrior/**"
+      - ".github/workflows/godot-android-apk.yml"
 
 permissions:
   contents: read
