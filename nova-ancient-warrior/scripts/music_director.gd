@@ -29,11 +29,21 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	if is_instance_valid(_player):
-		_player.stop()
-		_player.stream = null
-		_player.free()
+	shutdown()
+
+
+func shutdown() -> void:
+	if not is_instance_valid(_player):
+		_player = null
+		return
+	var player_to_stop := _player
 	_player = null
+	player_to_stop.stop()
+	player_to_stop.stream = null
+	# Let the scene tree retire the audio node at the end of the frame. Freeing
+	# an active stream player synchronously during parent teardown can retain
+	# AudioStreamPlaybackWAV in the audio server.
+	player_to_stop.queue_free()
 
 
 func set_intensity(value: float) -> void:
