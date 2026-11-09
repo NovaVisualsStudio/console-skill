@@ -227,13 +227,18 @@ func _physics_process(delta: float) -> void:
 		target_position.y = player.global_position.y
 		player.look_at(target_position, Vector3.UP)
 
+	var was_on_floor := player.is_on_floor()
 	if not player.is_on_floor():
 		player.velocity.y -= GRAVITY * delta
 	elif Input.is_action_just_pressed("jump"):
 		player.velocity.y = JUMP_SPEED
+		if is_instance_valid(hero_visual):
+			hero_visual.call("play_jump")
 		_play_sfx_or_tone("jump", 520.0, 0.08, 0.16)
 
 	player.move_and_slide()
+	if not was_on_floor and player.is_on_floor() and is_instance_valid(hero_visual):
+		hero_visual.call("play_jump_land")
 	var safe_position: Vector3 = player.global_position
 	var previous_position: Vector3 = safe_position
 	safe_position.x = clampf(safe_position.x, -ARENA_LIMIT, ARENA_LIMIT)
