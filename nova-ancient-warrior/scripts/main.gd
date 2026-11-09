@@ -540,9 +540,15 @@ func _apply_level_theme(wave: int) -> void:
 		hazard_warning_cooldown = 0.0
 		rune_hazard_lit = false
 		StageBuilder.set_rune_intensity(active_chapter_scene if is_instance_valid(active_chapter_scene) else self, 0.0)
-		mission_relics = MissionObjectiveDirector.build_stage(self, next_stage_index)
-		mission_sequence = MissionObjectiveDirector.relic_sequence(next_stage_index)
-		mission_relic_count = 0
+		if CombatRules.is_boss_wave(wave):
+			MissionObjectiveDirector.clear_stage(self)
+			mission_relics.clear()
+			mission_sequence.clear()
+			mission_relic_count = 3
+		else:
+			mission_relics = MissionObjectiveDirector.build_stage(self, next_stage_index)
+			mission_sequence = MissionObjectiveDirector.relic_sequence(next_stage_index)
+			mission_relic_count = 0
 		boss_gate_pending = false
 
 
