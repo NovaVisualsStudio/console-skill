@@ -153,6 +153,7 @@ def download_asset(asset_id: str, map_name: str, record: dict) -> tuple[Path, st
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     total_bytes = 0
+    map_count = sum(len(metadata["maps"]) for metadata in ASSETS.values())
     for asset_id, metadata in ASSETS.items():
         api_payload = request_bytes(API_BASE + asset_id)
         try:
@@ -164,7 +165,7 @@ def main() -> int:
             destination, digest, size = download_asset(asset_id, map_name, record)
             total_bytes += size
             print(f"CC0 PBR OK: {destination.name} ({size:,} bytes, md5={digest})")
-    print(f"Downloaded and verified six {TEXTURE_TIER.upper()} JPG maps ({total_bytes:,} bytes total).")
+    print(f"Downloaded and verified {map_count} {TEXTURE_TIER.upper()} JPG maps ({total_bytes:,} bytes total).")
     return 0
 
 
