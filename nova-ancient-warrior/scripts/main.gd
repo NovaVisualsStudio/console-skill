@@ -743,14 +743,14 @@ func _try_collect_mission_relic() -> void:
 	var expected_order := mission_sequence[mission_relic_count] if mission_relic_count < mission_sequence.size() else 0
 	var found_order := int(nearest.get_meta("sequence_order", 0))
 	if found_order != expected_order:
-		status_label.text = "SEAL REJECTED  |  FOLLOW THE CARVED ORDER"
+		status_label.text = "تم رفض الختم | اتبع الترتيب المحفور" if TranslationServer.get_locale().begins_with("ar") else "SEAL REJECTED  |  FOLLOW THE CARVED ORDER"
 		_play_tone(145.0, 0.10, 0.14)
 		return
 	if not MissionObjectiveDirector.collect(nearest):
 		return
 	mission_relic_count = mini(3, mission_relic_count + 1)
 	_play_sfx_or_tone("upgrade", 640.0 + float(mission_relic_count) * 100.0, 0.12, 0.18)
-	status_label.text = "SEAL FRAGMENT RECOVERED  |  %d/3" % mission_relic_count
+	status_label.text = ("تم استرجاع جزء الختم  |  %d/3" % mission_relic_count) if TranslationServer.get_locale().begins_with("ar") else ("SEAL FRAGMENT RECOVERED  |  %d/3" % mission_relic_count)
 	_update_mission_objective_ui()
 	if mission_relic_count >= 3 and boss_gate_pending:
 		_release_boss_gate()
@@ -764,7 +764,15 @@ func _update_mission_objective_ui() -> void:
 		return
 	mission_objective_label.visible = mission_relic_count < 3 or boss_gate_pending
 	var order_text := "%d → %d → %d" % [mission_sequence[0], mission_sequence[1], mission_sequence[2]] if mission_sequence.size() >= 3 else "—"
-	if boss_gate_pending:
+	var use_arabic := TranslationServer.get_locale().begins_with("ar")
+	mission_objective_label.text_direction = Control.TEXT_DIRECTION_RTL if use_arabic else Control.TEXT_DIRECTION_LTR
+	if is_instance_valid(interact_button):
+		interact_button.text = "تفاعل" if use_arabic else "INTERACT"
+	if use_arabic and boss_gate_pending:
+		mission_objective_label.text = "بوابة الزعيم مغلقة  |  ترتيب الأختام %s  |  %d/3" % [order_text, mission_relic_count]
+	elif use_arabic and mission_relic_count < 3:
+		mission_objective_label.text = "لغز الأختام  |  الترتيب %s  |  %d/3  |  اقترب واضغط تفاعل" % [order_text, mission_relic_count]
+	elif boss_gate_pending:
 		mission_objective_label.text = "BOSS GATE SEALED  |  SEAL ORDER %s  |  %d/3" % [order_text, mission_relic_count]
 	elif mission_relic_count < 3:
 		mission_objective_label.text = "SEAL PUZZLE  |  ORDER %s  |  %d/3  |  APPROACH AND INTERACT" % [order_text, mission_relic_count]
@@ -777,7 +785,7 @@ func _release_boss_gate() -> void:
 		return
 	boss_gate_pending = false
 	wave_transitioning = true
-	status_label.text = "THREE SEALS RESTORED  |  THE BOSS GATE OPENS"
+	status_label.text = "اكتملت الأختام الثلاثة | فُتحت بوابة الزعيم" if TranslationServer.get_locale().begins_with("ar") else "THREE SEALS RESTORED  |  THE BOSS GATE OPENS"
 	_update_mission_objective_ui()
 	get_tree().create_timer(0.9).timeout.connect(func():
 		if game_over or not is_inside_tree():
@@ -804,7 +812,7 @@ func _handle_wave_cleared() -> void:
 	if cleared_wave % 3 == 2 and mission_relic_count < 3:
 		boss_gate_pending = true
 		wave_transitioning = false
-		status_label.text = "BOSS GATE SEALED  |  RECOVER THE THREE SEAL FRAGMENTS"
+		status_label.text = "بوابة الزعيم مغلقة | استرجع أجزاء الأختام الثلاثة" if TranslationServer.get_locale().begins_with("ar") else "BOSS GATE SEALED  |  RECOVER THE THREE SEAL FRAGMENTS"
 		_update_mission_objective_ui()
 		return
 	if cleared_wave >= CombatRules.CAMPAIGN_WAVES:
