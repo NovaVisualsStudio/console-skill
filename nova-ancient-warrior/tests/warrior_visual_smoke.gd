@@ -46,7 +46,7 @@ func _run_visual_smoke() -> void:
 	boss.call("telegraph", true)
 	boss.call("hit_react")
 	var ember_ring := boss.get_node_or_null("BossTelegraphRing") as MeshInstance3D
-	if boss.get_node_or_null("EmberHornLeft") == null or boss.get_node_or_null("EmberFlameCore") == null or ember_ring == null or not ember_ring.visible:
+	if boss.get_node_or_null("EmberHornLeft") == null or boss.get_node_or_null("EmberFlameCore") == null or ember_ring == null or not ember_ring.visible or not is_equal_approx((ember_ring.mesh as TorusMesh).outer_radius, 5.12):
 		push_error("Ember Warlord signature horns, flame core and readable charge telegraph are required")
 		quit(1)
 		return
@@ -64,7 +64,7 @@ func _run_visual_smoke() -> void:
 	get_root().add_child(ash_boss)
 	await process_frame
 	var ash_ring := ash_boss.get_node_or_null("BossTelegraphRing") as MeshInstance3D
-	if ash_boss.get_node_or_null("AshTitanMaulHead") == null or ash_ring == null or not is_equal_approx((ash_ring.mesh as TorusMesh).outer_radius, 2.45):
+	if ash_boss.get_node_or_null("AshTitanMaulHead") == null or ash_ring == null or not is_equal_approx((ash_ring.mesh as TorusMesh).outer_radius, 2.77):
 		push_error("Ash Titan signature maul and close-range ground warning ring are required")
 		quit(1)
 		return
@@ -77,8 +77,11 @@ func _run_visual_smoke() -> void:
 	get_root().add_child(final_boss)
 	await process_frame
 	var sovereign_ring := final_boss.get_node_or_null("BossTelegraphRing") as MeshInstance3D
-	if final_boss.get_node_or_null("ObsidianCrownSpire") == null or final_boss.get_node_or_null("ObsidianRuneOrb") == null or sovereign_ring == null or not is_equal_approx((sovereign_ring.mesh as TorusMesh).outer_radius, 3.32):
-		push_error("Obsidian Sovereign signature crown, rune orb and wide rune-burst warning ring are required")
+	var initial_sovereign_radius := (sovereign_ring.mesh as TorusMesh).outer_radius if sovereign_ring != null else 0.0
+	final_boss.call("phase_change", 3)
+	var phase_three_radius := (sovereign_ring.mesh as TorusMesh).outer_radius if sovereign_ring != null else 0.0
+	if final_boss.get_node_or_null("ObsidianCrownSpire") == null or final_boss.get_node_or_null("ObsidianRuneOrb") == null or sovereign_ring == null or not is_equal_approx(initial_sovereign_radius, 5.92) or not is_equal_approx(phase_three_radius, 6.62):
+		push_error("Obsidian Sovereign telegraph ring must expand from phase-two to phase-three strike radius")
 		quit(1)
 		return
 	final_boss.queue_free()
