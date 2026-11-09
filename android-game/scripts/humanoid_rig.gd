@@ -20,6 +20,8 @@ var hit_flash_material: StandardMaterial3D
 var attached_clothing_mesh_count := 0
 var uses_realistic_character := false
 var _source_skeleton: Skeleton3D
+var _animation_selection_cache: Dictionary = {}
+var _attack_variant_cache: Dictionary = {}
 
 func _ready() -> void:
     _build_character()
@@ -185,9 +187,10 @@ func _load_cc0_surface(asset_id: String, tint: Color, roughness: float, metallic
         material.normal_scale = 0.42 if asset_id == "leather_red_02" else 0.68
     if roughness_map != null:
         material.roughness_texture = roughness_map
-    var metal_map := load(root_path + "metal_" + tier + ".jpg") as Texture2D
-    if metal_map != null:
-        material.metallic_texture = metal_map
+    if asset_id == "metal_plate":
+        var metal_map := load(root_path + "metal_" + tier + ".jpg") as Texture2D
+        if metal_map != null:
+            material.metallic_texture = metal_map
     if diffuse == null or normal_map == null or roughness_map == null:
         push_warning("NOVA CC0 character surface is incomplete: " + asset_id)
     return material
@@ -253,6 +256,8 @@ func _horn_mesh() -> CylinderMesh:
     return mesh
 
 func _load_and_retarget_animations() -> void:
+    _animation_selection_cache.clear()
+    _attack_variant_cache.clear()
     if skeleton == null:
         return
     var animation_scene := load(ANIMATION_SCENE_PATH) as PackedScene
@@ -442,39 +447,49 @@ func play_action(action: String, blend: float = 0.14) -> void:
 func play_locomotion(action: String, speed_ratio: float) -> void:
     if animation_player == null or loaded_animation_count == 0:
         return
-    var selected := _select_action_animation(action, animation_player.get_animation_list())
+    var available := animation_player.get_animation_list()
+    var selected := _select_action_animation(action, available)
+    if selected.is_empty() and action == "run":
+        selected = _select_action_animation("walk", available)
     if selected.is_empty():
         return
     var ratio := clampf(speed_ratio, 0.45, 1.25)
-    animation_player.speed_scale = clampf(0.72 + ratio * 0.48, 0.72, 1.36)
+    var cadence := clampf(0.72 + ratio * 0.48, 0.72, 1.36)
+    if action == "run":
+        cadence = maxf(cadence, 1.18)
+    animation_player.speed_scale = cadence
     _play_animation(selected, 0.20)
 
 func play_attack_variant(combo_step: int, heavy: bool, blend: float = 0.06) -> void:
     if animation_player == null or loaded_animation_count == 0:
         return
-    var available := animation_player.get_animation_list()
-    var selected := ""
-    if heavy:
-        selected = _select_action_animation("heavy", available)
-    else:
-        var preferred_variants := {
-            1: ["light_attack", "sword_attack", "melee_attack", "slash"],
-            2: ["slice", "swing", "diagonal", "cross"],
-            3: ["chop", "overhead", "stab", "thrust", "finisher"]
-        }
-        var terms: Array = preferred_variants.get(clampi(combo_step, 1, 3), preferred_variants[1])
-        for term in terms:
-            for animation_name in available:
-                var candidate := String(animation_name)
-                var lowered := candidate.to_lower()
-                var is_attack_clip := lowered.contains("attack") or lowered.contains("sword") or lowered.contains("melee") or lowered.contains("combo") or lowered.contains("slash") or lowered.contains("slice") or lowered.contains("swing") or lowered.contains("chop") or lowered.contains("stab")
-                if is_attack_clip and not lowered.contains("heavy") and lowered.contains(String(term)):
-                    selected = candidate
+    var cache_key := "heavy" if heavy else "light_%d" % clampi(combo_step, 1, 3)
+    var selected := String(_attack_variant_cache.get(cache_key, ""))
+    if selected.is_empty():
+        var available := animation_player.get_animation_list()
+        if heavy:
+            selected = _select_action_animation("heavy", available)
+        else:
+            var preferred_variants := {
+                1: ["light_attack", "sword_attack", "melee_attack", "slash"],
+                2: ["slice", "swing", "diagonal", "cross"],
+                3: ["chop", "overhead", "stab", "thrust", "finisher"]
+            }
+            var terms: Array = preferred_variants.get(clampi(combo_step, 1, 3), preferred_variants[1])
+            for term in terms:
+                for animation_name in available:
+                    var candidate := String(animation_name)
+                    var lowered := candidate.to_lower()
+                    var is_attack_clip := lowered.contains("attack") or lowered.contains("sword") or lowered.contains("melee") or lowered.contains("combo") or lowered.contains("slash") or lowered.contains("slice") or lowered.contains("swing") or lowered.contains("chop") or lowered.contains("stab")
+                    if is_attack_clip and not lowered.contains("heavy") and lowered.contains(String(term)):
+                        selected = candidate
+                        break
+                if not selected.is_empty():
                     break
-            if not selected.is_empty():
-                break
-        if selected.is_empty():
-            selected = _select_action_animation("attack", available)
+            if selected.is_empty():
+                selected = _select_action_animation("attack", available)
+        if not selected.is_empty():
+            _attack_variant_cache[cache_key] = selected
     if selected.is_empty():
         return
     var clip := animation_player.get_animation(selected)
@@ -484,6 +499,13 @@ func play_attack_variant(combo_step: int, heavy: bool, blend: float = 0.06) -> v
     _play_animation(selected, blend)
 
 func _select_action_animation(action: String, available: Array[StringName]) -> String:
+    if _animation_selection_cache.has(action):
+        return String(_animation_selection_cache[action])
+    var selected := _select_action_animation_uncached(action, available)
+    _animation_selection_cache[action] = selected
+    return selected
+
+func _select_action_animation_uncached(action: String, available: Array[StringName]) -> String:
     var terms := {
         "idle": ["idle_loop", "idle_stand", "idle"],
         "walk": ["walk_loop", "walk", "jog"],
