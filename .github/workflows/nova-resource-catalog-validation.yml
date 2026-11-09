@@ -13,6 +13,10 @@ on:
       - ".github/workflows/nova-resource-catalog-validation.yml"
   workflow_dispatch:
 
+concurrency:
+  group: nova-resource-policy-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
