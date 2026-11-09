@@ -49,14 +49,14 @@ func play_attack(combo_step: int) -> void:
 	if _model is WarriorVisual:
 		_model.call("play_attack", combo_step)
 		return
-	_play_action("lightattack")
+	_play_action("sword_slash")
 
 
 func play_heavy_attack() -> void:
 	if _model is WarriorVisual:
 		_model.call("play_heavy_attack")
 		return
-	_play_action("heavyattack")
+	_play_action("sword_thrust")
 
 
 func set_blocking(enabled: bool) -> void:
@@ -64,7 +64,7 @@ func set_blocking(enabled: bool) -> void:
 	if _model is WarriorVisual:
 		_model.call("set_blocking", enabled)
 	elif enabled:
-		_play_loop("block")
+		_play_loop("sword_block")
 	else:
 		_play_loop("idle")
 
@@ -78,14 +78,14 @@ func play_parry() -> void:
 	if _model is WarriorVisual:
 		_model.call("play_parry")
 	else:
-		_play_action("parry")
+		_play_action("sword_block")
 
 
 func phase_change(phase: int) -> void:
 	if _model is WarriorVisual:
 		_model.call("phase_change", phase)
 	else:
-		_play_action("hitreact")
+		_play_action("sword_block")
 
 
 func hit_react() -> void:
@@ -105,7 +105,9 @@ func _find_animation(fragment: String) -> String:
 
 
 func _play_loop(fragment: String) -> void:
-	var animation_name := _find_animation(fragment)
+	var animation_name := _find_animation("sword_idle") if fragment == "idle" else ""
+	if animation_name.is_empty():
+		animation_name = _find_animation(fragment)
 	if animation_name.is_empty() or _animation_player == null:
 		return
 	var animation := _animation_player.get_animation(animation_name)
