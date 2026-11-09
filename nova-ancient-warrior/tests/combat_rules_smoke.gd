@@ -42,6 +42,10 @@ func _initialize() -> void:
 	failures += _expect_equal(CombatRules.boss_phase(100, 100), 1, "boss phase one threshold")
 	failures += _expect_equal(CombatRules.boss_phase(66, 100), 2, "boss phase two threshold")
 	failures += _expect_equal(CombatRules.boss_phase(33, 100), 3, "boss phase three threshold")
+	failures += _expect_equal(CombatRules.boss_attack_range("ash_titan", 1), 2.65, "Ash Titan close slam radius")
+	failures += _expect_equal(CombatRules.boss_attack_range("ember_warlord", 1), 5.0, "Ember Warlord charge radius")
+	failures += _expect_equal(CombatRules.boss_attack_range("obsidian_sovereign", 2), 5.8, "Obsidian Sovereign phase two rune burst radius")
+	failures += _expect_equal(CombatRules.boss_attack_range("obsidian_sovereign", 3), 6.5, "Obsidian Sovereign phase three extended rune burst radius")
 	failures += _expect_equal(CombatRules.wave_enemy_health(9), 560, "final boss has highest health")
 	failures += _expect_equal(CombatRules.wave_enemy_damage(9), 34, "final boss has highest damage")
 	if failures > 0:
