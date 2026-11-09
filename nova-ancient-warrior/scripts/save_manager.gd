@@ -44,7 +44,7 @@ func _default_profile() -> Dictionary:
 		"music_volume": 0.72,
 		"sfx_volume": 0.85,
 		"graphics_quality": "mid",
-		"language": "en"
+		"language": "ar" if TranslationServer.get_locale().begins_with("ar") else "en"
 	}
 
 
