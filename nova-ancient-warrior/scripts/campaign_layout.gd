@@ -46,7 +46,7 @@ static func _build_sunken_layout(root: Node3D) -> void:
 	var trim := _material(Color(0.68, 0.48, 0.25), 0.42, 0.55)
 	# Broken processional walkway on the flanks; the central combat lane stays open.
 	for side in [-1.0, 1.0]:
-		_solid_block(root, "SunkenSidePlatform", Vector3(3.0, 0.28, 8.0), Vector3(side * 10.6, 0.14, -3.5), stone)
+		_solid_block(root, "SunkenSidePlatform_%s" % ("Left" if side < 0.0 else "Right"), Vector3(3.0, 0.28, 8.0), Vector3(side * 10.6, 0.14, -3.5), stone)
 		for step in range(3):
 			var step_x: float = side * (8.2 + float(step) * 1.55)
 			var step_height: float = 0.10 + float(step) * 0.07
@@ -77,7 +77,8 @@ static func _build_ember_layout(root: Node3D) -> void:
 	for side in [-1.0, 1.0]:
 		for index in range(3):
 			var z := -7.0 + float(index) * 7.0
-			_solid_block(root, "EmberFlankStep", Vector3(2.0, 0.18, 2.0), Vector3(side * 8.2, 0.09, z), basalt)
+			var flank_name := "EmberFlankStep_%s_%d" % ["Left" if side < 0.0 else "Right", index + 1]
+			_solid_block(root, flank_name, Vector3(2.0, 0.18, 2.0), Vector3(side * 8.2, 0.09, z), basalt)
 		_solid_block(root, "EmberCoverBlock", Vector3(1.8, 1.0, 1.4), Vector3(side * 5.0, 0.5, 5.8), ember)
 	_add_arch(root, "EmberEntryArch", Vector3(0.48, 5.8, 0.55), basalt, ember)
 
@@ -94,9 +95,11 @@ static func _build_obsidian_layout(root: Node3D) -> void:
 	_solid_block(root, "ObsidianThroneDais", Vector3(7.0, 0.42, 3.0), Vector3(0.0, 0.21, -13.8), obsidian)
 	_solid_block(root, "ObsidianThroneStep", Vector3(4.8, 0.22, 1.2), Vector3(0.0, 0.53, -12.2), rune)
 	for side in [-1.0, 1.0]:
-		for z in [-8.0, -4.0, 4.0]:
+		for index in range(3):
+			var z := [-8.0, -4.0, 4.0][index]
 			# Outer traversal shelves stay clear of the enemy spawn ring and throne plinths.
-			_solid_block(root, "ObsidianSideWalk", Vector3(2.2, 0.20, 2.6), Vector3(side * 13.0, 0.10, z), obsidian)
+			var walk_name := "ObsidianSideWalk_%s_%d" % ["Left" if side < 0.0 else "Right", index + 1]
+			_solid_block(root, walk_name, Vector3(2.2, 0.20, 2.6), Vector3(side * 13.0, 0.10, z), obsidian)
 		# Keep the opening combat spawn ring clear; guard stones sit beyond the approach lane.
 		_solid_block(root, "ObsidianGuardStone", Vector3(2.0, 0.9, 1.1), Vector3(side * 10.0, 0.45, 3.6), obsidian)
 	_add_arch(root, "ObsidianEntryArch", Vector3(0.48, 6.2, 0.55), obsidian, rune)
