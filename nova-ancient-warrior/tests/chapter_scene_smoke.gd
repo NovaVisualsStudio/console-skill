@@ -8,8 +8,16 @@ const CHAPTER_SCENES := [
 const EXPECTED_NAMES := ["SunkenRuins", "EmberCauseway", "ObsidianThrone"]
 const ExplorationSecretDirector = preload("res://scripts/exploration_secret_director.gd")
 const ExplorationPuzzleDirector = preload("res://scripts/exploration_puzzle_director.gd")
-const CACHE_POSITIONS := [Vector3(-10.6, 0.45, -3.5),		Vector3(8.2, 0.31, -7.0),		Vector3(-13.0, 0.49, -8.0)]
+const CACHE_POSITIONS := [
+	Vector3(-10.6, 0.45, -3.5),
+	Vector3(8.2, 0.31, -7.0),
+	Vector3(-13.0, 0.49, -8.0)
+]
 const CACHE_PLATFORM_NAMES := ["SunkenSidePlatform", "EmberFlankStep", "ObsidianSideWalk"]
+const ROUTE_APPROACH_NAMES := ["SunkenFlankStep_Left_3", "EmberFlankApproach_Right_1", "ObsidianWalkApproach_Left_1"]
+const ROUTE_LANDING_NAMES := ["SunkenSidePlatform_Left", "EmberFlankStep_Right_1", "ObsidianSideWalk_Left_1"]
+const ROUTE_APPROACH_TOPS := [0.54, 0.21, 0.30]
+const ROUTE_LANDING_TOPS := [0.56, 0.42, 0.60]
 const PUZZLE_RAISED_PLATFORM_NAME := "EmberCauseway"
 
 
@@ -37,6 +45,18 @@ func _run_chapter_scene_smoke() -> void:
 		assert(dressing.get_child_count() >= 10, "Chapter needs distinct visual landmarks")
 		var cache := ExplorationSecretDirector.build_stage(scene, index)
 		assert(cache.position.is_equal_approx(CACHE_POSITIONS[index]), "Secret cache must use its chapter flank route")
+		var approach := layout.get_node_or_null(ROUTE_APPROACH_NAMES[index]) as StaticBody3D
+		var landing := layout.get_node_or_null(ROUTE_LANDING_NAMES[index]) as StaticBody3D
+		assert(approach != null and landing != null, "Every chapter must build its raised secret-route approach and landing")
+		var approach_collision := approach.get_node_or_null("Collision") as CollisionShape3D
+		var landing_collision := landing.get_node_or_null("Collision") as CollisionShape3D
+		assert(approach_collision != null and approach_collision.shape is BoxShape3D, "Secret-route approach must have physical collision")
+		assert(landing_collision != null and landing_collision.shape is BoxShape3D, "Secret-route landing must have physical collision")
+		var approach_top := approach_collision.global_position.y + (approach_collision.shape as BoxShape3D).size.y * 0.5
+		var landing_top := landing_collision.global_position.y + (landing_collision.shape as BoxShape3D).size.y * 0.5
+		assert(is_equal_approx(approach_top, ROUTE_APPROACH_TOPS[index]), "Secret-route approach height must be authored for this chapter")
+		assert(is_equal_approx(landing_top, ROUTE_LANDING_TOPS[index]), "Secret-route landing height must be authored for this chapter")
+		assert(landing_top > approach_top, "Secret route must require an upward traversal step")
 		var puzzle_runes := ExplorationPuzzleDirector.build_stage(scene, index)
 		var puzzle_positions := ExplorationPuzzleDirector.rune_positions(index)
 		assert(puzzle_runes.size() == 3, "Every chapter must provide three environmental puzzle runes")
