@@ -144,6 +144,14 @@ func _run_combat_window_smoke() -> void:
 	print("Combat window test: boss introduction locks player movement and attacks")
 
 	print("Combat window smoke test passed: startup delay, active hit, one hit per target and cinematic input lock")
+	# Drop test-only references before the main scene is destroyed so Godot can release
+	# its transient packed scene and actor resources at process exit.
+	target = null
+	player = null
+	enemies.clear()
+	hud = null
+	status_label = null
+	main_scene = null
 	await _finish(0, game)
 
 
