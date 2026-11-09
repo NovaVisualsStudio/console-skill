@@ -23,6 +23,10 @@ func _run_pause_menu_smoke() -> void:
 	if menu.get_node_or_null("PausePanel/SettingsStack/MusicVolumeSlider") == null or menu.get_node_or_null("PausePanel/SettingsStack/SfxVolumeSlider") == null:
 		_fail(menu, "Audio settings sliders are missing")
 		return
+	var credits := menu.get_node_or_null("PausePanel/SettingsStack/CreditsLabel") as Label
+	if credits == null or "mocap.cs.cmu.edu" not in credits.text:
+		_fail(menu, "Required character and motion-capture attribution is missing from the pause menu")
+		return
 	var pause_events := [0]
 	var resume_events := [0]
 	var audio_events: Array[Vector2] = []
