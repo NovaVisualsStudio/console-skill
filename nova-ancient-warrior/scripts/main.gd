@@ -845,17 +845,17 @@ func _try_collect_mission_relic() -> void:
 	if nearest_is_puzzle:
 		if exploration_puzzle_complete or exploration_puzzle_progress >= exploration_puzzle_sequence.size():
 			return
-		var expected_rune := exploration_puzzle_sequence[exploration_puzzle_progress]
 		var found_rune := int(nearest.get_meta("rune_index", 0))
-		if found_rune != expected_rune:
+		var evaluation: Dictionary = ExplorationPuzzleDirector.evaluate_rune(found_rune, exploration_puzzle_progress, exploration_puzzle_sequence)
+		if not bool(evaluation.get("accepted", false)):
 			status_label.text = "الرمز مرفوض | اتبع ترتيب النقش" if _is_arabic() else "RUNE REJECTED | FOLLOW THE INSCRIBED ORDER"
 			_play_tone(145.0, 0.10, 0.14)
 			return
 		if not ExplorationPuzzleDirector.activate(nearest):
 			return
-		exploration_puzzle_progress += 1
-		if exploration_puzzle_progress < exploration_puzzle_sequence.size():
-			ExplorationPuzzleDirector.set_expected_order(exploration_puzzle_nodes, exploration_puzzle_sequence[exploration_puzzle_progress])
+		exploration_puzzle_progress = int(evaluation.get("progress", exploration_puzzle_progress))
+		if not bool(evaluation.get("solved", false)):
+			ExplorationPuzzleDirector.set_expected_order(exploration_puzzle_nodes, int(evaluation.get("expected", 0)))
 			status_label.text = ("تمت مزامنة الرمز %d/3" % exploration_puzzle_progress) if _is_arabic() else ("RUNE SYNCHRONIZED %d/3" % exploration_puzzle_progress)
 		else:
 			exploration_puzzle_complete = true
