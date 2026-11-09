@@ -32,16 +32,19 @@ func _run() -> void:
         return
     rig.play_action("idle")
     await process_frame
-    var idle_playing := not String(rig.animation_player.current_animation).is_empty()
+    var idle_name := String(rig.animation_player.current_animation)
+    var idle_playing := idle_name.to_lower().contains("idle")
     rig.play_action("attack", 0.0)
     await process_frame
-    var attack_playing := not String(rig.animation_player.current_animation).is_empty()
+    var attack_name := String(rig.animation_player.current_animation)
+    var attack_lower := attack_name.to_lower()
+    var attack_playing := attack_lower.contains("attack") or attack_lower.contains("sword") or attack_lower.contains("melee") or attack_lower.contains("combo") or attack_lower.contains("punch")
     if not idle_playing or not attack_playing:
         push_error("Humanoid animation test: idle or combat action did not start.")
         rig.free()
         quit(1)
         return
-    print("HUMANOID TEST PASS: %d bones, %d retargeted CC0 clips, mesh/material loaded, idle and attack actions playable." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count])
+    print("HUMANOID TEST PASS: %d bones, %d retargeted CC0 clips, idle=%s, attack=%s." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count, idle_name, attack_name])
     rig.free()
     await process_frame
     quit(0)
