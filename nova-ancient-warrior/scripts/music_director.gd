@@ -41,6 +41,11 @@ func set_intensity(value: float) -> void:
 	_apply_volume()
 
 
+func set_music_volume(value: float) -> void:
+	_music_level = clampf(value, 0.0, 1.0)
+	_apply_volume()
+
+
 func _apply_volume() -> void:
 	if not is_instance_valid(_player):
 		return
