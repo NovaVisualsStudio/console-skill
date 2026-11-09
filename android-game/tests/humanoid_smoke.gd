@@ -107,7 +107,33 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    if not rig._animation_selection_cache.has("run") or not rig._animation_selection_cache.has("walk"):
+        push_error("Humanoid performance test: locomotion selection was not cached.")
+        rig.free()
+        quit(1)
+        return
+    var cached_locomotion_count := rig._animation_selection_cache.size()
+    for _repeat in range(8):
+        rig.play_locomotion("run", 1.0)
+    if rig._animation_selection_cache.size() != cached_locomotion_count:
+        push_error("Humanoid performance test: repeated locomotion lookup expanded the cache.")
+        rig.free()
+        quit(1)
+        return
     rig.play_attack_variant(2, false, 0.0)
+    if not rig._attack_variant_cache.has("light_2"):
+        push_error("Humanoid performance test: combo animation was not cached.")
+        rig.free()
+        quit(1)
+        return
+    var cached_attack_count := rig._attack_variant_cache.size()
+    rig.play_attack_variant(2, false, 0.0)
+    if rig._attack_variant_cache.size() != cached_attack_count:
+        push_error("Humanoid performance test: repeated combo lookup expanded the cache.")
+        rig.free()
+        quit(1)
+        return
+    await process_frame
     await process_frame
     if String(rig.animation_player.current_animation).is_empty():
         push_error("Humanoid animation test: combo variant selection returned no usable clip.")
