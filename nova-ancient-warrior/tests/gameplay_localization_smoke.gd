@@ -32,6 +32,10 @@ func _run_gameplay_localization_smoke() -> void:
 	if "تحرك" not in (game.find_child("CombatHint", true, false) as Label).text:
 		_fail("Combat hint did not localize to Arabic")
 		return
+	var quality_button := game.find_child("GraphicsQualityButton", true, false) as Button
+	if quality_button == null or not quality_button.text.contains("جودة الرسوم"):
+		_fail("Graphics quality control did not localize to Arabic")
+		return
 
 	var dialogue_lines: Array[Dictionary] = [
 		{"speaker": "NOVA", "text": "The language changed while the story was open.", "text_ar": "تغيرت اللغة أثناء عرض القصة."}
@@ -52,6 +56,9 @@ func _run_gameplay_localization_smoke() -> void:
 		return
 	if (game.find_child("Touch_attack", true, false) as Button).text != "ATTACK":
 		_fail("Pause menu language change did not refresh touch controls")
+		return
+	if not quality_button.text.contains("QUALITY"):
+		_fail("Graphics quality control did not refresh after live language switch")
 		return
 	if "MOVE" not in (game.find_child("CombatHint", true, false) as Label).text:
 		_fail("Pause menu language change did not refresh combat hint")
