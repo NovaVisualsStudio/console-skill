@@ -90,40 +90,34 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin "$GITHUB_REF_NAME"
-          git reset --hard "origin/$GITHUB_REF_NAME"
-          mkdir -p nova-ancient-warrior/assets/characters
-          cp "$RUNNER_TEMP/nova_hero.glb" nova-ancient-warrior/assets/characters/nova_hero.glb
-          cp "$RUNNER_TEMP/nova-hero.sha256" nova-ancient-warrior/assets/characters/nova_hero.sha256
-          cp "$RUNNER_TEMP/ara-source-commit.txt" nova-ancient-warrior/assets/characters/ara_source_commit.txt
-          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
-          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
-          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
           GODOT_BIN="$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
-          "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
-          "$GODOT_BIN" --headless --path nova-ancient-warrior --script res://tests/rigged_warrior_smoke.gd
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f nova-ancient-warrior/assets/characters/nova_hero.glb nova-ancient-warrior/assets/characters/nova_hero.sha256 nova-ancient-warrior/assets/characters/ara_source_commit.txt
-          if git diff --cached --quiet; then
-            echo "Generated hero and provenance are byte-identical to the validated branch asset; no commit is required."
-          else
-            git commit -m "Add validated Ara-generated realistic NOVA hero"
-            pushed=false
-            for attempt in 1 2 3; do
-              git fetch origin "$GITHUB_REF_NAME"
-              git rebase "origin/$GITHUB_REF_NAME"
-              if git push origin "HEAD:$GITHUB_REF_NAME"; then
-                pushed=true
-                break
-              fi
-              echo "Push raced with another feature-branch update (attempt $attempt); rebasing onto the newest head."
-            done
-            if [[ "$pushed" != true ]]; then
-              echo "Could not publish the validated hero after three fetch/rebase attempts."
-              exit 1
+          for attempt in 1 2 3 4 5 6; do
+            echo "Hero integration attempt $attempt/6"
+            git fetch origin "$GITHUB_REF_NAME"
+            git reset --hard "origin/$GITHUB_REF_NAME"
+            mkdir -p nova-ancient-warrior/assets/characters
+            cp "$RUNNER_TEMP/nova_hero.glb" nova-ancient-warrior/assets/characters/nova_hero.glb
+            cp "$RUNNER_TEMP/nova-hero.sha256" nova-ancient-warrior/assets/characters/nova_hero.sha256
+            cp "$RUNNER_TEMP/ara-source-commit.txt" nova-ancient-warrior/assets/characters/ara_source_commit.txt
+            "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
+            "$GODOT_BIN" --headless --path nova-ancient-warrior --script res://tests/rigged_warrior_smoke.gd
+            git add -f nova-ancient-warrior/assets/characters/nova_hero.glb nova-ancient-warrior/assets/characters/nova_hero.sha256 nova-ancient-warrior/assets/characters/ara_source_commit.txt
+            if git diff --cached --quiet; then
+              echo "Generated hero and provenance are byte-identical to the validated branch asset; no commit is required."
+              exit 0
             fi
-          fi
+            git commit -m "Add validated Ara-generated realistic NOVA hero"
+            if git push origin "HEAD:$GITHUB_REF_NAME"; then
+              echo "Validated hero committed successfully."
+              exit 0
+            fi
+            echo "Branch advanced during hero validation; refetching and retrying without discarding generated assets."
+            sleep 2
+          done
+          echo "Could not publish the validated hero after six branch-race retries."
+          exit 1
 
       - name: Upload generated hero for review and integration
         if: always()
