@@ -15,6 +15,7 @@ enum AttackPattern { MELEE, SWEEP, SLAM }
 var player: Node3D
 var is_boss := false
 var difficulty_scale := 1.0
+var chapter_variant := 0
 var active := false
 var health := 80
 var max_health := 80
@@ -67,9 +68,13 @@ func _build_enemy() -> void:
 
     humanoid = HUMANOID_SCRIPT.new() as NovaHumanoidRig
     humanoid.name = "EnemyHumanoid"
-    humanoid.tint_color = Color(0.29, 0.12, 0.11) if not is_boss else Color(0.17, 0.10, 0.25)
+    var enemy_tints := [Color(0.29, 0.12, 0.11), Color(0.08, 0.25, 0.28), Color(0.31, 0.08, 0.06)]
+    var boss_tints := [Color(0.17, 0.10, 0.25), Color(0.07, 0.19, 0.26), Color(0.25, 0.065, 0.035)]
+    var accent_tints := [Color(0.58, 0.22, 0.10), Color(0.16, 0.62, 0.70), Color(0.92, 0.28, 0.055)]
+    var palette_index := clampi(chapter_variant, 0, 2)
+    humanoid.tint_color = enemy_tints[palette_index] if not is_boss else boss_tints[palette_index]
     humanoid.armor_style = "enemy" if not is_boss else "boss"
-    humanoid.accent_color = Color(0.58, 0.22, 0.10) if not is_boss else Color(0.55, 0.24, 0.82)
+    humanoid.accent_color = accent_tints[palette_index]
     humanoid.character_scale = 1.0 if not is_boss else 1.55
     add_child(humanoid)
     body_mesh = humanoid.primary_mesh
