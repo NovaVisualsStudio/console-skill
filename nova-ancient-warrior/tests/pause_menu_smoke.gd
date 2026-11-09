@@ -17,10 +17,10 @@ func _run_pause_menu_smoke() -> void:
 	if menu.get_node_or_null("PauseButton") == null or menu.get_node_or_null("PausePanel") == null:
 		_fail(menu, "Pause and settings controls were not created")
 		return
-	if menu.get_node_or_null("PausePanel/ResumeButton") == null:
+	if menu.get_node_or_null("PausePanel/SettingsStack/ResumeButton") == null:
 		_fail(menu, "Resume control is missing")
 		return
-	if menu.get_node_or_null("PausePanel/MusicVolumeSlider") == null or menu.get_node_or_null("PausePanel/SfxVolumeSlider") == null:
+	if menu.get_node_or_null("PausePanel/SettingsStack/MusicVolumeSlider") == null or menu.get_node_or_null("PausePanel/SettingsStack/SfxVolumeSlider") == null:
 		_fail(menu, "Audio settings sliders are missing")
 		return
 	var pause_events := 0
