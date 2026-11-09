@@ -477,8 +477,10 @@ func play_locomotion(action: String, speed_ratio: float) -> void:
     if animation_player == null or loaded_animation_count == 0:
         return
     var selected := _select_action_animation(action)
+    # Run is optional in third-party CC0 packs. Fall back through the same
+    # cached selector so packs with walk but no run never trigger an arity error.
     if selected.is_empty() and action == "run":
-        selected = _select_action_animation("walk", available)
+        selected = _select_action_animation("walk")
     if selected.is_empty():
         return
     var ratio := clampf(speed_ratio, 0.45, 1.25)
