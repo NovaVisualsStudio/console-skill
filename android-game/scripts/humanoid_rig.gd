@@ -23,6 +23,9 @@ var _source_skeleton: Skeleton3D
 var _animation_selection_cache: Dictionary = {}
 var _attack_variant_cache: Dictionary = {}
 
+static var _retargeted_animation_libraries: Dictionary = {}
+static var _retargeted_animation_build_count: int = 0
+
 func _ready() -> void:
     _build_character()
     _load_and_retarget_animations()
@@ -260,6 +263,21 @@ func _load_and_retarget_animations() -> void:
     _attack_variant_cache.clear()
     if skeleton == null:
         return
+
+    animation_player = AnimationPlayer.new()
+    animation_player.name = "HumanoidAnimationPlayer"
+    animation_player.root_node = NodePath("..")
+    animation_player.playback_default_blend_time = 0.14
+    add_child(animation_player)
+
+    var cache_key := _get_retarget_cache_key()
+    if _retargeted_animation_libraries.has(cache_key):
+        var cached_library := _retargeted_animation_libraries[cache_key] as AnimationLibrary
+        if cached_library != null:
+            animation_player.add_animation_library("", cached_library)
+            loaded_animation_count = cached_library.get_animation_list().size()
+            return
+
     var animation_scene := load(ANIMATION_SCENE_PATH) as PackedScene
     if animation_scene == null:
         push_warning("NOVA CC0 animation pack is not installed. Run tools/fetch_cc0_animations.py.")
@@ -275,12 +293,6 @@ func _load_and_retarget_animations() -> void:
         push_warning("NOVA animation pack needs an AnimationPlayer and Skeleton3D.")
         source_root.queue_free()
         return
-
-    animation_player = AnimationPlayer.new()
-    animation_player.name = "HumanoidAnimationPlayer"
-    animation_player.root_node = NodePath("..")
-    animation_player.playback_default_blend_time = 0.14
-    add_child(animation_player)
 
     var library := AnimationLibrary.new()
     for animation_name in source_player.get_animation_list():
@@ -298,10 +310,27 @@ func _load_and_retarget_animations() -> void:
         loaded_animation_count += 1
     if library.get_animation_list().size() > 0:
         animation_player.add_animation_library("", library)
+        _retargeted_animation_libraries[cache_key] = library
+        _retargeted_animation_build_count += 1
     source_root.queue_free()
     if loaded_animation_count == 0:
         push_warning("NOVA animation library imported, but no tracks matched the target humanoid skeleton.")
 
+func _get_retarget_cache_key() -> String:
+    var key_parts: Array[String] = [String(get_path_to(skeleton))]
+    key_parts.append(str(skeleton.get_bone_count()))
+    for bone_index in range(skeleton.get_bone_count()):
+        key_parts.append(
+            "%s:%d:%s" % [
+                String(skeleton.get_bone_name(bone_index)),
+                skeleton.get_bone_parent(bone_index),
+                str(skeleton.get_bone_rest(bone_index))
+            ]
+        )
+    return "|".join(key_parts)
+
+static func get_retargeted_animation_build_count() -> int:
+    return _retargeted_animation_build_count
 func _retarget_animation(source: Animation) -> Animation:
     var result := Animation.new()
     result.resource_name = source.resource_name
