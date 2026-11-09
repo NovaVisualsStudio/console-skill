@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           corepack enable
-          pnpm install --frozen-lockfile
+          pnpm install --no-frozen-lockfile
 
       - name: Prepare CC0 MakeHuman assets without downloading unused raw mocap
         shell: bash
