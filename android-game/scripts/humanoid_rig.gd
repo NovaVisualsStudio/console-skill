@@ -73,7 +73,7 @@ func _attach_skinned_asset(path: String, asset_label: String) -> int:
     if packed_scene == null:
         push_warning("NOVA optional CC0 outfit asset is missing: %s" % path)
         return 0
-    var instance := packed_scene.instantiate()
+    var instance := packed_scene.instantiate() as Node3D
     if instance == null:
         return 0
     instance.transform = model_root.transform
