@@ -12,6 +12,8 @@ var model_root: Node3D
 var skeleton: Skeleton3D
 var animation_player: AnimationPlayer
 var loaded_animation_count := 0
+var primary_mesh: MeshInstance3D
+var primary_material: StandardMaterial3D
 var _source_skeleton: Skeleton3D
 
 func _ready() -> void:
@@ -55,6 +57,9 @@ func _apply_character_materials(root: Node) -> void:
                 mesh_instance.material_override = skin
             else:
                 mesh_instance.material_override = armor
+                if mesh_name.contains("superhero_male") or primary_mesh == null:
+                    primary_mesh = mesh_instance
+                    primary_material = armor
             mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
         _apply_character_materials(child)
 
@@ -124,7 +129,7 @@ func _retarget_animation(source: Animation) -> Animation:
             continue
         var property_name := parts[1]
         var new_track_index := result.add_track(source.track_get_type(track_index))
-        var target_path := String(get_path_to(skeleton)) + ":bone_pose/%d/%s" % [target_bone_index, property_name]
+        var target_path := "%s:bone_pose/%d/%s" % [String(get_path_to(skeleton)), target_bone_index, property_name]
         result.track_set_path(new_track_index, NodePath(target_path))
         result.track_set_interpolation_type(new_track_index, source.track_get_interpolation_type(track_index))
         result.track_set_enabled(new_track_index, source.track_is_enabled(track_index))
