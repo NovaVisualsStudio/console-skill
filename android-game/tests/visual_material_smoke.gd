@@ -74,6 +74,24 @@ func _validate_pbr(mesh_instance: MeshInstance3D, expected_asset: String, label:
             return false
     return true
 
+func _count_torch_lights(node: Node) -> int:
+    var count := 0
+    if node is OmniLight3D and node.name.to_string().begins_with("TorchGlow"):
+        count += 1
+    for child in node.get_children():
+        count += _count_torch_lights(child)
+    return count
+
+func _validate_torch_lights(node: Node) -> bool:
+    if node is OmniLight3D and node.name.to_string().begins_with("TorchGlow"):
+        var light := node as OmniLight3D
+        if light.shadow_enabled or light.omni_range > 7.0 or light.light_energy <= 0.0:
+            return false
+    for child in node.get_children():
+        if not _validate_torch_lights(child):
+            return false
+    return true
+
 func _run() -> void:
     var arena := ARENA_SCENE.instantiate() as NovaArenaController
     root.add_child(arena)
@@ -88,6 +106,23 @@ func _run() -> void:
     if not _validate_pbr(north_wall_mesh, "stone_wall", "north wall"):
         _finish(1, arena)
         return
+    var pillar_mesh := arena.find_child("AncientPillar", true, false) as MeshInstance3D
+    var dais_mesh := arena.find_child("RitualDais", true, false) as MeshInstance3D
+    if not _validate_pbr(pillar_mesh, "stone_wall", "column shaft"):
+        _finish(1, arena)
+        return
+    if not _validate_pbr(dais_mesh, "rock_tile_floor", "ritual dais"):
+        _finish(1, arena)
+        return
+    var torch_light_count := _count_torch_lights(arena)
+    if torch_light_count != 4:
+        push_error("PBR visual test: expected four low-cost torch lights, found %d." % torch_light_count)
+        _finish(1, arena)
+        return
+    if not _validate_torch_lights(arena):
+        push_error("PBR visual test: a torch light has shadows enabled or exceeds the mobile range budget.")
+        _finish(1, arena)
+        return
     for asset_id in ["rock_tile_floor", "stone_wall"]:
         for map_name in ["diff", "nor_gl", "rough"]:
             if not _validate_import_settings(asset_id, map_name):
@@ -98,7 +133,7 @@ func _run() -> void:
         push_error("PBR visual test: in-game Poly Haven credit is missing.")
         _finish(1, arena)
         return
-    print("PBR VISUAL TEST PASS: six 1K maps are imported with VRAM compression and mipmaps; OpenGL normal maps use RGTC; floor/wall materials and in-game CC0 credit are verified.")
+    print("PBR VISUAL TEST PASS: six mobile-compressed 1K maps are verified on floor, walls, columns and dais; four shadowless torch lights meet the 7m range budget; CC0 credit is visible.")
     _finish(0, arena)
 
 func _finish(exit_code: int, arena: Node) -> void:

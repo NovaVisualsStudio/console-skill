@@ -125,8 +125,9 @@ func _build_world() -> void:
 
     _add_ritual_ring(7.6, CHAPTER_RINGS[stage])
     _add_ritual_ring(10.2, CHAPTER_RINGS[stage].darkened(0.42))
-    _add_cylinder("RitualDais", Vector3(0, 0.02, -8.5), 4.8, 0.22,
+    var ritual_dais := _add_cylinder("RitualDais", Vector3(0, 0.02, -8.5), 4.8, 0.22,
         Color(0.15, 0.16, 0.21), false, 0.72, 0.36)
+    ritual_dais.material_override = floor_pbr
     _add_box("PortalCore", Vector3(0, 5.2, -19.9), Vector3(7.2, 8.2, 0.55),
         CHAPTER_FOG[stage].darkened(0.48), false, 0.38, 0.72)
     var portal_left := _add_box("PortalLeftPillar", Vector3(-4.1, 4.0, -19.5), Vector3(1.1, 8.0, 1.25),
@@ -139,9 +140,20 @@ func _build_world() -> void:
     _apply_pbr_material(portal_right, portal_pbr)
     _apply_pbr_material(portal_lintel, portal_pbr)
 
+    var north_trim := _add_box("NorthWallLowerTrim", Vector3(0, 0.28, -20.15), Vector3(42, 0.56, 0.38),
+        stage_wall_tint.lightened(0.12), false, 0.88, 0.06)
+    var south_trim := _add_box("SouthWallLowerTrim", Vector3(0, 0.28, 20.15), Vector3(42, 0.56, 0.38),
+        stage_wall_tint.lightened(0.12), false, 0.88, 0.06)
+    var west_trim := _add_box("WestWallLowerTrim", Vector3(-20.15, 0.28, 0), Vector3(0.38, 0.56, 42),
+        stage_wall_tint.lightened(0.12), false, 0.88, 0.06)
+    var east_trim := _add_box("EastWallLowerTrim", Vector3(20.15, 0.28, 0), Vector3(0.38, 0.56, 42),
+        stage_wall_tint.lightened(0.12), false, 0.88, 0.06)
+    for trim in [north_trim, south_trim, west_trim, east_trim]:
+        _apply_pbr_material(trim, wall_pbr)
+
     for x in [-14.0, 14.0]:
         for z in [-12.0, -3.0, 6.0, 15.0]:
-            _add_column(Vector3(x, 0.0, z))
+            _add_column(Vector3(x, 0.0, z), wall_pbr)
     _add_torch(Vector3(-5.4, 0.0, -17.4))
     _add_torch(Vector3(5.4, 0.0, -17.4))
     _add_torch(Vector3(-15.0, 0.0, 2.5))
@@ -335,13 +347,16 @@ func _add_ritual_ring(radius: float, color: Color) -> void:
     ring.material_override = material
     add_child(ring)
 
-func _add_column(position: Vector3) -> void:
-    _add_cylinder("PillarBase", position + Vector3(0, 0.48, 0), 1.0, 0.7,
+func _add_column(position: Vector3, stone_material: StandardMaterial3D) -> void:
+    var pillar_base := _add_cylinder("PillarBase", position + Vector3(0, 0.48, 0), 1.0, 0.7,
         Color(0.25, 0.23, 0.22), true, 0.88, 0.16)
-    _add_cylinder("AncientPillar", position + Vector3(0, 3.15, 0), 0.70, 5.0,
+    var pillar_shaft := _add_cylinder("AncientPillar", position + Vector3(0, 3.15, 0), 0.70, 5.0,
         Color(0.31, 0.28, 0.25), true, 0.90, 0.12)
-    _add_cylinder("PillarCapital", position + Vector3(0, 5.85, 0), 0.95, 0.48,
+    var pillar_capital := _add_cylinder("PillarCapital", position + Vector3(0, 5.85, 0), 0.95, 0.48,
         Color(0.39, 0.31, 0.23), true, 0.78, 0.20)
+    for pillar_piece in [pillar_base, pillar_shaft, pillar_capital]:
+        if stone_material != null:
+            pillar_piece.material_override = stone_material
 
 func _add_torch(position: Vector3) -> void:
     _add_cylinder("TorchStand", position + Vector3(0, 1.15, 0), 0.12, 2.3,
@@ -359,6 +374,15 @@ func _add_torch(position: Vector3) -> void:
     material.emission_energy_multiplier = 2.4
     flame.material_override = material
     add_child(flame)
+
+    var torch_glow := OmniLight3D.new()
+    torch_glow.name = "TorchGlow"
+    torch_glow.position = position + Vector3(0, 2.45, 0)
+    torch_glow.light_color = Color(1.0, 0.43, 0.20)
+    torch_glow.light_energy = 0.78
+    torch_glow.omni_range = 6.5
+    torch_glow.shadow_enabled = false
+    add_child(torch_glow)
 
 func _add_dust_motes() -> void:
     var particles := GPUParticles3D.new()
