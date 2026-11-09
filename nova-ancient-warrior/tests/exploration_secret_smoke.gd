@@ -19,8 +19,12 @@ func _run_secret_smoke() -> void:
 		if cache.get_node_or_null("CacheBase") == null or cache.get_node_or_null("CacheLid") == null or cache.get_node_or_null("CacheRune") == null or cache.get_node_or_null("SecretMarker") == null:
 			_fail(root, "Chapter %d secret cache is missing visual components" % chapter)
 			return
+		var expected_positions := [Vector3(-10.6, 0.17, -3.5), Vector3(8.2, 0.07, -7.0), Vector3(-13.0, 0.09, -8.0)]
 		if int(cache.get_meta("chapter_index", -1)) != chapter or bool(cache.get_meta("collected", true)):
 			_fail(root, "Chapter %d cache metadata is invalid" % chapter)
+			return
+		if not cache.position.is_equal_approx(expected_positions[chapter]):
+			_fail(root, "Chapter %d cache is not aligned with its intended flank traversal platform" % chapter)
 			return
 		if chapter == 0:
 			if not ExplorationSecretDirector.collect(cache) or cache.visible:
