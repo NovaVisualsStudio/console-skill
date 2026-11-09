@@ -40,7 +40,7 @@ func _run_pause_menu_smoke() -> void:
 	var escape := InputEventKey.new()
 	escape.keycode = KEY_ESCAPE
 	escape.pressed = true
-	menu.call("_input", escape)
+	menu.call("_handle_cancel")
 	if pause_events[0] != 1 or not menu.is_paused():
 		_fail(menu, "Escape did not pause the game and reveal the overlay")
 		return
