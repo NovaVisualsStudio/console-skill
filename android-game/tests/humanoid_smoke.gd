@@ -43,6 +43,11 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    if rig.primary_material == rig.hit_flash_material:
+        push_error("Humanoid material test: primary surface material must not alias the transient hit-flash overlay.")
+        rig.free()
+        quit(1)
+        return
     var hair_mesh_found := false
     for child in rig.skeleton.get_children():
         if child is MeshInstance3D and String(child.name).to_lower().contains("hairshort02"):
