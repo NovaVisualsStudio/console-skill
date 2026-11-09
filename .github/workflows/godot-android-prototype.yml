@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate Godot prototype (ten gates + six repeat stability passes)
+    name: Validate Godot prototype (eleven gates + six repeat stability passes)
     runs-on: ubuntu-latest
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
