@@ -36,10 +36,10 @@ jobs:
     timeout-minutes: 35
     steps:
       - name: Check out Nova game
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -119,7 +119,7 @@ jobs:
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/character_asset_smoke.gd
 
       - name: Publish retargeted character and report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nova-warrior-mocap-character
           path: |
