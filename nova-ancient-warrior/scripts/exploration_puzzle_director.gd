@@ -120,6 +120,21 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 	return result
 
 
+static func evaluate_rune(rune_index: int, current_progress: int, sequence: Array[int]) -> Dictionary:
+	if current_progress < 0 or current_progress >= sequence.size():
+		return {"accepted": false, "progress": clampi(current_progress, 0, sequence.size()), "solved": true, "expected": 0}
+	var expected := sequence[current_progress]
+	if rune_index != expected:
+		return {"accepted": false, "progress": current_progress, "solved": false, "expected": expected}
+	var next_progress := current_progress + 1
+	return {
+		"accepted": true,
+		"progress": next_progress,
+		"solved": next_progress >= sequence.size(),
+		"expected": 0 if next_progress >= sequence.size() else sequence[next_progress]
+	}
+
+
 static func set_expected_order(runes: Array[Node3D], expected_order: int) -> void:
 	for rune in runes:
 		if not is_instance_valid(rune) or bool(rune.get_meta("activated", false)):
