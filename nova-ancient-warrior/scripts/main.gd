@@ -978,16 +978,19 @@ func _build_hud() -> void:
 	dialogue_box.add_theme_constant_override("separation", 7)
 	dialogue_panel.add_child(dialogue_box)
 	dialogue_speaker_label = Label.new()
+	dialogue_speaker_label.name = "DialogueSpeaker"
 	dialogue_speaker_label.add_theme_font_size_override("font_size", 15)
 	dialogue_speaker_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.42))
 	dialogue_box.add_child(dialogue_speaker_label)
 	dialogue_text_label = Label.new()
+	dialogue_text_label.name = "DialogueText"
 	dialogue_text_label.add_theme_font_size_override("font_size", 18)
 	dialogue_text_label.add_theme_color_override("font_color", Color(0.96, 0.93, 0.87))
 	dialogue_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	dialogue_text_label.custom_minimum_size = Vector2(0.0, 66.0)
 	dialogue_box.add_child(dialogue_text_label)
 	dialogue_next_button = Button.new()
+	dialogue_next_button.name = "DialogueNextButton"
 	dialogue_next_button.text = "CONTINUE"
 	dialogue_next_button.custom_minimum_size = Vector2(150.0, 38.0)
 	dialogue_next_button.size_flags_horizontal = Control.SIZE_SHRINK_END
