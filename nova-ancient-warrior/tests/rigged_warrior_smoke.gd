@@ -22,7 +22,7 @@ func _run_rigged_hero_smoke() -> void:
 	if animation_player == null:
 		_fail(visual, "Generated Nova hero has no AnimationPlayer")
 		return
-	var required := ["Idle", "Walk", "Run", "Sword idle", "Sword slash", "Sword thrust", "Sword block", "Sword combo", "Side dodge left", "Side dodge right", "Hit from front", "Death (fall backward)", "Forward roll", "Jump start", "Jump air", "Jump land"]
+	var required := ["Idle", "Walk", "Run", "Sword idle", "Sword slash", "Sword thrust", "Sword block", "Sword combo", "Side dodge left", "Side dodge right", "Hit from front", "Death (fall backward)", "Forward roll", "Jump start", "Jump (in air)", "Jump land"]
 	var names := animation_player.get_animation_list()
 	if names.size() > 25:
 		_fail(visual, "Mobile hero export must not ship the entire unused animation catalog")
@@ -89,15 +89,18 @@ func _run_rigged_hero_smoke() -> void:
 		_fail(visual, "Jump takeoff must select the jump-start clip")
 		return
 	visual.call("_on_animation_finished", animation_player.current_animation)
-	if "jumpair" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
+	var airborne_name := str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", "").replace("(", "").replace(")", "")
+	if airborne_name not in ["jumpair", "jumpinair"]:
 		_fail(visual, "Jump takeoff must transition to the airborne loop")
 		return
 	visual.call("set_locomotion", 0.5, 0.016)
-	if "jumpair" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
+	airborne_name = str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", "").replace("(", "").replace(")", "")
+	if airborne_name not in ["jumpair", "jumpinair"]:
 		_fail(visual, "Locomotion updates must not override airborne animation")
 		return
 	visual.call("set_blocking", true)
-	if "jumpair" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
+	airborne_name = str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", "").replace("(", "").replace(")", "")
+	if airborne_name not in ["jumpair", "jumpinair"]:
 		_fail(visual, "Guard input must not replace airborne animation")
 		return
 	visual.call("set_blocking", false)
