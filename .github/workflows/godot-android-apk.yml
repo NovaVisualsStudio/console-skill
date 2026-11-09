@@ -57,17 +57,28 @@ jobs:
           python3 -m py_compile nova-ancient-warrior/tools/generate_game_audio.py
           python3 nova-ancient-warrior/tools/generate_game_audio.py --output nova-ancient-warrior/audio/generated
 
-      - name: Generate original skinned Nova hero and animation library
+      - name: Verify realistic hero asset or generate safe fallback
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y blender python3-numpy
-          blender --background --python-expr "import bpy, numpy; print('BLENDER_NUMPY_OK', bpy.app.version_string, numpy.__version__)"
-          python3 -m py_compile nova-ancient-warrior/tools/blender/generate_nova_hero.py
-          blender --background --python nova-ancient-warrior/tools/blender/generate_nova_hero.py -- --output nova-ancient-warrior/assets/characters/nova_hero.glb
-          test -s nova-ancient-warrior/assets/characters/nova_hero.glb
-          ls -lh nova-ancient-warrior/assets/characters/nova_hero.glb
+          hero="nova-ancient-warrior/assets/characters/nova_hero.glb"
+          provenance="nova-ancient-warrior/assets/characters/ara_source_commit.txt"
+          digest="nova-ancient-warrior/assets/characters/nova_hero.sha256"
+          if [[ -s "$hero" && -s "$provenance" && -s "$digest" ]]; then
+            expected="$(cat "$digest")"
+            actual="$(sha256sum "$hero" | awk '{print $1}')"
+            test "$expected" = "$actual"
+            echo "Verified Ara-generated realistic hero; preserving the committed GLB"
+          else
+            sudo apt-get update
+            sudo apt-get install -y blender python3-numpy
+            blender --background --python-expr "import bpy, numpy; print('BLENDER_NUMPY_OK', bpy.app.version_string, numpy.__version__)"
+            python3 -m py_compile nova-ancient-warrior/tools/blender/generate_nova_hero.py
+            blender --background --python nova-ancient-warrior/tools/blender/generate_nova_hero.py -- --output "$hero"
+            test -s "$hero"
+            echo "Fallback hero generated; Ara realistic hero is not present"
+          fi
+          ls -lh "$hero"
 
       - name: Download Godot 4.7.2 editor and export templates
         shell: bash
