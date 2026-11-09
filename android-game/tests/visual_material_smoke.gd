@@ -149,7 +149,7 @@ func _run() -> void:
         push_error("PBR visual test: in-game Poly Haven credit is missing.")
         _finish(1, arena)
         return
-    print("PBR VISUAL TEST PASS: six mobile-compressed %s maps are verified on floor, walls, columns and dais; four shadowless torch lights meet the 7m range budget; CC0 credit is visible." % _get_texture_tier().to_upper())
+    print("PBR VISUAL TEST PASS: six arena maps and seven character armor/leather maps at %s are verified; four shadowless torch lights meet the 7m range budget; CC0 credit is visible." % _get_texture_tier().to_upper())
     _finish(0, arena)
 
 func _finish(exit_code: int, arena: Node) -> void:
