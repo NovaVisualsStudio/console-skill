@@ -144,6 +144,20 @@ func _run() -> void:
     if not _validate_import_settings("metal_plate", "metal"):
         _finish(1, arena)
         return
+    var world_environment := arena.find_child("WorldEnvironment", true, false) as WorldEnvironment
+    if world_environment == null or world_environment.environment == null:
+        push_error("Cinematic lighting test: WorldEnvironment is missing.")
+        _finish(1, arena)
+        return
+    var scene_environment := world_environment.environment
+    if not scene_environment.glow_enabled or scene_environment.glow_intensity < 0.15:
+        push_error("Cinematic lighting test: restrained bloom/glow is not configured.")
+        _finish(1, arena)
+        return
+    if arena.find_child("CinematicFaceFill", true, false) == null or arena.find_child("CinematicArmorRim", true, false) == null:
+        push_error("Cinematic lighting test: face fill or armor rim light is missing.")
+        _finish(1, arena)
+        return
     var credit := arena.find_child("PolyHavenCredits", true, false) as Label
     if credit == null or not credit.text.contains("POLY HAVEN"):
         push_error("PBR visual test: in-game Poly Haven credit is missing.")
