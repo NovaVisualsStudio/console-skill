@@ -47,6 +47,13 @@ func _run_combat_window_smoke() -> void:
 		return
 	print("Combat window test: main scene and SaveManager autoload booted")
 	var hud := game.get("hud") as Label
+	var status_label := game.get("status_label") as Label
+	if hud == null or hud.anchor_left > 0.05 or hud.anchor_right < 0.95:
+		await _finish(1, game, "HUD must use responsive safe-width anchors")
+		return
+	if status_label == null or status_label.anchor_left > 0.1 or status_label.anchor_right < 0.9:
+		await _finish(1, game, "Encounter status must fit a responsive mobile width")
+		return
 	var original_locale := TranslationServer.get_locale()
 	TranslationServer.set_locale("ar")
 	game.call("_update_hud")
