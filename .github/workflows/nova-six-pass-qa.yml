@@ -50,7 +50,10 @@ jobs:
             nova-ancient-warrior/tools/blender/export_humanoid_for_godot.py \
             nova-ancient-warrior/tools/blender/optimize_mocap_glb.py \
             nova-ancient-warrior/tools/blender/generate_nova_hero.py \
-            nova-ancient-warrior/tools/generate_game_audio.py
+            nova-ancient-warrior/tools/blender/optimize_mocap_glb.py \
+            nova-ancient-warrior/tools/generate_game_audio.py \
+            nova-ancient-warrior/tests/test_optimize_mocap_glb.py
+          PYTHONPATH=nova-ancient-warrior/tools/blender python3 nova-ancient-warrior/tests/test_optimize_mocap_glb.py
           test -s nova-ancient-warrior/project.godot
           test -s nova-ancient-warrior/scenes/main.tscn
           echo "PASS 1: Python syntax and core project files valid"
