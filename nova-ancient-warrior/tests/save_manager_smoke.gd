@@ -67,6 +67,18 @@ func _run_save_smoke() -> void:
 	if int(reader.profile.get("upgrade_blade", 0)) != 1 or int(reader.profile.get("total_souls", 0)) != 1:
 		_fail("Purchased upgrade or remaining soul balance was not saved")
 		return
+	if not reader.start_new_campaign():
+		_fail("Could not start a new campaign")
+		return
+	if int(reader.profile.get("highest_wave", 0)) != 1 or int(reader.profile.get("unlocked_chapter", 0)) != 1:
+		_fail("New campaign did not reset chapter progression")
+		return
+	if bool(reader.profile.get("boss_defeated", true)) or bool(reader.profile.get("campaign_complete", true)):
+		_fail("New campaign did not clear prior completion state")
+		return
+	if int(reader.profile.get("upgrade_blade", 0)) != 1 or int(reader.profile.get("total_souls", 0)) != 1:
+		_fail("New campaign must preserve permanent upgrades and banked souls")
+		return
 	if not reader.begin_run():
 		_fail("Could not begin a fresh run")
 		return
