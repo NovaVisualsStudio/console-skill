@@ -27,6 +27,19 @@ func _run_pause_menu_smoke() -> void:
 	if credits == null or "mocap.cs.cmu.edu" not in credits.text:
 		_fail(menu, "Required character and motion-capture attribution is missing from the pause menu")
 		return
+	var original_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("ar")
+	menu.call("_apply_language")
+	if (menu.get_node("PauseButton") as Button).text != "إيقاف مؤقت":
+		_fail(menu, "Pause menu did not localize its pause button to Arabic")
+		return
+	TranslationServer.set_locale("en")
+	menu.call("_apply_language")
+	if (menu.get_node("PauseButton") as Button).text != "PAUSE":
+		_fail(menu, "Pause menu did not restore its English labels")
+		return
+	TranslationServer.set_locale(original_locale)
+	menu.call("_apply_language")
 	var pause_events := [0]
 	var resume_events := [0]
 	var audio_events: Array[Vector2] = []
