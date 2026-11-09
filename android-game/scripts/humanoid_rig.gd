@@ -22,6 +22,7 @@ var uses_realistic_character := false
 var _source_skeleton: Skeleton3D
 var _animation_selection_cache: Dictionary = {}
 var _attack_variant_cache: Dictionary = {}
+var _animation_clip_list_fetch_count := 0
 
 static var _retargeted_animation_libraries: Dictionary = {}
 static var _retargeted_animation_build_count: int = 0
@@ -459,8 +460,7 @@ func attach_to_bone(bone_name: String) -> Node3D:
 func play_action(action: String, blend: float = 0.14) -> void:
     if animation_player == null or loaded_animation_count == 0:
         return
-    var available := animation_player.get_animation_list()
-    var selected := _select_action_animation(action, available)
+    var selected := _select_action_animation(action)
     if selected.is_empty():
         return
     animation_player.speed_scale = 1.0
@@ -476,8 +476,7 @@ func play_action(action: String, blend: float = 0.14) -> void:
 func play_locomotion(action: String, speed_ratio: float) -> void:
     if animation_player == null or loaded_animation_count == 0:
         return
-    var available := animation_player.get_animation_list()
-    var selected := _select_action_animation(action, available)
+    var selected := _select_action_animation(action)
     if selected.is_empty() and action == "run":
         selected = _select_action_animation("walk", available)
     if selected.is_empty():
@@ -495,10 +494,10 @@ func play_attack_variant(combo_step: int, heavy: bool, blend: float = 0.06) -> v
     var cache_key := "heavy" if heavy else "light_%d" % clampi(combo_step, 1, 3)
     var selected := String(_attack_variant_cache.get(cache_key, ""))
     if selected.is_empty():
-        var available := animation_player.get_animation_list()
         if heavy:
-            selected = _select_action_animation("heavy", available)
+            selected = _select_action_animation("heavy")
         else:
+            var available := _get_available_animation_list()
             var preferred_variants := {
                 1: ["light_attack", "sword_attack", "melee_attack", "slash"],
                 2: ["slice", "swing", "diagonal", "cross"],
@@ -516,7 +515,7 @@ func play_attack_variant(combo_step: int, heavy: bool, blend: float = 0.06) -> v
                 if not selected.is_empty():
                     break
             if selected.is_empty():
-                selected = _select_action_animation("attack", available)
+                selected = _select_action_animation("attack")
         if not selected.is_empty():
             _attack_variant_cache[cache_key] = selected
     if selected.is_empty():
@@ -527,12 +526,17 @@ func play_attack_variant(combo_step: int, heavy: bool, blend: float = 0.06) -> v
         animation_player.speed_scale = clampf(clip.length / desired_duration, 0.65, 2.4)
     _play_animation(selected, blend)
 
-func _select_action_animation(action: String, available: Array[StringName]) -> String:
+func _select_action_animation(action: String) -> String:
     if _animation_selection_cache.has(action):
         return String(_animation_selection_cache[action])
+    var available := _get_available_animation_list()
     var selected := _select_action_animation_uncached(action, available)
     _animation_selection_cache[action] = selected
     return selected
+
+func _get_available_animation_list() -> Array[StringName]:
+    _animation_clip_list_fetch_count += 1
+    return animation_player.get_animation_list()
 
 func _select_action_animation_uncached(action: String, available: Array[StringName]) -> String:
     var terms := {
