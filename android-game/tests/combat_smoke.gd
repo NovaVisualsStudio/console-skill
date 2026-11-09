@@ -60,12 +60,20 @@ func _run_tests() -> void:
         await _finish(1, test_root)
         return
 
+    var impact_samples: Array[Vector3] = []
+    player.attack_impact.connect(func(_heavy: bool, _step: int) -> void:
+        impact_samples.append(player.weapon_pivot.rotation)
+    )
     var first_ok := player.perform_light_attack()
     if not first_ok or grunt.health != 200 or player.combo_step != 1:
         push_error("Light attack should enter startup before applying damage.")
         await _finish(1, test_root)
         return
     await _wait_for_enemy_health(grunt, 168)
+    if impact_samples.is_empty() or absf(impact_samples[0].z) < 0.35:
+        push_error("Weapon timing test: the first strike pose was not active when the damage window opened.")
+        await _finish(1, test_root)
+        return
     if grunt.health != 168:
         push_error("Light attack combo step 1 active window failed.")
         await _finish(1, test_root)
@@ -327,5 +335,5 @@ func _run_tests() -> void:
         await _finish(1, test_root)
         return
 
-    print("COMBAT TESTS PASS: light combo x3, heavy hit, boss phase transition, perfect parry, guard reduction, dodge invulnerability, enemy telegraph and strike.")
+    print("COMBAT TESTS PASS: light combo x3, heavy hit, synchronized weapon strike pose, boss phase transition, perfect parry, guard reduction, dodge invulnerability, enemy telegraph and strike.")
     await _finish(0, test_root)
