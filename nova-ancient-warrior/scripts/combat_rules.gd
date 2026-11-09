@@ -120,6 +120,17 @@ static func boss_phase(current_hp: int, maximum_hp: int) -> int:
 	return 3
 
 
+static func boss_attack_range(boss_kind: String, phase: int = 1) -> float:
+	var safe_phase := clampi(phase, 1, 3)
+	match boss_kind:
+		"ember_warlord":
+			return 5.0
+		"obsidian_sovereign":
+			return 6.5 if safe_phase >= 3 else 5.8
+		_:
+			return 2.65
+
+
 static func wave_enemy_count(wave: int) -> int:
 	var safe_wave := clampi(wave, 1, CAMPAIGN_WAVES)
 	if is_boss_wave(safe_wave):
