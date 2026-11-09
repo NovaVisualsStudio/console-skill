@@ -10,12 +10,14 @@ var _credits_panel: PanelContainer
 var _music_slider: HSlider
 var _sfx_slider: HSlider
 var _quality_button: Button
+var _language_button: Button
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_hero_preview()
 	_build_ui()
+	_apply_language()
 	_refresh_campaign_state()
 
 
@@ -117,6 +119,7 @@ func _build_ui() -> void:
 	add_child(title)
 
 	var subtitle := Label.new()
+	subtitle.name = "SubtitleLabel"
 	subtitle.text = "ANCIENT WARRIOR"
 	subtitle.position = Vector2(78.0, 158.0)
 	subtitle.add_theme_font_size_override("font_size", 25)
@@ -124,6 +127,7 @@ func _build_ui() -> void:
 	add_child(subtitle)
 
 	var tagline := Label.new()
+	tagline.name = "TaglineLabel"
 	tagline.text = "THREE SEALS. THREE KINGDOMS. ONE FINAL OATH."
 	tagline.position = Vector2(80.0, 202.0)
 	tagline.add_theme_font_size_override("font_size", 13)
@@ -171,6 +175,7 @@ func _build_ui() -> void:
 		menu.add_child(quit_button)
 
 	var footer := Label.new()
+	footer.name = "FooterLabel"
 	footer.text = "OFFLINE CAMPAIGN  •  MID / HIGH ANDROID PROFILES"
 	footer.position = Vector2(78.0, 670.0)
 	footer.add_theme_font_size_override("font_size", 11)
@@ -210,6 +215,7 @@ func _build_settings_panel() -> void:
 	stack.add_theme_constant_override("separation", 13)
 	_settings_panel.add_child(stack)
 	var heading := Label.new()
+	heading.name = "SettingsHeading"
 	heading.text = "SETTINGS"
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	heading.add_theme_font_size_override("font_size", 27)
@@ -217,6 +223,7 @@ func _build_settings_panel() -> void:
 
 	var profile := _save_profile()
 	var music_label := Label.new()
+	music_label.name = "MusicVolumeLabel"
 	music_label.text = "MUSIC VOLUME"
 	stack.add_child(music_label)
 	_music_slider = HSlider.new()
@@ -228,6 +235,7 @@ func _build_settings_panel() -> void:
 	stack.add_child(_music_slider)
 
 	var sfx_label := Label.new()
+	sfx_label.name = "SfxVolumeLabel"
 	sfx_label.text = "SOUND EFFECTS"
 	stack.add_child(sfx_label)
 	_sfx_slider = HSlider.new()
@@ -271,6 +279,7 @@ func _build_credits_panel() -> void:
 	stack.add_theme_constant_override("separation", 12)
 	_credits_panel.add_child(stack)
 	var heading := Label.new()
+	heading.name = "CreditsHeading"
 	heading.text = "CREDITS & ASSET NOTICES"
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	heading.add_theme_font_size_override("font_size", 23)
