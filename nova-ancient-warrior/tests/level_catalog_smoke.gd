@@ -14,7 +14,7 @@ func _initialize() -> void:
 			quit(1)
 			return
 		seen_ids[level_id] = true
-		for required_key in ["floor", "sky_top", "sky_horizon", "ambient", "sun", "boss_name", "boss_kind", "chapter_title"]:
+		for required_key in ["floor", "sky_top", "sky_horizon", "ambient", "sun", "boss_name", "boss_name_ar", "boss_kind", "chapter_title", "chapter_title_ar"]:
 			if not level.has(required_key):
 				push_error("Campaign stage is missing required metadata: " + required_key)
 				quit(1)
@@ -43,5 +43,17 @@ func _initialize() -> void:
 		push_error("Final chapter status title was not generated")
 		quit(1)
 		return
+	var original_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("ar")
+	var arabic_title := LevelCatalog.wave_title(9)
+	if not arabic_title.contains("الفصل الثالث") or not arabic_title.contains("مواجهة الزعيم"):
+		push_error("Arabic campaign chapter and encounter title was not generated")
+		quit(1)
+		return
+	if str(LevelCatalog.get_level(9).get("boss_name_ar", "")) != "حاكم العرش الأسود":
+		push_error("Final boss Arabic identity is missing")
+		quit(1)
+		return
+	TranslationServer.set_locale(original_locale)
 	print("Level catalog smoke test passed: three campaign regions and boss identities")
 	quit(0)
