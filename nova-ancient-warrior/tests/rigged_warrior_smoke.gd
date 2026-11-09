@@ -61,7 +61,15 @@ func _run_rigged_hero_smoke() -> void:
 		return
 	visual.call("play_attack", 0)
 	if "swordslash" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
-		_fail(visual, "Light attack must select the sword slash clip")
+		_fail(visual, "First light attack must select the sword slash clip")
+		return
+	visual.call("play_attack", 1)
+	if "swordcombo" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
+		_fail(visual, "Follow-up light attack must select the motion-captured multi-cut combo")
+		return
+	visual.call("play_attack", 2)
+	if "swordcombo" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
+		_fail(visual, "Final light attack must select the motion-captured combo finisher")
 		return
 	visual.call("play_heavy_attack")
 	if "swordthrust" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
