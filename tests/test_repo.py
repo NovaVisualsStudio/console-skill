@@ -61,7 +61,7 @@ class Repo(unittest.TestCase):
         root = set()
         for relpath in tracked_paths():
             top = relpath.split("/", 1)[0]
-            if not top.startswith(".git"):
+            if top != ".git":
                 root.add(top)
         expected_root = [
             ".agents", ".claude-plugin", ".github", "LICENSE", "README.md",
