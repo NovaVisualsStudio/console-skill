@@ -686,6 +686,8 @@ func _show_campaign_complete() -> void:
         if is_instance_valid(enemy):
             enemy.deactivate()
     intro_label.visible = false
+    boss_panel.visible = false
+    retry_button.visible = false
     result_label.visible = true
     result_label.text = "THE THREE REALMS ARE RESTORED"
     continue_button.text = "REPLAY CAMPAIGN"
