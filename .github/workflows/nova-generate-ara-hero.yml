@@ -11,6 +11,10 @@ on:
       - ".github/workflows/nova-generate-ara-hero.yml"
   workflow_dispatch:
 
+concurrency:
+  group: nova-realistic-hero-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
