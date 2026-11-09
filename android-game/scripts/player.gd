@@ -48,6 +48,9 @@ var movement_camera: Camera3D
 var weapon_pivot: Node3D
 var body_pivot: Node3D
 var humanoid: NovaHumanoidRig
+var weapon_tween: Tween
+var _locomotion_phase := 0.0
+var _impact_recoil := Vector3.ZERO
 
 func _ready() -> void:
     add_to_group("player")
@@ -190,9 +193,14 @@ func _physics_process(delta: float) -> void:
             move_direction = move_direction.normalized()
             if not is_instance_valid(lock_target):
                 rotation.y = lerp_angle(rotation.y, atan2(-move_direction.x, -move_direction.z), delta * 10.0)
-        var movement_speed := WALK_SPEED * (0.48 if current_state == CombatState.ATTACK else 1.0)
-        velocity.x = move_direction.x * movement_speed
-        velocity.z = move_direction.z * movement_speed
+        var input_strength := clampf(input_vector.length(), 0.0, 1.0)
+        var movement_speed := WALK_SPEED * lerpf(0.48, 1.0, input_strength)
+        if current_state == CombatState.ATTACK:
+            movement_speed *= 0.48
+        var target_velocity := move_direction * movement_speed
+        var acceleration := 30.0 if move_direction.length_squared() > 0.01 else 38.0
+        velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
+        velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
         if current_state != CombatState.ATTACK:
             current_state = CombatState.MOVE if move_direction.length_squared() > 0.01 else CombatState.IDLE
 
@@ -202,9 +210,23 @@ func _physics_process(delta: float) -> void:
         velocity.y = 0.0
     move_and_slide()
     _sync_humanoid_animation()
+    _update_body_secondary_motion(delta)
 
-    if is_instance_valid(body_pivot) and current_state == CombatState.MOVE:
-        body_pivot.position.y = 0.025 * sin(Time.get_ticks_msec() * 0.012)
+func _update_body_secondary_motion(delta: float) -> void:
+    if not is_instance_valid(body_pivot):
+        return
+    var planar_velocity := Vector3(velocity.x, 0.0, velocity.z)
+    var local_velocity := global_transform.basis.inverse() * planar_velocity
+    var speed_ratio := clampf(planar_velocity.length() / WALK_SPEED, 0.0, 1.0)
+    _locomotion_phase = fposmod(_locomotion_phase + delta * lerpf(4.2, 8.0, speed_ratio), TAU)
+    var gait_bob := absf(sin(_locomotion_phase)) * 0.032 * speed_ratio
+    var forward_lean := clampf(-local_velocity.z / WALK_SPEED, -1.0, 1.0) * 0.055
+    var lateral_lean := clampf(-local_velocity.x / WALK_SPEED, -1.0, 1.0) * 0.075
+    var target_rotation := Vector3(forward_lean + _impact_recoil.x, 0.0, lateral_lean + _impact_recoil.z)
+    body_pivot.rotation.x = lerp_angle(body_pivot.rotation.x, target_rotation.x, clampf(delta * 10.0, 0.0, 1.0))
+    body_pivot.rotation.z = lerp_angle(body_pivot.rotation.z, target_rotation.z, clampf(delta * 10.0, 0.0, 1.0))
+    body_pivot.position.y = lerpf(body_pivot.position.y, 0.012 + gait_bob, clampf(delta * 12.0, 0.0, 1.0))
+    _impact_recoil = _impact_recoil.lerp(Vector3.ZERO, clampf(delta * 7.5, 0.0, 1.0))
 
 func _get_camera_relative_direction(input_vector: Vector2) -> Vector3:
     var camera_forward := Vector3.FORWARD
@@ -237,11 +259,12 @@ func _sync_humanoid_animation() -> void:
         CombatState.GUARD:
             humanoid.play_action("guard")
         CombatState.STAGGER:
-            humanoid.play_action("hit")
+            humanoid.play_action("hit", 0.045)
         CombatState.DEAD:
             humanoid.play_action("death")
         CombatState.MOVE:
-            humanoid.play_action("run" if Vector2(velocity.x, velocity.z).length() > WALK_SPEED * 0.82 else "walk")
+            var speed_ratio := Vector2(velocity.x, velocity.z).length() / WALK_SPEED
+            humanoid.play_locomotion("run" if speed_ratio > 0.82 else "walk", speed_ratio)
         _:
             humanoid.play_action("idle")
 
@@ -390,16 +413,27 @@ func _has_clear_attack_line(target: Node, origin: Vector3, target_point: Vector3
 func _animate_weapon(heavy: bool, step: int) -> void:
     if not is_instance_valid(weapon_pivot):
         return
+    if is_instance_valid(weapon_tween):
+        weapon_tween.kill()
     weapon_pivot.rotation = Vector3.ZERO
-    var tween := create_tween()
-    tween.set_trans(Tween.TRANS_CUBIC)
+    weapon_tween = create_tween()
+    weapon_tween.set_trans(Tween.TRANS_CUBIC)
+    weapon_tween.set_parallel(true)
     if heavy:
-        tween.tween_property(weapon_pivot, "rotation:z", -1.75, 0.16)
-        tween.tween_property(weapon_pivot, "rotation:z", 0.05, 0.28)
+        weapon_tween.tween_property(weapon_pivot, "rotation:z", -1.75, 0.18)
+        weapon_tween.tween_property(weapon_pivot, "rotation:x", 0.72, 0.18)
+        weapon_tween.set_parallel(false)
+        weapon_tween.tween_property(weapon_pivot, "rotation:z", 0.04, 0.30)
+        weapon_tween.parallel().tween_property(weapon_pivot, "rotation:x", 0.0, 0.30)
     else:
-        var end_angle := -1.0 - float(step) * 0.12
-        tween.tween_property(weapon_pivot, "rotation:z", end_angle, 0.10)
-        tween.tween_property(weapon_pivot, "rotation:z", 0.0, 0.22)
+        var end_angles := [-1.04, 1.02, -0.16]
+        var lift_angles := [-0.18, 0.22, 0.92]
+        var variant_index := clampi(step - 1, 0, 2)
+        weapon_tween.tween_property(weapon_pivot, "rotation:z", end_angles[variant_index], 0.12)
+        weapon_tween.tween_property(weapon_pivot, "rotation:x", lift_angles[variant_index], 0.12)
+        weapon_tween.set_parallel(false)
+        weapon_tween.tween_property(weapon_pivot, "rotation:z", 0.0, 0.22)
+        weapon_tween.parallel().tween_property(weapon_pivot, "rotation:x", 0.0, 0.22)
 
 func perform_dodge() -> bool:
     if current_state == CombatState.DEAD or dodge_timer > 0.0 or stamina < 18.0 or not input_enabled:
@@ -436,6 +470,7 @@ func take_damage(amount: int, source_position: Vector3 = Vector3.ZERO, heavy: bo
         amount = maxi(1, int(round(float(amount) * 0.30)))
     _cancel_pending_attack()
     health = maxi(0, health - amount)
+    _impact_recoil = Vector3(deg_to_rad(-11.0 if heavy else -6.0), 0.0, deg_to_rad(7.0 if heavy else 4.0))
     health_changed.emit(health, MAX_HEALTH)
     if source_position != Vector3.ZERO:
         var knockback := global_position - source_position
