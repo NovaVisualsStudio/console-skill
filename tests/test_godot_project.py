@@ -119,7 +119,7 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn("compress/mode", visual_test)
         self.assertIn("mipmaps/generate", visual_test)
         self.assertIn("compress/normal_map", visual_test)
-        self.assertIn("VRAM compression and mipmaps", visual_test)
+        self.assertIn("six mobile-compressed 1K maps are verified", visual_test)
         self.assertIn("write_import_settings", fetcher)
         self.assertIn('compress/mode": "2"', fetcher)
         self.assertIn('mipmaps/generate": "true"', fetcher)
