@@ -28,6 +28,9 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v7
 
+      - name: Fetch free CC0 humanoid animation library
+        run: python3 android-game/tools/fetch_cc0_animations.py
+
       - name: Install Godot 4.7.2 headless
         uses: chickensoft-games/setup-godot@v2
         with:
@@ -86,28 +89,34 @@ jobs:
           adb devices
           godot --headless --editor --path android-game --quit
 
-      - name: Gate 3 - deterministic combat behaviour tests
+      - name: Gate 3 - rigged humanoid and retargeted animation test
+        run: godot --headless --verbose --path android-game --script res://tests/humanoid_smoke.gd
+
+      - name: Gate 4 - deterministic combat behaviour tests
         run: godot --headless --path android-game --script res://tests/combat_smoke.gd
 
-      - name: Gate 4 - cinematic arena integration test
+      - name: Gate 5 - cinematic arena integration test
         run: godot --headless --verbose --path android-game --script res://tests/cinematic_smoke.gd
 
-      - name: Gate 5 - procedural audio smoke test
+      - name: Gate 6 - procedural audio smoke test
         run: godot --headless --verbose --path android-game --script res://tests/audio_smoke.gd
 
-      - name: Gate 6 - scene runtime smoke test
+      - name: Gate 7 - scene runtime smoke test
         run: godot --headless --verbose --path android-game --script res://tests/runtime_smoke.gd
 
-      - name: Gate 7 - extended 300-frame runtime test
+      - name: Gate 8 - extended 300-frame runtime test
         run: godot --headless --verbose --path android-game --script res://tests/runtime_smoke.gd
 
-      - name: Gate 8 - source hygiene and expected scene files
+      - name: Gate 9 - source hygiene and expected scene files
         run: |
           test -s android-game/project.godot
           test -s android-game/export_presets.cfg
           test -s android-game/scenes/main.tscn
           test -s android-game/scripts/main.gd
           test -s android-game/scripts/player.gd
+          test -s android-game/scripts/humanoid_rig.gd
+          test -s android-game/assets/characters/quaternius-standard-male.glb
+          test -s android-game/assets/animations/UAL2_Standard.glb
           test -s android-game/scripts/enemy.gd
           test -s android-game/icon.svg
           test -s android-game/tests/runtime_smoke.gd
@@ -117,7 +126,7 @@ jobs:
         run: |
           keytool -genkeypair -v -keystore "$RUNNER_TEMP/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 
-      - name: Gate 9 - export Android debug APK
+      - name: Gate 10 - export Android debug APK
         env:
           GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ runner.temp }}/debug.keystore
           GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
@@ -133,11 +142,12 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging build/NovaAncientWarrior-debug.apk | grep -F "package: name='com.novavisuals.ancientwarrior'"
           unzip -l build/NovaAncientWarrior-debug.apk | grep -F "lib/arm64-v8a/libgodot_android.so"
 
-      - name: Gate 10 - six repeated gameplay and runtime passes
+      - name: Gate 11 - six repeated gameplay and runtime passes
         run: |
           for pass in 1 2 3 4 5 6; do
             echo "===== STABILITY PASS $pass / 6 ====="
             python3 -m unittest discover -s tests -p 'test_godot_project.py' -v
+            godot --headless --verbose --path android-game --script res://tests/humanoid_smoke.gd
             godot --headless --path android-game --script res://tests/combat_smoke.gd
             godot --headless --verbose --path android-game --script res://tests/cinematic_smoke.gd
             godot --headless --verbose --path android-game --script res://tests/audio_smoke.gd
