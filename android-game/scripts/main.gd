@@ -377,6 +377,7 @@ func _add_torch(position: Vector3) -> void:
 
     var torch_glow := OmniLight3D.new()
     torch_glow.name = "TorchGlow"
+    torch_glow.add_to_group("nova_torch_lights")
     torch_glow.position = position + Vector3(0, 2.45, 0)
     torch_glow.light_color = Color(1.0, 0.43, 0.20)
     torch_glow.light_energy = 0.78
