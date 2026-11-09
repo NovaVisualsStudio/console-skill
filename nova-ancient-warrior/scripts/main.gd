@@ -8,6 +8,7 @@ const ATTACK_RANGE := 2.35
 const ARENA_LIMIT := 16.0
 const CombatRules = preload("res://scripts/combat_rules.gd")
 const EnemyTactics = preload("res://scripts/enemy_tactics.gd")
+const NarrativeDirector = preload("res://scripts/narrative_director.gd")
 const WarriorVisual = preload("res://scripts/warrior_visual.gd")
 const MusicDirector = preload("res://scripts/music_director.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
@@ -72,6 +73,13 @@ var upgrade_buttons: Dictionary = {}
 var graphics_quality := "mid"
 var quality_button: Button
 var pause_menu: Control
+var dialogue_panel: PanelContainer
+var dialogue_speaker_label: Label
+var dialogue_text_label: Label
+var dialogue_next_button: Button
+var dialogue_lines: Array[Dictionary] = []
+var dialogue_index := -1
+var dialogue_active := false
 var touch_camera_controller := TouchCameraController.new()
 const CAMERA_DISTANCE := 10.3
 
@@ -102,6 +110,8 @@ func _get_touch_ui_exclusions() -> Array[Rect2]:
 	for control in [quality_button, upgrade_panel, restart_button]:
 		if is_instance_valid(control) and control.visible:
 			exclusions.append(control.get_global_rect())
+	if is_instance_valid(dialogue_panel) and dialogue_panel.visible:
+		exclusions.append(dialogue_panel.get_global_rect())
 	if is_instance_valid(pause_menu):
 		for control_name in ["PauseButton", "PausePanel"]:
 			var pause_control := pause_menu.get_node_or_null(control_name) as Control
@@ -715,6 +725,39 @@ func _build_hud() -> void:
 	chapter_intro_subtitle.add_theme_color_override("font_color", Color(0.91, 0.85, 0.76))
 	chapter_intro_subtitle.visible = false
 	layer.add_child(chapter_intro_subtitle)
+
+	dialogue_panel = PanelContainer.new()
+	dialogue_panel.name = "DialoguePanel"
+	dialogue_panel.anchor_left = 0.5
+	dialogue_panel.anchor_right = 0.5
+	dialogue_panel.anchor_top = 0.53
+	dialogue_panel.anchor_bottom = 0.53
+	dialogue_panel.offset_left = -350.0
+	dialogue_panel.offset_right = 350.0
+	dialogue_panel.offset_top = 0.0
+	dialogue_panel.offset_bottom = 150.0
+	dialogue_panel.visible = false
+	dialogue_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(dialogue_panel)
+	var dialogue_box := VBoxContainer.new()
+	dialogue_box.add_theme_constant_override("separation", 7)
+	dialogue_panel.add_child(dialogue_box)
+	dialogue_speaker_label = Label.new()
+	dialogue_speaker_label.add_theme_font_size_override("font_size", 15)
+	dialogue_speaker_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.42))
+	dialogue_box.add_child(dialogue_speaker_label)
+	dialogue_text_label = Label.new()
+	dialogue_text_label.add_theme_font_size_override("font_size", 18)
+	dialogue_text_label.add_theme_color_override("font_color", Color(0.96, 0.93, 0.87))
+	dialogue_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dialogue_text_label.custom_minimum_size = Vector2(0.0, 66.0)
+	dialogue_box.add_child(dialogue_text_label)
+	dialogue_next_button = Button.new()
+	dialogue_next_button.text = "CONTINUE"
+	dialogue_next_button.custom_minimum_size = Vector2(150.0, 38.0)
+	dialogue_next_button.size_flags_horizontal = Control.SIZE_SHRINK_END
+	dialogue_next_button.pressed.connect(_advance_dialogue)
+	dialogue_box.add_child(dialogue_next_button)
 
 	var virtual_stick := NovaTouchJoystickScript.new()
 	virtual_stick.name = "MovementJoystick"
