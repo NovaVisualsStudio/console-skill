@@ -41,8 +41,8 @@ const params = {
   restPose: 'A' as const,
   animations: true,
   faceBones: true,
-  faceShapes: true,
-  speechShapes: true,
+  faceShapes: false,
+  speechShapes: false,
   expression: 'determined' as const,
   weapon: 'sword' as const,
 };
