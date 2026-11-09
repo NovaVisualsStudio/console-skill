@@ -75,7 +75,20 @@ func _run_gameplay_localization_smoke() -> void:
 		_fail("Pause menu language change did not restore Arabic dialogue")
 		return
 
-	print("Gameplay localization smoke test passed")
+	# Explicitly shut down ambient playback while the gameplay scene is still
+	# alive, then allow the audio server and scene tree to retire its playback.
+	var music_director := game.get_node_or_null("MusicDirector")
+	var ambient_player := game.get_node_or_null("MusicDirector/AmbientMusicPlayer") as AudioStreamPlayer
+	if music_director == null or ambient_player == null or not ambient_player.playing:
+		_fail("Ambient music player did not start for the gameplay session")
+		return
+	music_director.call("shutdown")
+	await process_frame
+	await process_frame
+	if is_instance_valid(ambient_player):
+		_fail("Ambient music player was not released by MusicDirector.shutdown()")
+		return
+	print("Gameplay localization smoke test passed: Arabic/English live switch and ambient audio shutdown")
 	# Return from the test coroutine first so PackedScene and UI references are
 	# released before the main scene is destroyed and Godot checks resource leaks.
 	call_deferred("_cleanup_and_quit", 0)
