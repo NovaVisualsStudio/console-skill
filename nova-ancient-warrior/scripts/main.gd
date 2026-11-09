@@ -11,6 +11,7 @@ const EnemyTactics = preload("res://scripts/enemy_tactics.gd")
 const NarrativeDirector = preload("res://scripts/narrative_director.gd")
 const MissionObjectiveDirector = preload("res://scripts/mission_objective_director.gd")
 const ExplorationSecretDirector = preload("res://scripts/exploration_secret_director.gd")
+const ExplorationPuzzleDirector = preload("res://scripts/exploration_puzzle_director.gd")
 const WarriorVisual = preload("res://scripts/warrior_visual.gd")
 const MusicDirector = preload("res://scripts/music_director.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
@@ -85,6 +86,10 @@ var dialogue_index := -1
 var dialogue_active := false
 var mission_relics: Array[Node3D] = []
 var exploration_cache: Node3D
+var exploration_puzzle_nodes: Array[Node3D] = []
+var exploration_puzzle_sequence: Array[int] = []
+var exploration_puzzle_progress := 0
+var exploration_puzzle_complete := false
 var mission_relic_count := 0
 var mission_sequence: Array[int] = []
 var boss_gate_pending := false
@@ -549,6 +554,11 @@ func _apply_level_theme(wave: int) -> void:
 		rune_hazard_lit = false
 		StageBuilder.set_rune_intensity(active_chapter_scene if is_instance_valid(active_chapter_scene) else self, 0.0)
 		exploration_cache = ExplorationSecretDirector.build_stage(self, next_stage_index)
+		exploration_puzzle_nodes = ExplorationPuzzleDirector.build_stage(self, next_stage_index)
+		exploration_puzzle_sequence = ExplorationPuzzleDirector.sequence_for_stage(next_stage_index)
+		exploration_puzzle_progress = 0
+		exploration_puzzle_complete = false
+		ExplorationPuzzleDirector.set_expected_order(exploration_puzzle_nodes, exploration_puzzle_sequence[0])
 		if CombatRules.is_boss_wave(wave):
 			MissionObjectiveDirector.clear_stage(self)
 			mission_relics.clear()
@@ -756,12 +766,14 @@ func _update_mission_relic_interaction() -> void:
 	var nearest_distance := 3.0
 	var nearby := false
 	var cache_is_nearest := false
+	var puzzle_is_nearest := false
 	if is_instance_valid(player):
 		if is_instance_valid(exploration_cache) and not bool(exploration_cache.get_meta("collected", false)):
 			var cache_distance := player.global_position.distance_to(exploration_cache.global_position)
 			if cache_distance <= nearest_distance:
 				nearby = true
 				cache_is_nearest = true
+				puzzle_is_nearest = false
 				nearest_distance = cache_distance
 		for relic in mission_relics:
 			if not is_instance_valid(relic) or bool(relic.get_meta("collected", false)):
@@ -770,11 +782,24 @@ func _update_mission_relic_interaction() -> void:
 			if distance <= nearest_distance:
 				nearby = true
 				cache_is_nearest = false
+				puzzle_is_nearest = false
+				nearest_distance = distance
+		for rune in exploration_puzzle_nodes:
+			if not is_instance_valid(rune) or bool(rune.get_meta("activated", false)):
+				continue
+			var distance := player.global_position.distance_to(rune.global_position)
+			if distance <= nearest_distance:
+				nearby = true
+				cache_is_nearest = false
+				puzzle_is_nearest = true
 				nearest_distance = distance
 	interact_button.visible = nearby and not cinematic_active and not game_over
 	_update_mission_objective_ui()
 	if nearby and cache_is_nearest:
 		interact_button.text = "افتح الصندوق السري" if _is_arabic() else "OPEN SECRET CACHE"
+	elif nearby and puzzle_is_nearest and exploration_puzzle_progress < exploration_puzzle_sequence.size():
+		var expected_rune := exploration_puzzle_sequence[exploration_puzzle_progress]
+		interact_button.text = ("فعّل الرمز %s" % _rune_roman(expected_rune)) if _is_arabic() else ("ATTUNE RUNE %s" % _rune_roman(expected_rune))
 
 
 func _try_collect_mission_relic() -> void:
@@ -782,10 +807,12 @@ func _try_collect_mission_relic() -> void:
 		return
 	var nearest: Node3D = null
 	var nearest_distance := 3.0
+	var nearest_is_puzzle := false
 	if is_instance_valid(exploration_cache) and not bool(exploration_cache.get_meta("collected", false)):
 		var cache_distance := player.global_position.distance_to(exploration_cache.global_position)
 		if cache_distance <= nearest_distance:
 			nearest = exploration_cache
+			nearest_is_puzzle = false
 			nearest_distance = cache_distance
 	for relic in mission_relics:
 		if not is_instance_valid(relic) or bool(relic.get_meta("collected", false)):
@@ -793,6 +820,15 @@ func _try_collect_mission_relic() -> void:
 		var distance := player.global_position.distance_to(relic.global_position)
 		if distance <= nearest_distance:
 			nearest = relic
+			nearest_is_puzzle = false
+			nearest_distance = distance
+	for rune in exploration_puzzle_nodes:
+		if not is_instance_valid(rune) or bool(rune.get_meta("activated", false)):
+			continue
+		var distance := player.global_position.distance_to(rune.global_position)
+		if distance <= nearest_distance:
+			nearest = rune
+			nearest_is_puzzle = true
 			nearest_distance = distance
 	if nearest == null:
 		return
@@ -805,6 +841,34 @@ func _try_collect_mission_relic() -> void:
 			_play_sfx_or_tone("upgrade", 880.0, 0.22, 0.22)
 			_update_hud()
 			_update_mission_relic_interaction()
+		return
+	if nearest_is_puzzle:
+		if exploration_puzzle_complete or exploration_puzzle_progress >= exploration_puzzle_sequence.size():
+			return
+		var expected_rune := exploration_puzzle_sequence[exploration_puzzle_progress]
+		var found_rune := int(nearest.get_meta("rune_index", 0))
+		if found_rune != expected_rune:
+			status_label.text = "الرمز مرفوض | اتبع ترتيب النقش" if _is_arabic() else "RUNE REJECTED | FOLLOW THE INSCRIBED ORDER"
+			_play_tone(145.0, 0.10, 0.14)
+			return
+		if not ExplorationPuzzleDirector.activate(nearest):
+			return
+		exploration_puzzle_progress += 1
+		if exploration_puzzle_progress < exploration_puzzle_sequence.size():
+			ExplorationPuzzleDirector.set_expected_order(exploration_puzzle_nodes, exploration_puzzle_sequence[exploration_puzzle_progress])
+			status_label.text = ("تمت مزامنة الرمز %d/3" % exploration_puzzle_progress) if _is_arabic() else ("RUNE SYNCHRONIZED %d/3" % exploration_puzzle_progress)
+		else:
+			exploration_puzzle_complete = true
+			var puzzle_root := get_node_or_null(ExplorationPuzzleDirector.ROOT_NAME)
+			if puzzle_root != null:
+				puzzle_root.set_meta("solved", true)
+			score += 700
+			souls_earned += 24
+			_save_checkpoint()
+			status_label.text = "حُلّ لغز الرنين القديم! +700 نقطة و24 روحاً" if _is_arabic() else "ANCIENT RESONANCE SOLVED! +700 SCORE AND 24 SOULS"
+			_play_sfx_or_tone("upgrade", 1040.0, 0.28, 0.24)
+			_update_hud()
+		_update_mission_relic_interaction()
 		return
 	var expected_order := mission_sequence[mission_relic_count] if mission_relic_count < mission_sequence.size() else 0
 	var found_order := int(nearest.get_meta("sequence_order", 0))
@@ -822,6 +886,16 @@ func _try_collect_mission_relic() -> void:
 	_update_mission_objective_ui()
 	if mission_relic_count >= 3 and boss_gate_pending:
 		_release_boss_gate()
+
+
+func _rune_roman(value: int) -> String:
+	match value:
+		1:
+			return "I"
+		2:
+			return "II"
+		_:
+			return "III"
 
 
 func _update_mission_objective_ui() -> void:
