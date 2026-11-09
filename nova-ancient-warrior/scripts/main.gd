@@ -1215,7 +1215,8 @@ func _cycle_graphics_quality() -> void:
 
 func _refresh_quality_button() -> void:
 	if is_instance_valid(quality_button):
-		quality_button.text = "QUALITY: %s" % graphics_quality.to_upper()
+		quality_button.text = ("جودة الرسوم: مرتفعة" if graphics_quality == MobileRenderProfile.QUALITY_HIGH else "جودة الرسوم: متوسطة") if _is_arabic() else "QUALITY: %s" % graphics_quality.to_upper()
+		quality_button.text_direction = Control.TEXT_DIRECTION_RTL if _is_arabic() else Control.TEXT_DIRECTION_LTR
 
 
 func _button_style(color: Color) -> StyleBoxFlat:
