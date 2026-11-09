@@ -45,7 +45,6 @@ func _run_rigged_hero_smoke() -> void:
 			var surface_material := mesh_instance.get_active_material(surface_index) as StandardMaterial3D
 			if surface_material != null and surface_material.albedo_texture != null and surface_material.normal_texture != null:
 				textured_materials += 1
-				break
 	if textured_materials < 4:
 		_fail(visual, "Hero must import with textured PBR albedo and normal maps")
 		return
