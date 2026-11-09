@@ -15,7 +15,7 @@ func _run_layout_smoke() -> void:
 		"EmberCauseway",
 		"ObsidianThroneDais"
 	]
-	var expected_routes := ["SunkenFlankStep", "EmberFlankStep", "ObsidianSideWalk"]
+	var expected_routes := ["SunkenFlankStep", "EmberFlankStep_Left_1", "ObsidianSideWalk_Left_1"]
 	for chapter in range(3):
 		CampaignLayout.build_stage(root, chapter, "high")
 		var layout := root.get_node_or_null("GeneratedCampaignLayout")
