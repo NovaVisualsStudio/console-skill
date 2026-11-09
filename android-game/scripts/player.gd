@@ -231,7 +231,7 @@ func _sync_humanoid_animation() -> void:
         return
     match current_state:
         CombatState.ATTACK:
-            humanoid.play_action("attack")
+            humanoid.play_attack_variant(combo_step, pending_attack_heavy, 0.06)
         CombatState.DODGE:
             humanoid.play_action("dodge")
         CombatState.GUARD:
@@ -241,7 +241,7 @@ func _sync_humanoid_animation() -> void:
         CombatState.DEAD:
             humanoid.play_action("death")
         CombatState.MOVE:
-            humanoid.play_action("walk")
+            humanoid.play_action("run" if Vector2(velocity.x, velocity.z).length() > WALK_SPEED * 0.82 else "walk")
         _:
             humanoid.play_action("idle")
 
@@ -305,7 +305,7 @@ func perform_light_attack() -> bool:
     attack_recovery_timer = 0.32
     current_state = CombatState.ATTACK
     _animate_weapon(false, combo_step)
-    humanoid.play_action("attack", 0.06)
+    humanoid.play_attack_variant(combo_step, false, 0.06)
     attack_started.emit(false, combo_step)
     _queue_attack(damage, LIGHT_RANGE + float(combo_step - 1) * 0.15, 0.08, false, 0.10, 0.14)
     return true
@@ -327,7 +327,7 @@ func perform_heavy_attack() -> bool:
     attack_recovery_timer = 0.64
     current_state = CombatState.ATTACK
     _animate_weapon(true, 0)
-    humanoid.play_action("heavy", 0.06)
+    humanoid.play_attack_variant(0, true, 0.06)
     attack_started.emit(true, 0)
     _queue_attack(82, 3.75, -0.02, true, 0.16, 0.20)
     return true
