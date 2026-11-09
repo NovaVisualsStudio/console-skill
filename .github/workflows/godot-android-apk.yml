@@ -171,6 +171,12 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$apk"
           "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk" | \
             grep -F "package: name='com.novavisualsstudio.novaancientwarrior'"
+          unzip -Z1 "$apk" | grep -Fx "lib/arm64-v8a/libgodot_android.so"
+          if unzip -Z1 "$apk" | grep -q "^lib/armeabi-v7a/"; then
+            echo "Legacy ARMv7 libraries must not ship in the mid/high-tier Android build"
+            exit 1
+          fi
+          echo "Verified Android ABI: ARM64 only"
 
       - name: Publish verified debug APK artifact
         uses: actions/upload-artifact@v7
