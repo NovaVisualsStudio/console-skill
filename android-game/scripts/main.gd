@@ -543,7 +543,7 @@ func _begin_combat() -> void:
             enemy.activate()
     intro_label.visible = true
     intro_label.modulate.a = 1.0
-    intro_label.text = "%s  |  %s" % [CHAPTER_NAMES[chapter_index], BOSS_NAMES[chapter_index]]
+    intro_label.text = "THE WARDEN AWAKENS" if chapter_index == 0 else "%s  |  %s" % [CHAPTER_NAMES[chapter_index], BOSS_NAMES[chapter_index]]
     if is_instance_valid(objective_label):
         objective_label.text = _chapter_objective(chapter_index)
     var tween := create_tween()

@@ -20,6 +20,7 @@ func _run() -> void:
         boss.difficulty_scale = 1.0
         root.add_child(boss)
         await process_frame
+        await process_frame
         if boss.health != expected_health[archetype] or boss.max_health != expected_health[archetype]:
             push_error("Boss profile %d has incorrect base vitality." % archetype)
             boss.free()
@@ -30,9 +31,26 @@ func _run() -> void:
             boss.free()
             quit(1)
             return
+        var weapon_names := ["WardenGreatsword", "SentinelTrident", "TyrantCleaver"]
+        if boss.humanoid.find_child(weapon_names[archetype], true, false) == null:
+            push_error("Boss profile %d is missing its unique weapon silhouette." % archetype)
+            boss.free()
+            quit(1)
+            return
         boss._begin_telegraph()
         if boss.current_attack_pattern != expected_first_patterns[archetype]:
             push_error("Boss profile %d did not start with its signature attack." % archetype)
+            boss.free()
+            quit(1)
+            return
+        var expected_second_patterns := [
+            NovaEnemy.AttackPattern.SWEEP,
+            NovaEnemy.AttackPattern.RING_BURST,
+            NovaEnemy.AttackPattern.MELEE
+        ]
+        boss._begin_telegraph()
+        if boss.current_attack_pattern != expected_second_patterns[archetype]:
+            push_error("Boss profile %d did not use its distinct follow-up pattern." % archetype)
             boss.free()
             quit(1)
             return

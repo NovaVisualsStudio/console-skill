@@ -24,7 +24,7 @@ concurrency:
 jobs:
   validate:
     timeout-minutes: 20
-    name: Validate Godot campaign build (fourteen gates + six repeat stability passes (2K mobile PBR))
+    name: Validate Godot campaign build (thirteen gates plus boss-archetype gate + six repeat stability passes (2K mobile PBR))
     runs-on: ubuntu-latest
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
