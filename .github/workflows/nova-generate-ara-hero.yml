@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate-realistic-hero:
@@ -74,7 +74,7 @@ jobs:
         shell: bash
         working-directory: ${{ runner.temp }}/ara-3d-gen
         env:
-          NOVA_HERO_OUTPUT: ${{ github.workspace }}/nova-ancient-warrior/assets/characters/nova_hero.glb
+          NOVA_HERO_OUTPUT: ${{ runner.temp }}/nova_hero.glb
         run: |
           set -euo pipefail
           cp "$GITHUB_WORKSPACE/nova-ancient-warrior/tools/ara_export_hero.ts" scripts/nova_export_hero.ts
@@ -82,14 +82,34 @@ jobs:
           test -s "$NOVA_HERO_OUTPUT"
           file "$NOVA_HERO_OUTPUT"
           sha256sum "$NOVA_HERO_OUTPUT" | tee "$RUNNER_TEMP/nova-hero.sha256"
-          cp "$RUNNER_TEMP/nova-hero.sha256" "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_hero.sha256"
-          cp "$RUNNER_TEMP/ara-source-commit.txt" "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/ara_source_commit.txt"
+
+      - name: Import, test and commit the realistic hero on the latest feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$GITHUB_REF_NAME"
+          git reset --hard "origin/$GITHUB_REF_NAME"
+          mkdir -p nova-ancient-warrior/assets/characters
+          cp "$RUNNER_TEMP/nova_hero.glb" nova-ancient-warrior/assets/characters/nova_hero.glb
+          cp "$RUNNER_TEMP/nova-hero.sha256" nova-ancient-warrior/assets/characters/nova_hero.sha256
+          cp "$RUNNER_TEMP/ara-source-commit.txt" nova-ancient-warrior/assets/characters/ara_source_commit.txt
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+          GODOT_BIN="$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+          "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
+          "$GODOT_BIN" --headless --path nova-ancient-warrior --script res://tests/rigged_warrior_smoke.gd
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add nova-ancient-warrior/assets/characters/nova_hero.glb nova-ancient-warrior/assets/characters/nova_hero.sha256 nova-ancient-warrior/assets/characters/ara_source_commit.txt
+          git commit -m "Add validated Ara-generated realistic NOVA hero"
+          git push origin "HEAD:$GITHUB_REF_NAME"
 
       - name: Upload generated hero for review and integration
         uses: actions/upload-artifact@v4
         with:
           name: nova-realistic-hero-glb
           path: |
-            nova-ancient-warrior/assets/characters/nova_hero.glb
+            ${{ runner.temp }}/nova_hero.glb
           if-no-files-found: error
           retention-days: 14
