@@ -14,6 +14,7 @@ var _right_arm: Node3D
 var _left_leg: Node3D
 var _right_leg: Node3D
 var _sword_pivot: Node3D
+var _telegraph_ring: MeshInstance3D
 var _attack_tween: Tween
 var _base_torso_color := Color(0.46, 0.18, 0.11)
 var _base_armor_color := Color(0.55, 0.31, 0.13)
@@ -53,9 +54,19 @@ func play_attack(combo_step: int) -> void:
 
 
 func telegraph(enabled: bool) -> void:
-	if not is_instance_valid(_torso_material):
-		return
-	_torso_material.albedo_color = Color(0.78, 0.22, 0.10) if enabled else _base_torso_color
+	if is_instance_valid(_torso_material):
+		var warning_color := Color(0.78, 0.22, 0.10)
+		if is_boss:
+			match boss_kind:
+				"ember_warlord":
+					warning_color = Color(1.0, 0.24, 0.035)
+				"obsidian_sovereign":
+					warning_color = Color(0.25, 0.46, 1.0)
+				_:
+					warning_color = Color(1.0, 0.34, 0.12)
+		_torso_material.albedo_color = warning_color if enabled else _base_torso_color
+	if is_instance_valid(_telegraph_ring):
+		_telegraph_ring.visible = enabled
 
 
 func play_heavy_attack() -> void:
@@ -202,6 +213,33 @@ func _build_character() -> void:
 				_add_box(self, "ObsidianCrownSpire", Vector3(0.12, 0.78, 0.14), Vector3(0.0, 2.58, 0.0), obsidian_crystal, Vector3(0.0, 0.0, 0.12))
 				_add_sphere(self, "ObsidianRuneOrb", 0.22, 0.28, Vector3(0.72, 1.98, 0.0), obsidian_crystal, 10, 6)
 				_add_box(self, "ObsidianRoyalMantle", Vector3(0.88, 0.76, 0.10), Vector3(0.0, 1.15, 0.30), dark)
+
+		var warning_color := Color(1.0, 0.34, 0.12)
+		var ring_inner := 2.15
+		var ring_outer := 2.45
+		match boss_kind:
+			"ember_warlord":
+				warning_color = Color(1.0, 0.24, 0.035)
+				ring_inner = 1.65
+				ring_outer = 1.95
+			"obsidian_sovereign":
+				warning_color = Color(0.25, 0.46, 1.0)
+				ring_inner = 3.0
+				ring_outer = 3.32
+		var warning_material := _mat(warning_color, 0.36, 0.24)
+		warning_material.emission_enabled = true
+		warning_material.emission = warning_color
+		warning_material.emission_energy_multiplier = 1.8
+		var warning_mesh := TorusMesh.new()
+		warning_mesh.inner_radius = ring_inner
+		warning_mesh.outer_radius = ring_outer
+		_telegraph_ring = MeshInstance3D.new()
+		_telegraph_ring.name = "BossTelegraphRing"
+		_telegraph_ring.mesh = warning_mesh
+		_telegraph_ring.position.y = 0.055
+		_telegraph_ring.material_override = warning_material
+		_telegraph_ring.visible = false
+		add_child(_telegraph_ring)
 
 	if not is_enemy:
 		var shield := Node3D.new()
