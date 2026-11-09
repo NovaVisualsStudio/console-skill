@@ -199,12 +199,13 @@ func _physics_process(delta: float) -> void:
 		dodge_direction = dodge_direction.normalized()
 		if dodge_direction.length_squared() <= 0.01:
 			dodge_direction = Vector3.FORWARD
+		var dodge_local_direction: Vector3 = player.global_transform.basis.inverse() * dodge_direction
 		dodge_remaining = 0.28
 		dodge_cooldown = 0.88
 		player_invulnerability_time = maxf(player_invulnerability_time, 0.42)
 		_play_sfx_or_tone("dodge", 360.0, 0.09, 0.17)
 		if is_instance_valid(hero_visual):
-			hero_visual.call("play_dodge", dodge_direction)
+			hero_visual.call("play_dodge", dodge_local_direction)
 
 	if dodge_remaining > 0.0:
 		player.velocity.x = dodge_direction.x * 9.4
