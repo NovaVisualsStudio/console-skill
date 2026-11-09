@@ -1,6 +1,6 @@
 # Nova Ancient Warrior - Mid/High Android Production Target
 
-Status: production specification only. This document does not claim that the listed features have been implemented or device-tested.
+Status: production target and acceptance checklist. Implemented features are recorded in README.md and CI; remaining items below are not considered complete until verified. No claim of physical-device performance or commercial-release readiness is made.
 
 ## Visual reference and scope
 
@@ -56,7 +56,7 @@ These are ceilings to validate against memory, not a requirement to maximize eve
 
 ## Character and animation
 
-Replace the current low-poly placeholder with an original production-ready humanoid:
+The integrated candidate is an Ara 3D Gen humanoid GLB generated from MakeHuman CC0 data, with a 69-bone game rig and 22 PBR material slots. It has passed automated Godot import and animation checks, but must not be marked final until it passes visual and deformation sign-off. Upgrade or replace it as needed to meet this target:
 - Credible human proportions and facial anatomy.
 - Layered tactical clothing, boots, gloves, helmet/optional headgear, vest, backpack and readable equipment attachments.
 - PBR skin/cloth/leather/metal/plastic materials with consistent roughness response.
