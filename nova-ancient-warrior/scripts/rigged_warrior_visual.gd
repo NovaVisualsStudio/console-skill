@@ -125,8 +125,8 @@ func _find_animation(fragment: String) -> String:
 		return ""
 	var wanted := fragment.to_lower().replace("_", "").replace("-", "").replace(" ", "")
 	for animation_name in _animation_player.get_animation_list():
-		var candidate := str(animation_name).to_lower().replace("_", "").replace("-", "").replace(" ", "")
-		if wanted in candidate:
+		var candidate := str(animation_name).to_lower().replace("_", "").replace("-", "").replace(" ", "").replace("(", "").replace(")", "")
+		if wanted in candidate or (wanted == "jumpair" and candidate == "jumpinair"):
 			return animation_name
 	return ""
 
