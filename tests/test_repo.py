@@ -163,6 +163,13 @@ class Repo(unittest.TestCase):
                 self.assertFalse(rel.lower().endswith((".iso", ".pdf", ".elf", ".irx")), rel)
                 continue
             self.assertFalse(rel.lower().endswith(GAME_EXT), "%s looks like game data" % rel)
+            # The NOVA game needs its generated, licensed hero mesh at runtime.
+            # Permit only this exact GLB path; keep all other repository files under 512 KiB.
+            if rel == os.path.join("nova-ancient-warrior", "assets", "characters", "nova_hero.glb"):
+                self.assertLessEqual(os.path.getsize(p), 32 * 1024 * 1024, rel)
+                with open(p, "rb") as fh:
+                    self.assertEqual(fh.read(4), b"glTF", rel)
+                continue
             self.assertLess(os.path.getsize(p), MAX_FILE, "%s is too big for this repo" % rel)
             with open(p, "rb") as fh:
                 head = fh.read(4)
