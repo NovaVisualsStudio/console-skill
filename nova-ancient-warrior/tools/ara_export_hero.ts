@@ -1,3 +1,4 @@
+// NOVA hero asset generation is validated alongside rigged_warrior_visual.gd and rigged_warrior_smoke.gd.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { nodeLibrary } from './node-assets';
