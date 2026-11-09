@@ -7,6 +7,8 @@ signal phase_changed(phase: int)
 signal attack_telegraph(is_boss: bool)
 signal attack_landed(damage: int)
 
+const HUMANOID_SCRIPT = preload("res://scripts/humanoid_rig.gd")
+
 enum BrainState { CHASE, TELEGRAPH, STRIKE, RECOVERY, STAGGER, DEAD }
 enum AttackPattern { MELEE, SWEEP, SLAM }
 
