@@ -11,6 +11,7 @@ signal dodge_started
 
 enum CombatState { IDLE, MOVE, ATTACK, DODGE, GUARD, STAGGER, DEAD }
 
+const HUMANOID_SCRIPT = preload("res://scripts/humanoid_rig.gd")
 const WALK_SPEED := 5.2
 const DODGE_SPEED := 12.0
 const DODGE_DURATION := 0.42
@@ -44,7 +45,7 @@ var dodge_direction := Vector3.ZERO
 var lock_target: Node3D
 var weapon_pivot: Node3D
 var body_pivot: Node3D
-var body_material: StandardMaterial3D
+var humanoid: NovaHumanoidRig
 
 func _ready() -> void:
     add_to_group("player")
@@ -65,30 +66,18 @@ func _build_character() -> void:
     body_pivot.name = "WarriorRig"
     add_child(body_pivot)
 
-    body_material = _material(Color(0.13, 0.20, 0.29), 0.46, 0.55)
-    _add_capsule(body_pivot, Vector3(0.0, 1.12, 0.0), 0.39, 0.88, body_material, Vector3(1.0, 1.0, 0.82))
-    _add_sphere(body_pivot, Vector3(0.0, 1.72, 0.0), 0.27, _material(Color(0.66, 0.45, 0.30), 0.78, 0.0))
-    _add_box(body_pivot, Vector3(0.0, 1.43, 0.0), Vector3(0.78, 0.16, 0.64), _material(Color(0.30, 0.19, 0.11), 0.82, 0.15))
+    humanoid = HUMANOID_SCRIPT.new() as NovaHumanoidRig
+    humanoid.name = "HeroHumanoid"
+    humanoid.tint_color = Color(0.16, 0.25, 0.34)
+    humanoid.accent_color = Color(0.62, 0.43, 0.20)
+    body_pivot.add_child(humanoid)
 
     var bronze := _material(Color(0.48, 0.30, 0.13), 0.34, 0.82)
-    var dark_steel := _material(Color(0.10, 0.14, 0.19), 0.32, 0.88)
-    _add_sphere(body_pivot, Vector3(-0.43, 1.45, 0.0), 0.23, bronze)
-    _add_sphere(body_pivot, Vector3(0.43, 1.45, 0.0), 0.23, bronze)
-    _add_capsule(body_pivot, Vector3(-0.51, 1.08, 0.0), 0.12, 0.58, dark_steel)
-    _add_capsule(body_pivot, Vector3(0.51, 1.08, 0.0), 0.12, 0.58, dark_steel)
-    _add_capsule(body_pivot, Vector3(-0.22, 0.48, 0.0), 0.15, 0.68, dark_steel)
-    _add_capsule(body_pivot, Vector3(0.22, 0.48, 0.0), 0.15, 0.68, dark_steel)
-    _add_box(body_pivot, Vector3(-0.22, 0.12, -0.06), Vector3(0.31, 0.20, 0.48), bronze)
-    _add_box(body_pivot, Vector3(0.22, 0.12, -0.06), Vector3(0.31, 0.20, 0.48), bronze)
-
-    var helmet := _add_sphere(body_pivot, Vector3(0.0, 1.91, 0.0), 0.29, bronze)
-    helmet.scale = Vector3(1.0, 0.74, 0.92)
-    _add_box(body_pivot, Vector3(0.0, 1.78, -0.22), Vector3(0.36, 0.10, 0.08), dark_steel)
-
+    var hand_attachment := humanoid.attach_to_bone("hand_r")
     weapon_pivot = Node3D.new()
     weapon_pivot.name = "WarAxe"
-    weapon_pivot.position = Vector3(0.58, 1.18, -0.12)
-    body_pivot.add_child(weapon_pivot)
+    weapon_pivot.position = Vector3(0.0, -0.28, 0.02) if hand_attachment != humanoid else Vector3(0.58, 1.18, -0.12)
+    hand_attachment.add_child(weapon_pivot)
     var handle := MeshInstance3D.new()
     var handle_mesh := CylinderMesh.new()
     handle_mesh.top_radius = 0.045
@@ -109,6 +98,7 @@ func _build_character() -> void:
     axe_head.material_override = _material(Color(0.57, 0.69, 0.77), 0.24, 0.92)
     weapon_pivot.add_child(axe_head)
     _add_sphere(weapon_pivot, Vector3(-0.18, 0.87, 0.0), 0.13, bronze)
+    humanoid.play_action("idle")
 
 func _material(color: Color, roughness: float, metallic: float) -> StandardMaterial3D:
     var material := StandardMaterial3D.new()
@@ -208,9 +198,29 @@ func _physics_process(delta: float) -> void:
     else:
         velocity.y = 0.0
     move_and_slide()
+    _sync_humanoid_animation()
 
     if is_instance_valid(body_pivot) and current_state == CombatState.MOVE:
         body_pivot.position.y = 0.025 * sin(Time.get_ticks_msec() * 0.012)
+
+func _sync_humanoid_animation() -> void:
+    if not is_instance_valid(humanoid):
+        return
+    match current_state:
+        CombatState.ATTACK:
+            humanoid.play_action("attack")
+        CombatState.DODGE:
+            humanoid.play_action("dodge")
+        CombatState.GUARD:
+            humanoid.play_action("guard")
+        CombatState.STAGGER:
+            humanoid.play_action("hit")
+        CombatState.DEAD:
+            humanoid.play_action("death")
+        CombatState.MOVE:
+            humanoid.play_action("walk")
+        _:
+            humanoid.play_action("idle")
 
 func _update_timers(delta: float) -> void:
     attack_cooldown = maxf(0.0, attack_cooldown - delta)
@@ -272,6 +282,7 @@ func perform_light_attack() -> bool:
     attack_recovery_timer = 0.32
     current_state = CombatState.ATTACK
     _animate_weapon(false, combo_step)
+    humanoid.play_action("attack", 0.06)
     attack_started.emit(false, combo_step)
     _queue_attack(damage, LIGHT_RANGE + float(combo_step - 1) * 0.15, 0.08, false, 0.10, 0.14)
     return true
@@ -293,6 +304,7 @@ func perform_heavy_attack() -> bool:
     attack_recovery_timer = 0.64
     current_state = CombatState.ATTACK
     _animate_weapon(true, 0)
+    humanoid.play_action("heavy", 0.06)
     attack_started.emit(true, 0)
     _queue_attack(82, 3.75, -0.02, true, 0.16, 0.20)
     return true
@@ -360,6 +372,7 @@ func perform_dodge() -> bool:
     dodge_timer = DODGE_DURATION
     invulnerable = true
     current_state = CombatState.DODGE
+    humanoid.play_action("dodge", 0.05)
     dodge_started.emit()
     return true
 
@@ -386,6 +399,7 @@ func take_damage(amount: int, source_position: Vector3 = Vector3.ZERO, heavy: bo
             velocity.z = knockback.z * (7.0 if heavy else 3.5)
     if health <= 0:
         current_state = CombatState.DEAD
+        humanoid.play_action("death", 0.08)
         guard_active = false
         defeated.emit()
     else:
