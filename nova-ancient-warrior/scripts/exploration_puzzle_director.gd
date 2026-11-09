@@ -23,10 +23,10 @@ static func rune_positions(stage_index: int) -> Array[Vector3]:
 	match clampi(stage_index, 0, 2):
 		0:
 			return [Vector3(-7.5, 0.0, -13.0), Vector3(7.5, 0.0, -13.0), Vector3(0.0, 0.0, -9.5)]
-	1:
+		1:
 		# The central rune rests on the raised safe causeway (top surface y = 0.06).
 		return [Vector3(-12.0, 0.0, -12.0), Vector3(12.0, 0.0, -12.0), Vector3(0.0, 0.06, -5.5)]
-	_:
+		_:
 		return [Vector3(-11.0, 0.0, -11.0), Vector3(11.0, 0.0, -11.0), Vector3(0.0, 0.0, 9.0)]
 
 
