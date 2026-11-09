@@ -52,6 +52,7 @@ var humanoid: NovaHumanoidRig
 var weapon_tween: Tween
 var _locomotion_phase := 0.0
 var _impact_recoil := Vector3.ZERO
+var _stamina_ui_timer := 0.0
 
 func _ready() -> void:
     add_to_group("player")
@@ -277,11 +278,18 @@ func _update_timers(delta: float) -> void:
     stagger_timer = maxf(0.0, stagger_timer - delta)
     combo_chain_timer = maxf(0.0, combo_chain_timer - delta)
     stamina_regen_delay = maxf(0.0, stamina_regen_delay - delta)
-    if stamina_regen_delay <= 0.0:
+    var previous_stamina := stamina
+    if stamina_regen_delay <= 0.0 and stamina < MAX_STAMINA:
         var regen_rate := 7.0 if guard_active else 14.0
         stamina = minf(MAX_STAMINA, stamina + regen_rate * delta)
     invulnerable = dodge_timer > 0.0
-    stamina_changed.emit(stamina, MAX_STAMINA)
+    if not is_equal_approx(stamina, previous_stamina):
+        _stamina_ui_timer += delta
+        if stamina >= MAX_STAMINA or _stamina_ui_timer >= 0.10:
+            _stamina_ui_timer = 0.0
+            stamina_changed.emit(stamina, MAX_STAMINA)
+    else:
+        _stamina_ui_timer = 0.0
 
     if current_state == CombatState.ATTACK:
         if attack_startup_timer > 0.0:
@@ -345,6 +353,7 @@ func perform_heavy_attack() -> bool:
         return false
     stamina -= 30.0
     stamina_regen_delay = 1.05
+    _stamina_ui_timer = 0.0
     stamina_changed.emit(stamina, MAX_STAMINA)
     combo_step = 0
     combo_chain_timer = 0.0
@@ -386,8 +395,8 @@ func _hit_enemies(damage: int, attack_range: float, min_dot: float, heavy: bool)
             continue
         var target_point := target.global_position + Vector3.UP * 0.95
         var attack_origin := global_position + Vector3.UP * 1.0
-        var offset := target_point - attack_origin
-        var distance := offset.length()
+        var offset: Vector3 = target_point - attack_origin
+        var distance: float = offset.length()
         if distance > attack_range or distance <= 0.01:
             continue
         var horizontal_offset := Vector3(offset.x, 0.0, offset.z)
