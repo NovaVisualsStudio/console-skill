@@ -6,6 +6,9 @@ class_name NovaCameraRig
 @export var shoulder_offset := 1.05
 @export var follow_smoothing := 7.5
 @export var look_height := 1.25
+@export_flags_3d_physics var collision_mask := 1
+@export var collision_margin := 0.24
+@export var collision_recovery_speed := 14.0
 
 var follow_target: Node3D
 var lock_target: Node3D
@@ -67,8 +70,14 @@ func _process(delta: float) -> void:
         var lock_look := lock_target.global_position + Vector3.UP * (1.2 if not lock_target.is_in_group("boss") else 2.0)
         look_position = look_position.lerp(lock_look, 0.42)
 
-    var blend := 1.0 - exp(-follow_smoothing * delta)
-    global_position = global_position.lerp(desired_position, blend)
+    var collision_safe_position := _constrain_camera_position(look_position, desired_position)
+    var camera_blocked := collision_safe_position.distance_squared_to(desired_position) > 0.0004
+    if camera_blocked:
+        # Retract immediately to avoid a one-frame wall clip; recover smoothly once clear.
+        global_position = collision_safe_position
+    else:
+        var blend := 1.0 - exp(-follow_smoothing * delta)
+        global_position = global_position.lerp(desired_position, blend)
 
     if shake_timer > 0.0:
         shake_timer = maxf(0.0, shake_timer - delta)
@@ -82,3 +91,20 @@ func _process(delta: float) -> void:
             shake_strength = 0.0
 
     camera.look_at(look_position, Vector3.UP)
+
+func _constrain_camera_position(focus_position: Vector3, desired_position: Vector3) -> Vector3:
+    var world := get_world_3d()
+    if world == null or focus_position.distance_squared_to(desired_position) <= 0.0001:
+        return desired_position
+    var exclusions: Array[RID] = []
+    if is_instance_valid(follow_target) and follow_target is CollisionObject3D:
+        exclusions.append((follow_target as CollisionObject3D).get_rid())
+    var query := PhysicsRayQueryParameters3D.create(focus_position, desired_position, collision_mask, exclusions)
+    query.collide_with_areas = false
+    query.collide_with_bodies = true
+    var hit := world.direct_space_state.intersect_ray(query)
+    if hit.is_empty():
+        return desired_position
+    var hit_position: Vector3 = hit.position
+    var hit_normal: Vector3 = hit.normal
+    return hit_position + hit_normal * collision_margin
