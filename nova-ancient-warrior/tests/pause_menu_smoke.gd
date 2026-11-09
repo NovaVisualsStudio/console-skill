@@ -28,8 +28,18 @@ func _run_pause_menu_smoke() -> void:
 		_fail(menu, "Required character and motion-capture attribution is missing from the pause menu")
 		return
 	var original_locale := TranslationServer.get_locale()
-	TranslationServer.set_locale("ar")
+	var language_button := menu.get_node_or_null("PausePanel/SettingsStack/LanguageButton") as Button
+	if language_button == null:
+		_fail(menu, "In-game language selector is missing")
+		return
+	var language_events: Array[String] = []
+	menu.language_changed.connect(func(language: String): language_events.append(language))
+	TranslationServer.set_locale("en")
 	menu.call("_apply_language")
+	language_button.pressed.emit()
+	if not TranslationServer.get_locale().begins_with("ar") or language_events.is_empty() or language_events[-1] != "ar":
+		_fail(menu, "Pause menu did not switch gameplay language to Arabic")
+		return
 	if (menu.get_node("PauseButton") as Button).text != "إيقاف مؤقت":
 		_fail(menu, "Pause menu did not localize its pause button to Arabic")
 		return
@@ -39,8 +49,10 @@ func _run_pause_menu_smoke() -> void:
 	if (menu.get_node("PausePanel/SettingsStack/ResumeButton") as Button).text != "استئناف":
 		_fail(menu, "Resume control did not localize to Arabic")
 		return
-	TranslationServer.set_locale("en")
-	menu.call("_apply_language")
+	language_button.pressed.emit()
+	if TranslationServer.get_locale().begins_with("ar") or language_events[-1] != "en":
+		_fail(menu, "Pause menu did not restore English gameplay language")
+		return
 	if (menu.get_node("PauseButton") as Button).text != "PAUSE":
 		_fail(menu, "Pause menu did not restore its English labels")
 		return
