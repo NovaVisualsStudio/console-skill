@@ -10,7 +10,7 @@ static func relic_positions(stage_index: int) -> Array[Vector3]:
 		1:
 			return [Vector3(-9.2, 0.0, -10.5), Vector3(9.2, 0.0, -10.5), Vector3(0.0, 0.0, 11.8)]
 		_:
-			return [Vector3(-12.0, 0.0, 8.8), Vector3(12.0, 0.0, 8.8), Vector3(0.0, 0.0, 12.0)]
+			return [Vector3(-9.2, 0.0, 11.5), Vector3(9.2, 0.0, 11.5), Vector3(0.0, 0.0, 14.0)]
 
 
 static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
