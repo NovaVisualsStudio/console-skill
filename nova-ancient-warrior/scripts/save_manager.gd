@@ -13,6 +13,15 @@ func _ready() -> void:
 	load_profile()
 
 
+func start_new_campaign() -> bool:
+	profile["highest_wave"] = 1
+	profile["unlocked_chapter"] = 1
+	profile["boss_defeated"] = false
+	profile["campaign_complete"] = false
+	profile["pending_souls"] = 0
+	return save_profile()
+
+
 func begin_run() -> bool:
 	profile["pending_souls"] = 0
 	return save_profile()
