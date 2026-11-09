@@ -42,7 +42,7 @@ func _run() -> void:
         var stage_arena := ARENA_SCRIPT.new() as NovaArenaController
         stage_arena.chapter_index = stage_index
         stage_arena._build_world()
-        if stage_arena.world_root == null or stage_arena.world_root.get_child_count() < 10:
+        if stage_arena.get_child_count() < 20:
             push_error("Campaign test: chapter %d did not build its environment geometry." % (stage_index + 1))
             stage_arena.free()
             quit(1)
