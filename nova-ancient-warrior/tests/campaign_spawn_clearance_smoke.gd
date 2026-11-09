@@ -26,10 +26,8 @@ func _run_spawn_clearance() -> void:
 		for wave in range(wave_start, wave_start + CombatRules.WAVES_PER_CHAPTER):
 			var count := CombatRules.wave_enemy_count(wave)
 			var boss_wave := CombatRules.is_boss_wave(wave)
-			var radius := 7.8 if boss_wave else 6.2 + float(chapter) * 0.7
 			for index in range(count):
-				var angle := TAU * float(index) / float(count) + 0.4
-				var spawn := Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
+				var spawn := CombatRules.wave_enemy_spawn_position(wave, index)
 				if _overlaps_blocker(layout, spawn):
 					_fail(root, "Chapter %d wave %d enemy spawn %d intersects solid geometry at %s" % [chapter + 1, wave, index + 1, str(spawn)])
 					return
