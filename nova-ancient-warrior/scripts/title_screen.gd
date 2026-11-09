@@ -318,8 +318,12 @@ func _refresh_campaign_state() -> void:
 	var chapter := int((highest_wave - 1) / 3) + 1
 	var can_continue := highest_wave > 1 or complete
 	_continue_button.disabled = not can_continue
-	_continue_button.text = "REPLAY FINAL CHAPTER" if complete else "CONTINUE"
-	_progress_label.text = "CAMPAIGN COMPLETE  |  BEST SCORE %d" % int(profile.get("best_score", 0)) if complete else "BEST PROGRESS  |  CHAPTER %d  |  WAVE %d/9" % [chapter, highest_wave]
+	if _is_arabic():
+		_continue_button.text = "إعادة الفصل الأخير" if complete else "متابعة"
+		_progress_label.text = "اكتملت الحملة  |  أفضل نتيجة %d" % int(profile.get("best_score", 0)) if complete else "أفضل تقدم  |  الفصل %d  |  الموجة %d/9" % [chapter, highest_wave]
+	else:
+		_continue_button.text = "REPLAY FINAL CHAPTER" if complete else "CONTINUE"
+		_progress_label.text = "CAMPAIGN COMPLETE  |  BEST SCORE %d" % int(profile.get("best_score", 0)) if complete else "BEST PROGRESS  |  CHAPTER %d  |  WAVE %d/9" % [chapter, highest_wave]
 
 
 func _start_new_campaign() -> void:
@@ -355,5 +359,23 @@ func _toggle_graphics_quality() -> void:
 
 func _refresh_quality_button() -> void:
 	var profile := _save_profile()
-	var quality := str(profile.get("graphics_quality", "mid")).to_upper()
-	_quality_button.text = "GRAPHICS PROFILE: %s" % quality
+	var quality := str(profile.get("graphics_quality", "mid")).to_lower()
+	if _is_arabic():
+		_quality_button.text = "جودة الرسوم: مرتفعة" if quality == "high" else "جودة الرسوم: متوسطة"
+	else:
+		_quality_button.text = "GRAPHICS PROFILE: %s" % quality.to_upper()
+
+
+func _is_arabic() -> bool:
+	return TranslationServer.get_locale().begins_with("ar")
+
+
+func _toggle_language() -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	var next_language := "en" if _is_arabic() else "ar"
+	if manager != null:
+		manager.call("set_language", next_language)
+	else:
+		TranslationServer.set_locale(next_language)
+	_apply_language()
+	_refresh_campaign_state()
