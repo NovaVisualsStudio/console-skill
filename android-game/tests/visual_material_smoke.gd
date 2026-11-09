@@ -14,6 +14,33 @@ func _find_mesh_instance(node: Node) -> MeshInstance3D:
             return found
     return null
 
+func _validate_import_settings(asset_id: String, map_name: String) -> bool:
+    var import_path := "res://assets/textures/" + asset_id + "_" + map_name + "_1k.jpg.import"
+    var config := ConfigFile.new()
+    if config.load(import_path) != OK:
+        push_error("PBR import test: missing or invalid import sidecar: " + import_path)
+        return false
+    if config.get_value("remap", "importer", "") != "texture":
+        push_error("PBR import test: incorrect Godot importer for " + import_path)
+        return false
+    if int(config.get_value("params", "compress/mode", -1)) != 2:
+        push_error("PBR import test: texture is not VRAM-compressed: " + import_path)
+        return false
+    if not bool(config.get_value("params", "mipmaps/generate", false)):
+        push_error("PBR import test: mipmaps are disabled: " + import_path)
+        return false
+    if int(config.get_value("params", "process/size_limit", 0)) != 1024:
+        push_error("PBR import test: texture import size limit is not 1K: " + import_path)
+        return false
+    if map_name == "nor_gl":
+        if int(config.get_value("params", "compress/normal_map", -1)) != 1:
+            push_error("PBR import test: RGTC normal-map compression is not enabled: " + import_path)
+            return false
+        if bool(config.get_value("params", "process/normal_map_invert_y", true)):
+            push_error("PBR import test: OpenGL normal map Y is being inverted: " + import_path)
+            return false
+    return true
+
 func _validate_pbr(mesh_instance: MeshInstance3D, expected_asset: String, label: String) -> bool:
     if mesh_instance == null:
         push_error("PBR visual test: " + label + " mesh is missing.")
@@ -61,12 +88,17 @@ func _run() -> void:
     if not _validate_pbr(north_wall_mesh, "stone_wall", "north wall"):
         _finish(1, arena)
         return
+    for asset_id in ["rock_tile_floor", "stone_wall"]:
+        for map_name in ["diff", "nor_gl", "rough"]:
+            if not _validate_import_settings(asset_id, map_name):
+                _finish(1, arena)
+                return
     var credit := arena.find_child("PolyHavenCredits", true, false) as Label
     if credit == null or not credit.text.contains("POLY HAVEN"):
         push_error("PBR visual test: in-game Poly Haven credit is missing.")
         _finish(1, arena)
         return
-    print("PBR VISUAL TEST PASS: 1K diffuse, OpenGL normal and roughness maps are loaded on floor/walls; in-game CC0 credit is visible.")
+    print("PBR VISUAL TEST PASS: six 1K maps are imported with VRAM compression and mipmaps; OpenGL normal maps use RGTC; floor/wall materials and in-game CC0 credit are verified.")
     _finish(0, arena)
 
 func _finish(exit_code: int, arena: Node) -> void:

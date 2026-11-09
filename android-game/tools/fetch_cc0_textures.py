@@ -85,6 +85,30 @@ def select_map(files: dict, asset_id: str, map_name: str, suffixes: tuple[str, .
     return matches[0]
 
 
+def write_import_settings(destination: Path, map_name: str) -> Path:
+    """Pin mobile-friendly import settings before Godot's first texture import."""
+    params = {
+        "compress/mode": "2",  # VRAM Compressed (ETC2 on the Android compatibility renderer).
+        "mipmaps/generate": "true",
+        "mipmaps/limit": "-1",
+        "process/size_limit": "1024",
+        "process/normal_map_invert_y": "false",  # Poly Haven nor_gl maps use OpenGL Y+.
+    }
+    if map_name == "nor_gl":
+        params["compress/normal_map"] = "1"  # Enable RGTC-style normal-map compression.
+
+    lines = [
+        "[remap]",
+        'importer="texture"',
+        "",
+        "[params]",
+    ]
+    lines.extend(f"{key}={value}" for key, value in params.items())
+    sidecar = Path(str(destination) + ".import")
+    sidecar.write_text("\\n".join(lines) + "\\n", encoding="utf-8")
+    return sidecar
+
+
 def download_asset(asset_id: str, map_name: str, record: dict) -> tuple[Path, str, int]:
     url = record["url"]
     expected_md5 = record["md5"].lower()
@@ -102,6 +126,8 @@ def download_asset(asset_id: str, map_name: str, record: dict) -> tuple[Path, st
     filename = f"{asset_id}_{map_name}_1k.jpg"
     destination = OUTPUT / filename
     destination.write_bytes(payload)
+    import_sidecar = write_import_settings(destination, map_name)
+    print(f"Godot mobile import profile OK: {import_sidecar.name}")
     return destination, actual_md5, len(payload)
 
 
