@@ -443,6 +443,7 @@ func _make_enemy(spawn: Vector3, boss_enemy: bool) -> void:
     enemy.is_boss = boss_enemy
     enemy.difficulty_scale = 1.0 + float(chapter_index) * 0.24
     enemy.chapter_variant = chapter_index
+    enemy.flank_side = 0.0 if boss_enemy else (-1.0 if spawn.x < 0.0 else 1.0)
     enemy.defeated.connect(_on_enemy_defeated)
     enemy.attack_telegraph.connect(_on_enemy_telegraph)
     if boss_enemy:
