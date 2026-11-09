@@ -109,7 +109,7 @@ jobs:
           if grep -E "SCRIPT ERROR:|ERROR:|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$combat_log"; then
             exit 1
           fi
-          for test_script in enemy_tactics_smoke.gd narrative_director_smoke.gd mission_objective_smoke.gd chapter_scene_smoke.gd title_screen_smoke.gd combat_rules_smoke.gd save_manager_smoke.gd level_catalog_smoke.gd campaign_smoke.gd stage_builder_smoke.gd campaign_layout_smoke.gd campaign_spawn_clearance_smoke.gd stage_hazard_rules_smoke.gd touch_camera_controller_smoke.gd virtual_joystick_smoke.gd pause_menu_smoke.gd; do
+          for test_script in enemy_tactics_smoke.gd narrative_director_smoke.gd mission_objective_smoke.gd chapter_scene_smoke.gd title_screen_smoke.gd gameplay_localization_smoke.gd combat_rules_smoke.gd save_manager_smoke.gd level_catalog_smoke.gd campaign_smoke.gd stage_builder_smoke.gd campaign_layout_smoke.gd campaign_spawn_clearance_smoke.gd stage_hazard_rules_smoke.gd touch_camera_controller_smoke.gd virtual_joystick_smoke.gd pause_menu_smoke.gd; do
             "$GODOT_BIN" --headless --path nova-ancient-warrior --script "res://tests/$test_script"
           done
           echo "PASS 5: gameplay and progression regression suite passed"
