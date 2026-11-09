@@ -157,7 +157,11 @@ jobs:
             if [[ "$test_script" == "chapter_scene_smoke.gd" ]]; then
               test_timeout=120s
             fi
-            if ! timeout --signal=TERM --kill-after=10s "$test_timeout" "$GODOT_BIN" --headless --path nova-ancient-warrior --script "res://tests/$test_script" >"$test_log" 2>&1; then
+            godot_verbosity=()
+            if [[ "$test_script" == "gameplay_localization_smoke.gd" ]]; then
+              godot_verbosity=(--verbose)
+            fi
+            if ! timeout --signal=TERM --kill-after=10s "$test_timeout" "$GODOT_BIN" "${godot_verbosity[@]}" --headless --path nova-ancient-warrior --script "res://tests/$test_script" >"$test_log" 2>&1; then
               cat "$test_log"
               echo "Godot regression failed or exceeded its ${test_timeout} timeout: $test_script"
               exit 1
