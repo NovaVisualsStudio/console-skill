@@ -31,6 +31,7 @@ func _build_hero_preview() -> void:
 	add_child(container)
 
 	var viewport := SubViewport.new()
+	viewport.name = "SubViewport"
 	viewport.size = Vector2i(1280, 720)
 	viewport.own_world_3d = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -94,8 +95,8 @@ func _build_hero_preview() -> void:
 	camera.position = Vector3(0.25, 1.45, 5.2)
 	camera.fov = 34.0
 	camera.current = true
-	camera.look_at(Vector3(0.0, 0.98, 0.0), Vector3.UP)
 	world.add_child(camera)
+	camera.look_at(Vector3(0.0, 0.98, 0.0), Vector3.UP)
 
 	var hero := RiggedWarriorVisual.new()
 	hero.name = "TitleHero"
