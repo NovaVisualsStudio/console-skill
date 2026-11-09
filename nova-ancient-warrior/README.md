@@ -48,7 +48,7 @@ Compatibility mode improves the range of devices that may run the game, but it d
 
 1. Install Godot 4.7.2 from https://godotengine.org/download/.
 2. Open this folder as a Godot project.
-3. Run `scenes/main.tscn`.
+3. Run `scenes/title_screen.tscn` (the configured main scene); select New Campaign or Continue to enter `scenes/main.tscn`.
 
 The Android GitHub Actions workflow generates the hero and sound assets, imports the project, exports a signed debug APK and validates the archive, signature, package identifier, target SDK 36 and ARM64-only native payload. The resulting workflow artifact is named `nova-ancient-warrior-android-debug`. This is still a debug artifact, not a signed production AAB.
 
