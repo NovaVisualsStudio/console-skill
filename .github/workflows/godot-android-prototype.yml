@@ -33,6 +33,9 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v7
 
+      - name: Install open-source glTF compatibility tool
+        run: npm install --global @gltf-transform/cli@4.5.1
+
       - name: Fetch free CC0 humanoid animation library
         run: python3 android-game/tools/fetch_cc0_animations.py
 
