@@ -85,8 +85,8 @@ func _run_title_screen_smoke() -> void:
 		return
 	TranslationServer.set_locale("en")
 	menu.call("_apply_language")
-	if not controls_notice.text.contains("ANDROID") or controls_notice.text_direction != Control.TEXT_DIRECTION_LTR:
-		_fail(menu, "Player controls tutorial did not restore English LTR")
+	if not controls_notice.text.contains("ANDROID") or not controls_notice.text.contains("WASD") or not controls_notice.text.contains("PERFECT PARRY") or controls_notice.text_direction != Control.TEXT_DIRECTION_LTR:
+		_fail(menu, "Player controls tutorial did not restore complete English Android/keyboard instructions")
 		return
 	TranslationServer.set_locale(original_locale)
 	menu.call("_apply_language")
