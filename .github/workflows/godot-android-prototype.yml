@@ -1,0 +1,204 @@
+name: NOVA cinematic Android validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android-game/**"
+      - "tests/test_godot_project.py"
+      - ".github/workflows/godot-android-prototype.yml"
+  pull_request:
+    paths:
+      - "android-game/**"
+      - "tests/test_godot_project.py"
+      - ".github/workflows/godot-android-prototype.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nova-android-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    timeout-minutes: 20
+    name: Validate Godot prototype (thirteen gates + six repeat stability passes (2K mobile PBR))
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      NOVA_TEXTURE_TIER: 2k
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+
+      - name: Install open-source glTF compatibility tools
+        run: |
+          npm install --global @gltf-transform/cli@4.5.1
+          npm install --prefix android-game/tools/gltf-normalizer @gltf-transform/core@4.5.1 @gltf-transform/extensions@4.5.1 @gltf-transform/functions@4.5.1
+
+      - name: Fetch free CC0 humanoid animation library
+        run: python3 android-game/tools/fetch_cc0_animations.py
+      - name: Fetch free CC0 PBR environment materials
+        run: python3 android-game/tools/fetch_cc0_textures.py
+
+      - name: Install Godot 4.7.2 headless
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: true
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Android CLI
+        run: |
+          curl -fsSL https://dl.google.com/android/cli/latest/linux_x86_64/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          test -x "$HOME/.local/bin/android"
+          "$HOME/.local/bin/android" --no-metrics --version
+
+      - name: Install Android SDK packages
+        run: |
+          "$HOME/.local/bin/android" --no-metrics --sdk="$ANDROID_HOME" sdk install platform-tools platforms/android-35 build-tools/35.0.1 cmake/3.10.2.4988404 ndk/28.1.13356709
+
+      - name: Configure Godot Android SDK paths
+        run: |
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.7.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          EOF
+
+      - name: Verify toolchain
+        run: |
+          python3 --version
+          godot --version
+          echo "---- Godot Android editor settings ----"
+          grep -E 'export/android/(android_sdk_path|java_sdk_path)' "$HOME/.config/godot/editor_settings-4.7.tres"
+          echo "---- Android export templates ----"
+          find "$HOME/.local/share/godot/export_templates" -maxdepth 2 -type f -name 'android_*' -print
+          test -d "$ANDROID_HOME/platforms/android-35"
+          test -x "$HOME/.local/bin/android"
+          test -x "$ANDROID_HOME/platform-tools/adb"
+          test -d "$ANDROID_HOME/build-tools/35.0.1"
+          test -x "$JAVA_HOME/bin/java"
+
+      - name: Gate 1 - repository integrity tests
+        run: python3 -m unittest discover -s tests -p 'test_godot_project.py' -v
+
+      - name: Gate 2 - Godot editor import and script parse
+        run: |
+          adb start-server
+          adb devices
+          godot --headless --editor --path android-game --quit
+
+      - name: Gate 3 - rigged humanoid and retargeted animation test
+        run: godot --headless --verbose --path android-game --script res://tests/humanoid_smoke.gd
+
+      - name: Gate 4 - three-chapter campaign and save progression test
+        run: godot --headless --path android-game --script res://tests/campaign_smoke.gd
+
+      - name: Gate 5 - deterministic combat behaviour tests
+        run: godot --headless --path android-game --script res://tests/combat_smoke.gd
+
+      - name: Gate 6 - cinematic arena integration test
+        run: godot --headless --verbose --path android-game --script res://tests/cinematic_smoke.gd
+
+      - name: Gate 7 - procedural audio smoke test
+        run: godot --headless --verbose --path android-game --script res://tests/audio_smoke.gd
+
+      - name: Gate 8 - scene runtime smoke test
+        run: godot --headless --verbose --path android-game --script res://tests/runtime_smoke.gd
+
+      - name: Gate 9 - extended 300-frame runtime test
+        run: godot --headless --verbose --path android-game --script res://tests/runtime_smoke.gd
+
+      - name: Gate 10 - source hygiene and expected scene files
+        run: |
+          test -s android-game/project.godot
+          test -s android-game/export_presets.cfg
+          test -s android-game/scenes/main.tscn
+          test -s android-game/scripts/main.gd
+          test -s android-game/scripts/player.gd
+          test -s android-game/scripts/humanoid_rig.gd
+          test -s android-game/assets/characters/quaternius-standard-male.glb
+          test -s android-game/assets/characters/charactercreator-base-body.glb
+          test -s android-game/assets/characters/charactercreator-tshirt.glb
+          test -s android-game/assets/characters/charactercreator-jeans.glb
+          test -s android-game/assets/characters/charactercreator-boots.glb
+          test -s android-game/assets/characters/charactercreator-trenchcoat.glb
+          test -s android-game/assets/characters/charactercreator-hair-short02.glb
+          test -s android-game/assets/animations/UAL2_Standard.glb
+          test -s android-game/assets/textures/ASSET_LICENSES.md
+          test -s android-game/tools/fetch_cc0_textures.py
+          test -s android-game/tests/visual_material_smoke.gd
+          test -s android-game/scripts/enemy.gd
+          test -s android-game/icon.svg
+          test -s android-game/tests/runtime_smoke.gd
+          ! find android-game -type f \( -name '*.elf' -o -name '*.iso' \) | grep .
+
+      - name: Gate 11 - CC0 PBR environment material smoke test
+        run: |
+          set -o pipefail
+          godot --headless --verbose --path android-game --script res://tests/visual_material_smoke.gd 2>&1 | tee "$RUNNER_TEMP/nova-pbr-visual.log"
+          if grep -Eq "ObjectDB instances were leaked|Leaked instance:" "$RUNNER_TEMP/nova-pbr-visual.log"; then
+            echo "PBR smoke test leaked audio resources during shutdown."
+            exit 1
+          fi
+
+      - name: Create temporary Android debug signing key
+        run: |
+          keytool -genkeypair -v -keystore "$RUNNER_TEMP/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Gate 12 - export Android debug APK
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ runner.temp }}/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          cd android-game
+          mkdir -p build
+          adb start-server
+          adb devices
+          godot --headless --path . --export-debug "Android" build/NovaAncientWarrior-debug.apk --verbose
+          test -s build/NovaAncientWarrior-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose build/NovaAncientWarrior-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging build/NovaAncientWarrior-debug.apk | grep -F "package: name='com.novavisuals.ancientwarrior'"
+          unzip -l build/NovaAncientWarrior-debug.apk | grep -F "lib/arm64-v8a/libgodot_android.so"
+
+      - name: Gate 13 - six repeated gameplay and runtime passes
+        run: |
+          for pass in 1 2 3 4 5 6; do
+            echo "===== STABILITY PASS $pass / 6 ====="
+            python3 -m unittest discover -s tests -p 'test_godot_project.py' -v
+            godot --headless --verbose --path android-game --script res://tests/humanoid_smoke.gd
+            godot --headless --path android-game --script res://tests/combat_smoke.gd
+            godot --headless --verbose --path android-game --script res://tests/cinematic_smoke.gd
+            godot --headless --verbose --path android-game --script res://tests/audio_smoke.gd
+            PBR_LOG="$RUNNER_TEMP/nova-pbr-stability-$pass.log"
+            set -o pipefail
+            godot --headless --verbose --path android-game --script res://tests/visual_material_smoke.gd 2>&1 | tee "$PBR_LOG"
+            if grep -Eq "ObjectDB instances were leaked|Leaked instance:" "$PBR_LOG"; then
+              echo "PBR stability pass $pass leaked audio resources during shutdown."
+              exit 1
+            fi
+            godot --headless --path android-game --script res://tests/runtime_smoke.gd
+          done
+
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: nova-ancient-warrior-android-debug
+          path: android-game/build/NovaAncientWarrior-debug.apk
+          if-no-files-found: error
+          retention-days: 14

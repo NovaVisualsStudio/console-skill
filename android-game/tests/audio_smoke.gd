@@ -1,0 +1,59 @@
+extends SceneTree
+
+const AUDIO_SCRIPT = preload("res://scripts/audio_fx.gd")
+
+func _initialize() -> void:
+    call_deferred("_run_tests")
+
+func _finish(exit_code: int, audio: NovaAudioFX) -> void:
+    if is_instance_valid(audio):
+        audio.shutdown()
+        audio.free()
+    await create_timer(0.5).timeout
+    await process_frame
+    await process_frame
+    quit(exit_code)
+
+func _run_tests() -> void:
+    var audio := AUDIO_SCRIPT.new() as NovaAudioFX
+    root.add_child(audio)
+    await process_frame
+
+    if audio.ambience_player == null or audio.ambience_player.stream == null:
+        push_error("Atmospheric ambience player was not created.")
+        await _finish(1, audio)
+        return
+    var ambience := audio.ambience_player.stream as AudioStreamWAV
+    if ambience == null or ambience.loop_mode != AudioStreamWAV.LOOP_FORWARD:
+        push_error("Atmospheric bed must be a looping WAV stream.")
+        ambience = null
+        await _finish(1, audio)
+        return
+    if ambience.data.size() < 22050:
+        push_error("Atmospheric bed sample data is unexpectedly short.")
+        ambience = null
+        await _finish(1, audio)
+        return
+    if audio.one_shot_players.size() != 5:
+        push_error("Combat sound pool should have five reusable voices.")
+        ambience = null
+        await _finish(1, audio)
+        return
+
+    audio.start_ambience()
+    audio.play_swing(false)
+    audio.play_swing(true)
+    audio.play_hit(false)
+    audio.play_hit(true)
+    audio.play_parry()
+    audio.play_telegraph(true)
+    audio.play_boss_phase()
+    if audio._swing_light.data.is_empty() or audio._impact_heavy.data.is_empty() or audio._parry.data.is_empty():
+        push_error("One or more procedural combat sound assets have no sample data.")
+        ambience = null
+        await _finish(1, audio)
+        return
+
+    print("AUDIO TESTS PASS: looping atmospheric drone, light/heavy swing and impact, parry, boss telegraph and phase burst.")
+    ambience = null
+    await _finish(0, audio)
