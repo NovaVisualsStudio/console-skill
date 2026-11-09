@@ -16,6 +16,10 @@ func _run_puzzle_smoke() -> void:
 		if runes.size() != 3:
 			_fail(root, "Chapter %d must contain exactly three runes" % chapter)
 			return
+		for rune in runes:
+			if not rune is StaticBody3D or rune.find_children("*", "CollisionShape3D", true, false).size() < 3:
+				_fail(root, "Every rune must have pedestal, column and crystal collision shapes")
+				return
 		if root.get_child_count() != 1:
 			_fail(root, "Rebuilding a chapter must not leave duplicate puzzle roots")
 			return
