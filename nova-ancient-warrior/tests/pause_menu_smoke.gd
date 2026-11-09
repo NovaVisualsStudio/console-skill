@@ -25,15 +25,33 @@ func _run_pause_menu_smoke() -> void:
 		return
 	var pause_events := 0
 	var resume_events := 0
-	menu.pause_requested.connect(func(): pause_events += 1)
-	menu.resume_requested.connect(func(): resume_events += 1)
-	menu.set_paused(true)
-	if not menu.is_paused():
-		_fail(menu, "Pause panel did not become visible")
+	var audio_events: Array[Vector2] = []
+	menu.pause_requested.connect(func():
+		pause_events += 1
+		menu.set_paused(true)
+	)
+	menu.resume_requested.connect(func():
+		resume_events += 1
+		menu.set_paused(false)
+	)
+	menu.audio_settings_changed.connect(func(music: float, sfx: float):
+		audio_events.append(Vector2(music, sfx))
+	)
+	var escape := InputEventKey.new()
+	escape.keycode = KEY_ESCAPE
+	escape.pressed = true
+	menu.call("_input", escape)
+	if pause_events != 1 or not menu.is_paused():
+		_fail(menu, "Escape did not pause the game and reveal the overlay")
 		return
-	menu.set_paused(false)
-	if menu.is_paused():
-		_fail(menu, "Pause panel did not close")
+	menu.call("_input", escape)
+	if resume_events != 1 or menu.is_paused():
+		_fail(menu, "Escape did not resume the game and close the overlay")
+		return
+	var music_slider := menu.get_node("PausePanel/SettingsStack/MusicVolumeSlider") as HSlider
+	music_slider.value = 0.4
+	if audio_events.is_empty() or not is_equal_approx(audio_events[-1].x, 0.4):
+		_fail(menu, "Music slider did not emit the updated audio settings")
 		return
 	menu.set_pause_available(false)
 	var pause_button := menu.get_node("PauseButton") as Button
