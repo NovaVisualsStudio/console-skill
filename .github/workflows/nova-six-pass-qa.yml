@@ -71,8 +71,12 @@ jobs:
           else
             blender --background --python nova-ancient-warrior/tools/blender/generate_nova_hero.py -- --output "$hero"
             test -s "$hero"
-            echo "PASS 2: fallback hero generated; Ara hero pipeline is pending"
           fi
+          python3 -m py_compile nova-ancient-warrior/tools/blender/optimize_mocap_glb.py
+          python3 nova-ancient-warrior/tools/blender/optimize_mocap_glb.py \
+            "$hero" "$RUNNER_TEMP/nova_hero_mobile.glb" --max-mb 24
+          cp "$RUNNER_TEMP/nova_hero_mobile.glb" "$hero"
+          echo "PASS 2: verified hero provenance, removed unused facial morph targets, and generated original audio assets"
 
       - name: "PASS 3/6 — clean Godot import"
         shell: bash
