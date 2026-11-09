@@ -23,15 +23,15 @@ func _run_pause_menu_smoke() -> void:
 	if menu.get_node_or_null("PausePanel/SettingsStack/MusicVolumeSlider") == null or menu.get_node_or_null("PausePanel/SettingsStack/SfxVolumeSlider") == null:
 		_fail(menu, "Audio settings sliders are missing")
 		return
-	var pause_events := 0
-	var resume_events := 0
+	var pause_events := [0]
+	var resume_events := [0]
 	var audio_events: Array[Vector2] = []
 	menu.pause_requested.connect(func():
-		pause_events += 1
+		pause_events[0] += 1
 		menu.set_paused(true)
 	)
 	menu.resume_requested.connect(func():
-		resume_events += 1
+		resume_events[0] += 1
 		menu.set_paused(false)
 	)
 	menu.audio_settings_changed.connect(func(music: float, sfx: float):
@@ -41,11 +41,11 @@ func _run_pause_menu_smoke() -> void:
 	escape.keycode = KEY_ESCAPE
 	escape.pressed = true
 	menu.call("_input", escape)
-	if pause_events != 1 or not menu.is_paused():
+	if pause_events[0] != 1 or not menu.is_paused():
 		_fail(menu, "Escape did not pause the game and reveal the overlay")
 		return
 	menu.call("_input", escape)
-	if resume_events != 1 or menu.is_paused():
+	if resume_events[0] != 1 or menu.is_paused():
 		_fail(menu, "Escape did not resume the game and close the overlay")
 		return
 	var music_slider := menu.get_node("PausePanel/SettingsStack/MusicVolumeSlider") as HSlider
