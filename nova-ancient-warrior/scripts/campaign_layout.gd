@@ -96,7 +96,7 @@ static func _build_obsidian_layout(root: Node3D) -> void:
 	_solid_block(root, "ObsidianThroneStep", Vector3(4.8, 0.22, 1.2), Vector3(0.0, 0.53, -12.2), rune)
 	for side in [-1.0, 1.0]:
 		for index in range(3):
-			var z := [-8.0, -4.0, 4.0][index]
+			var z: float = [-8.0, -4.0, 4.0][index]
 			# Outer traversal shelves stay clear of the enemy spawn ring and throne plinths.
 			var walk_name := "ObsidianSideWalk_%s_%d" % ["Left" if side < 0.0 else "Right", index + 1]
 			_solid_block(root, walk_name, Vector3(2.2, 0.20, 2.6), Vector3(side * 13.0, 0.10, z), obsidian)
