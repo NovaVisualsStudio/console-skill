@@ -11,7 +11,7 @@ All third-party assets below are free to use and released under CC0 1.0. No paid
 
 ## Provenance
 
-- The primary hero is fetched into `assets/characters/charactercreator-base-body.glb` with separate CC0 skinned T-shirt, jeans, boots, trenchcoat and hair meshes. The setup script pins the CharacterCreator generated-output commit `852e48f316b90a0937234886630e4fb4cdfd1f78`. The generated GLBs are CC0; the generator source is GPL-3.0 and is not bundled or executed by the game.
+- The primary hero is fetched into `assets/characters/charactercreator-base-body.glb` with separate CC0 skinned T-shirt, jeans, boots, trenchcoat and hair meshes. The setup script pins the CharacterCreator generated-output commit `852e48f316b90a0937234886630e4fb4cdfd1f78`. The generated GLBs are CC0, as documented in [CharacterCreator LICENSE-NOTES.md](https://github.com/kblood/CharacterCreator/blob/master/LICENSE-NOTES.md) and `output/asset_licenses.json`; the generator source is GPL-3.0 and is not bundled or executed by the game.
 - The Quaternius humanoid remains as a fallback asset. Its source images/materials were omitted in the redistribution copy; NOVA applies its own PBR materials at runtime.
 - The Standard animation library is fetched by `tools/fetch_cc0_animations.py` from a pinned public source commit. The script verifies the GLB header and length and stores the upstream CC0 notice alongside the asset.
 - Animation import/retargeting maps the Quaternius UAL2 humanoid bone names to the Quaternius base-character skeleton. Only mapped bone tracks are copied into the runtime AnimationLibrary.
