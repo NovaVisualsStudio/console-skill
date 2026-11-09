@@ -20,6 +20,7 @@ const PBRMaterialLibrary = preload("res://scripts/pbr_material_library.gd")
 const TouchCameraController = preload("res://scripts/touch_camera_controller.gd")
 const ThirdPersonCameraRig = preload("res://scripts/third_person_camera_rig.gd")
 const NovaTouchJoystickScript = preload("res://scripts/virtual_joystick.gd")
+const PauseMenuScript = preload("res://scripts/pause_menu.gd")
 
 var player: CharacterBody3D
 var hero_visual: Node3D
@@ -69,6 +70,7 @@ var upgrade_panel: PanelContainer
 var upgrade_buttons: Dictionary = {}
 var graphics_quality := "mid"
 var quality_button: Button
+var pause_menu: Control
 var touch_camera_controller := TouchCameraController.new()
 const CAMERA_DISTANCE := 10.3
 
@@ -629,6 +631,8 @@ func _handle_wave_cleared() -> void:
 		restart_button.visible = true
 		upgrade_panel.visible = true
 		_refresh_upgrade_panel()
+		if is_instance_valid(pause_menu):
+			pause_menu.call("set_pause_available", false)
 		_play_sfx_or_tone("victory", 880.0, 0.3, 0.22)
 		return
 	wave_transitioning = true
@@ -810,6 +814,13 @@ func _build_hud() -> void:
 	layer.add_child(quality_button)
 	_refresh_quality_button()
 
+	pause_menu = PauseMenuScript.new()
+	pause_menu.name = "PauseMenu"
+	pause_menu.pause_requested.connect(_on_pause_requested)
+	pause_menu.resume_requested.connect(_on_resume_requested)
+	pause_menu.audio_settings_changed.connect(_on_audio_settings_changed)
+	layer.add_child(pause_menu)
+
 
 func _add_touch_button(layer: CanvasLayer, caption: String, action: String, offset: Vector2, size: Vector2 = Vector2(92.0, 82.0), right_side: bool = false) -> void:
 	var button := Button.new()
@@ -837,6 +848,33 @@ func _add_touch_button(layer: CanvasLayer, caption: String, action: String, offs
 	button.button_down.connect(func(): Input.action_press(action))
 	button.button_up.connect(func(): Input.action_release(action))
 	layer.add_child(button)
+
+
+func _on_pause_requested() -> void:
+	if game_over or not is_instance_valid(pause_menu):
+		return
+	get_tree().paused = true
+	pause_menu.call("set_paused", true)
+	if is_instance_valid(status_label):
+		status_label.text = "PAUSED"
+
+
+func _on_resume_requested() -> void:
+	get_tree().paused = false
+	if is_instance_valid(pause_menu):
+		pause_menu.call("set_paused", false)
+	if is_instance_valid(status_label):
+		status_label.text = LevelCatalog.wave_title(current_wave)
+
+
+func _on_audio_settings_changed(music_volume: float, sfx_volume: float) -> void:
+	_save_call("set_audio_options", [music_volume, sfx_volume])
+	if is_instance_valid(music_director) and music_director.has_method("set_music_volume"):
+		music_director.call("set_music_volume", music_volume)
+	var gain_db := linear_to_db(maxf(sfx_volume, 0.0001)) - 5.0
+	for voice in sound_players:
+		if is_instance_valid(voice):
+			voice.volume_db = gain_db
 
 
 func _cycle_graphics_quality() -> void:
@@ -1099,6 +1137,8 @@ func _damage_player(amount: int, source: Node3D = null) -> void:
 		restart_button.visible = true
 		upgrade_panel.visible = true
 		_refresh_upgrade_panel()
+		if is_instance_valid(pause_menu):
+			pause_menu.call("set_pause_available", false)
 
 
 func _update_hud() -> void:
