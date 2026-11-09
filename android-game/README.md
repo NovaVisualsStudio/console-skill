@@ -5,7 +5,7 @@ An original Godot 4 action-adventure prototype for Android ARM64, built as a sep
 ## Playable slice
 
 - Third-person shoulder camera with smoothing, cinematic opening move, target lock-on and impact shake.
-- Skinned Quaternius humanoid hero with a 65-joint skeleton, PBR material setup, a hand-bone-attached war axe and retargeted CC0 combat/locomotion animation clips.
+- Realistic CharacterCreator male human with 2K PBR skin/face textures, a 53-joint skeleton, CC0 skinned T-shirt, jeans, boots, trenchcoat and hair, plus bone-attached armor and a hand-bone war axe. Quaternius 65-joint humanoid remains as a fallback.
 - Rigged humanoid enemy and boss variants using the same reusable character pipeline, with tint/scale variations and state-driven idle, chase, attack, hit and death animation requests.
 - Three-hit light combo and stamina-cost heavy attack with distinct startup/active/recovery windows, one hit per target per swing, cancelable pending hits, dodge i-frames, guard and timed perfect parry.
 - Two guardian enemies with visible pre-attack telegraphs.
@@ -14,7 +14,7 @@ An original Godot 4 action-adventure prototype for Android ARM64, built as a sep
 - Cinematic letterbox/title handoff, original procedural ambient drone and combat sounds, hit sparks, player/boss health UI, stamina and mobile touch controls.
 - Android landscape export preset and reproducible CI-built debug APK.
 
-The player and enemy bodies now use a real skinned humanoid mesh and a reusable 65-joint skeleton. The free Quaternius Universal Animation Library 2 Standard pack is retargeted to the base rig at runtime. The GLB is fetched automatically in CI; local development can run `python3 tools/fetch_cc0_animations.py` from this folder. The imported character mesh has no original texture maps in this redistribution copy, so NOVA applies custom PBR materials. The result is a stronger production foundation, but it is not a claim of AAA realism: bespoke high-resolution face/armor textures, additional distinct enemy meshes, animation polish, and real-device visual review remain required.
+The primary character uses the CC0 generated CharacterCreator body and skinned outfit assets, retargeted to the CC0 Quaternius Universal Animation Library 2 Standard pack at runtime. The pack provides 130+ motions; NOVA also adds an original skeletal death-fall clip because the selected pack has no dedicated death animation. The fallback Quaternius base character is retained. All generated binaries are fetched automatically in CI; local development can run `python3 tools/fetch_cc0_animations.py` from this folder. CharacterCreator source code is GPL-3.0, but only its generated CC0 GLB outputs are used; no generator source code is bundled. This is a much more realistic textured foundation, but final visual polish and real-device review remain required before calling it a finished commercial-quality game.
 
 ## Controls
 
