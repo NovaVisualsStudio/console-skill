@@ -8,8 +8,8 @@ All third-party assets below are free to use and released under CC0 1.0. No paid
 | CharacterCreator generated outfit: T-shirt, jeans, boots, trenchcoat and short hair | kblood/CharacterCreator | https://github.com/kblood/CharacterCreator | CC0 1.0 generated output | Skinned clothing and hair meshes fitted to the same 53-joint rig |
 | Quaternius Universal Base Characters - Superhero Male FullBody | Quaternius | https://quaternius.itch.io/universal-base-characters | CC0 1.0 | Fallback humanoid mesh and 65-joint skeleton |
 | Quaternius Universal Animation Library 2 - Standard | Quaternius | https://quaternius.itch.io/universal-animation-library-2 | CC0 1.0 | Retargetable locomotion, melee combos, reactions, parkour and death clips |
-| Stone Wall 1K PBR material | Charlotte Baglioni (photography), Dario Barresi (processing) | https://polyhaven.com/a/stone_wall | CC0 1.0 | Arena walls and ancient portal masonry: diffuse, OpenGL normal and roughness maps |
-| Rock Tile Floor 1K PBR material | Charlotte Baglioni | https://polyhaven.com/a/rock_tile_floor | CC0 1.0 | Arena floor: diffuse, OpenGL normal and roughness maps |
+| Stone Wall 2K/4K PBR material | Charlotte Baglioni (photography), Dario Barresi (processing) | https://polyhaven.com/a/stone_wall | CC0 1.0 | Arena walls and ancient portal masonry: diffuse, OpenGL normal and roughness maps |
+| Rock Tile Floor 2K/4K PBR material | Charlotte Baglioni | https://polyhaven.com/a/rock_tile_floor | CC0 1.0 | Arena floor: diffuse, OpenGL normal and roughness maps |
 
 ## Provenance
 
@@ -18,7 +18,7 @@ All third-party assets below are free to use and released under CC0 1.0. No paid
 - The Standard animation library is fetched by `tools/fetch_cc0_animations.py` from a pinned public source commit. The script verifies the GLB header and length and stores the upstream CC0 notice alongside the asset.
 - Animation import/retargeting maps the Quaternius UAL2 humanoid bone names to the Quaternius base-character skeleton. Only mapped bone tracks are copied into the runtime AnimationLibrary.
 - The UAL2 Standard set has no dedicated death clip, so NOVA includes an original skeletal death-fall animation authored in GDScript and adds it to the runtime library.
-- The two environment texture sets are fetched at 1K JPG resolution from Poly Haven's free public API, verified against the API-provided MD5 hashes, and limited to the diffuse, OpenGL normal and roughness maps to control Android storage and VRAM use. Poly Haven is credited in the in-game HUD as requested by its API terms.
+- The two environment texture sets are fetched from Poly Haven's free public API at 2K by default for Android devices, with an optional 4K high-detail profile. Every JPG is verified against the API-provided MD5 hash. Diffuse, OpenGL normal and roughness maps use mipmaps and GPU texture compression. Select 4K with `NOVA_TEXTURE_TIER=4k`; the balanced Android profile uses `NOVA_TEXTURE_TIER=2k` (default). Poly Haven is credited in the in-game HUD as requested by its API terms.
 - The assets are used as game content, not resold as a standalone asset pack.
 
 ## Reproducible setup
@@ -27,7 +27,9 @@ From the `android-game` directory:
 
 ```sh
 python3 tools/fetch_cc0_animations.py
-python3 tools/fetch_cc0_textures.py
+NOVA_TEXTURE_TIER=2k python3 tools/fetch_cc0_textures.py
+# Optional high-detail profile for higher-memory Android devices:
+NOVA_TEXTURE_TIER=4k python3 tools/fetch_cc0_textures.py
 ```
 
 Then open the project once in Godot 4.7.2 or newer so the GLB is imported. The Android CI workflow runs this setup automatically before import and export.
