@@ -35,7 +35,8 @@ def validate_glb(data: bytes, name: str, minimum_size: int) -> None:
 
 character = fetch(CHARACTER_BASE, "quaternius-standard-male.glb", CHARACTER_DEST, "quaternius-standard-male.glb")
 validate_glb(character, "Quaternius humanoid", 500_000)
-fetch(CHARACTER_BASE, "quaternius-standard-male.LICENSE.md", CHARACTER_DEST, "QUATERNIUS-CC0-LICENSE.md")
+character_license = fetch(CHARACTER_BASE, "quaternius-standard-male.LICENSE.md", CHARACTER_DEST, "QUATERNIUS-CC0-LICENSE.md")
+(CHARACTER_DEST / "QUATERNIUS-CC0-LICENSE.md").write_text(character_license.decode("utf-8").replace("\u2014", "-"), encoding="utf-8")
 
 animation = fetch(ANIMATION_BASE, ANIMATION_PACK + "Unreal-Godot/UAL2_Standard.glb", ANIMATION_DEST, "UAL2_Standard.glb")
 validate_glb(animation, "Quaternius UAL2 Standard", 1_000_000)
