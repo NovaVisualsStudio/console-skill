@@ -10,6 +10,9 @@ func _initialize() -> void:
 	for stage_index in range(3):
 		var positions := MissionObjectives.relic_positions(stage_index)
 		assert(positions.size() == 3, "Each chapter must expose three seal fragments")
+		var sequence := MissionObjectives.relic_sequence(stage_index)
+		assert(sequence.size() == 3, "Each chapter needs a three-step seal puzzle")
+		assert(sequence.has(1) and sequence.has(2) and sequence.has(3), "Seal sequence must use each carved number exactly once")
 		for position in positions:
 			assert(absf(position.x) <= 16.0 and absf(position.z) <= 16.0, "Relic must remain inside the playable arena")
 			assert(not previous_positions.has(position) or stage_index == 0, "Chapter layouts should not reuse identical relic placements")
