@@ -132,6 +132,79 @@ func _build_world() -> void:
     _add_torch(Vector3(-15.0, 0.0, 2.5))
     _add_torch(Vector3(15.0, 0.0, 2.5))
     _add_dust_motes()
+    if stage == 1:
+        _add_sunken_sanctum_decor()
+    elif stage == 2:
+        _add_crown_of_ash_decor()
+
+func _add_sunken_sanctum_decor() -> void:
+    var water_material := StandardMaterial3D.new()
+    water_material.albedo_color = Color(0.025, 0.28, 0.36, 0.72)
+    water_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    water_material.roughness = 0.18
+    water_material.metallic = 0.42
+    water_material.emission_enabled = true
+    water_material.emission = Color(0.015, 0.12, 0.18)
+    for puddle in [Vector3(-8.0, -0.015, 1.0), Vector3(8.0, -0.015, 2.5), Vector3(0.0, -0.015, 14.0)]:
+        var water := MeshInstance3D.new()
+        var water_mesh := CylinderMesh.new()
+        water_mesh.top_radius = 2.3
+        water_mesh.bottom_radius = 2.3
+        water_mesh.height = 0.035
+        water.mesh = water_mesh
+        water.position = puddle
+        water.material_override = water_material
+        add_child(water)
+    var crystal_material := StandardMaterial3D.new()
+    crystal_material.albedo_color = Color(0.08, 0.48, 0.62)
+    crystal_material.metallic = 0.56
+    crystal_material.roughness = 0.22
+    crystal_material.emission_enabled = true
+    crystal_material.emission = Color(0.02, 0.16, 0.24)
+    for crystal_position in [Vector3(-12.0, 0.55, -5.0), Vector3(12.0, 0.55, -7.0), Vector3(-10.5, 0.55, 10.0), Vector3(10.5, 0.55, 11.0)]:
+        var crystal := MeshInstance3D.new()
+        var crystal_mesh := CylinderMesh.new()
+        crystal_mesh.top_radius = 0.025
+        crystal_mesh.bottom_radius = 0.34
+        crystal_mesh.height = 1.1
+        crystal_mesh.radial_segments = 6
+        crystal.mesh = crystal_mesh
+        crystal.position = crystal_position
+        crystal.rotation_degrees.z = 12.0
+        crystal.material_override = crystal_material
+        add_child(crystal)
+
+func _add_crown_of_ash_decor() -> void:
+    var lava_material := StandardMaterial3D.new()
+    lava_material.albedo_color = Color(0.78, 0.13, 0.025)
+    lava_material.emission_enabled = true
+    lava_material.emission = Color(1.0, 0.11, 0.012)
+    lava_material.emission_energy_multiplier = 2.2
+    lava_material.roughness = 0.38
+    for index in range(6):
+        var fissure := MeshInstance3D.new()
+        var fissure_mesh := BoxMesh.new()
+        fissure_mesh.size = Vector3(2.7, 0.035, 0.13)
+        fissure.mesh = fissure_mesh
+        fissure.position = Vector3(-12.5 + float(index) * 5.0, 0.025, -1.5 if index % 2 == 0 else 8.5)
+        fissure.rotation_degrees.y = -12.0 if index % 2 == 0 else 18.0
+        fissure.material_override = lava_material
+        add_child(fissure)
+    var ash_material := StandardMaterial3D.new()
+    ash_material.albedo_color = Color(0.20, 0.075, 0.065)
+    ash_material.roughness = 0.94
+    for spike_position in [Vector3(-13.0, 0.72, -8.0), Vector3(13.0, 0.72, -8.0), Vector3(-14.0, 0.72, 9.0), Vector3(14.0, 0.72, 9.0)]:
+        var spike := MeshInstance3D.new()
+        var spike_mesh := CylinderMesh.new()
+        spike_mesh.top_radius = 0.015
+        spike_mesh.bottom_radius = 0.42
+        spike_mesh.height = 1.45
+        spike_mesh.radial_segments = 7
+        spike.mesh = spike_mesh
+        spike.position = spike_position
+        spike.rotation_degrees.z = -7.0
+        spike.material_override = ash_material
+        add_child(spike)
 
 func _add_box(node_name: String, position: Vector3, size: Vector3, color: Color,
         solid: bool, roughness: float = 0.82, metallic: float = 0.18) -> Node3D:
@@ -289,6 +362,7 @@ func _make_enemy(spawn: Vector3, boss_enemy: bool) -> void:
     enemy.player = player
     enemy.is_boss = boss_enemy
     enemy.difficulty_scale = 1.0 + float(chapter_index) * 0.24
+    enemy.chapter_variant = chapter_index
     enemy.defeated.connect(_on_enemy_defeated)
     enemy.attack_telegraph.connect(_on_enemy_telegraph)
     if boss_enemy:
