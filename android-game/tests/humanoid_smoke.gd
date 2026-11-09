@@ -82,6 +82,25 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    var first_retarget_build_count := NovaHumanoidRig.get_retargeted_animation_build_count()
+    var cached_peer := HUMANOID_SCRIPT.new() as NovaHumanoidRig
+    root.add_child(cached_peer)
+    await process_frame
+    await process_frame
+    if cached_peer.animation_player == null or cached_peer.loaded_animation_count != rig.loaded_animation_count:
+        push_error("Humanoid cache test: a second matching rig did not receive the shared animation library.")
+        cached_peer.free()
+        rig.free()
+        quit(1)
+        return
+    if NovaHumanoidRig.get_retargeted_animation_build_count() != first_retarget_build_count:
+        push_error("Humanoid cache test: matching humanoid re-ran animation retargeting instead of sharing the cached library.")
+        cached_peer.free()
+        rig.free()
+        quit(1)
+        return
+    cached_peer.free()
+    await process_frame
     var available_clips := rig.animation_player.get_animation_list()
     var has_light_melee_clip := false
     var has_heavy_melee_clip := false
