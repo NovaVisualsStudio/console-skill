@@ -24,7 +24,7 @@ concurrency:
 jobs:
   validate:
     timeout-minutes: 20
-    name: Validate Godot prototype (thirteen gates + six repeat stability passes (2K mobile PBR))
+    name: Validate Godot campaign build (thirteen gates plus boss-archetype gate + six repeat stability passes (2K mobile PBR))
     runs-on: ubuntu-latest
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
@@ -110,6 +110,9 @@ jobs:
 
       - name: Gate 5 - deterministic combat behaviour tests
         run: godot --headless --path android-game --script res://tests/combat_smoke.gd
+
+      - name: Gate 5B - distinct three-boss archetype test
+        run: godot --headless --verbose --path android-game --script res://tests/boss_profiles_smoke.gd
 
       - name: Gate 6 - cinematic arena integration test
         run: godot --headless --verbose --path android-game --script res://tests/cinematic_smoke.gd

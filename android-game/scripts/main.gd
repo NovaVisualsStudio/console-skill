@@ -18,6 +18,7 @@ var camera_rig: NovaCameraRig
 var audio_fx: NovaAudioFX
 var active_enemies: Array[NovaEnemy] = []
 var hud_label: Label
+var objective_label: Label
 var health_bar: ProgressBar
 var stamina_bar: ProgressBar
 var boss_bar: ProgressBar
@@ -195,6 +196,27 @@ func _add_sunken_sanctum_decor() -> void:
     water_material.metallic = 0.42
     water_material.emission_enabled = true
     water_material.emission = Color(0.015, 0.12, 0.18)
+    # Flooded cathedral silhouette: broken side arches and a submerged altar.
+    var arch_material := StandardMaterial3D.new()
+    arch_material.albedo_color = Color(0.10, 0.24, 0.29)
+    arch_material.roughness = 0.42
+    arch_material.metallic = 0.28
+    for side in [-1.0, 1.0]:
+        var pier := _add_box("SanctumBrokenArchLeft" if side < 0.0 else "SanctumBrokenArchRight",
+            Vector3(side * 12.0, 3.0, -8.0), Vector3(1.15, 6.0, 1.4), Color(0.12, 0.26, 0.30), true, 0.48, 0.24)
+        var span := _add_box("SanctumArchSpan",
+            Vector3(side * 8.5, 6.1, -8.0), Vector3(8.0, 0.85, 1.2), Color(0.10, 0.22, 0.27), true, 0.52, 0.20)
+        pier.rotation.z = side * -0.035
+        span.rotation.z = side * -0.025
+        var pier_mesh := _find_mesh_instance(pier)
+        var span_mesh := _find_mesh_instance(span)
+        if pier_mesh != null:
+            pier_mesh.material_override = arch_material
+        if span_mesh != null:
+            span_mesh.material_override = arch_material
+    var sanctum_altar := _add_box("SanctumSubmergedAltar", Vector3(0.0, 0.85, -14.0),
+        Vector3(5.2, 1.7, 2.8), Color(0.08, 0.20, 0.25), true, 0.34, 0.42)
+    sanctum_altar.rotation.y = PI * 0.25
     for puddle in [Vector3(-8.0, -0.015, 1.0), Vector3(8.0, -0.015, 2.5), Vector3(0.0, -0.015, 14.0)]:
         var water := MeshInstance3D.new()
         var water_mesh := CylinderMesh.new()
@@ -231,6 +253,27 @@ func _add_crown_of_ash_decor() -> void:
     lava_material.emission = Color(1.0, 0.11, 0.012)
     lava_material.emission_energy_multiplier = 2.2
     lava_material.roughness = 0.38
+    # Volcanic crown skyline: asymmetric basalt monoliths frame the arena.
+    for index in range(7):
+        var side := -1.0 if index % 2 == 0 else 1.0
+        var z_pos := -13.0 + float(index) * 4.1
+        var monolith := _add_box("CrownObsidianMonolith" if index == 0 else "CrownObsidianPillar",
+            Vector3(side * (13.2 + float(index % 3) * 0.55), 2.7 + float(index % 2) * 0.8, z_pos),
+            Vector3(1.15, 5.4 + float(index % 2) * 1.6, 1.35),
+            Color(0.075, 0.045, 0.055), true, 0.24, 0.72)
+        monolith.rotation.y = deg_to_rad(float(index * 19))
+        var monolith_mesh := _find_mesh_instance(monolith)
+        if monolith_mesh != null:
+            var obsidian := StandardMaterial3D.new()
+            obsidian.albedo_color = Color(0.075, 0.045, 0.055)
+            obsidian.roughness = 0.24
+            obsidian.metallic = 0.72
+            obsidian.emission_enabled = true
+            obsidian.emission = Color(0.16, 0.018, 0.008)
+            monolith_mesh.material_override = obsidian
+    var crown_throne := _add_box("CrownThroneDais", Vector3(0.0, 0.34, -15.4),
+        Vector3(7.4, 0.68, 4.2), Color(0.18, 0.055, 0.045), true, 0.32, 0.58)
+    crown_throne.rotation.y = PI * 0.25
     for index in range(6):
         var fissure := MeshInstance3D.new()
         var fissure_mesh := BoxMesh.new()
@@ -470,6 +513,7 @@ func _make_enemy(spawn: Vector3, boss_enemy: bool) -> void:
     enemy.position = spawn
     enemy.player = player
     enemy.is_boss = boss_enemy
+    enemy.boss_archetype = chapter_index if boss_enemy else 0
     enemy.difficulty_scale = 1.0 + float(chapter_index) * 0.24
     enemy.chapter_variant = chapter_index
     enemy.flank_side = 0.0 if boss_enemy else (-1.0 if spawn.x < 0.0 else 1.0)
@@ -499,7 +543,9 @@ func _begin_combat() -> void:
             enemy.activate()
     intro_label.visible = true
     intro_label.modulate.a = 1.0
-    intro_label.text = "CHAPTER %d - THE WARDEN AWAKENS" % (chapter_index + 1)
+    intro_label.text = "THE WARDEN AWAKENS" if chapter_index == 0 else "%s  |  %s" % [CHAPTER_NAMES[chapter_index], BOSS_NAMES[chapter_index]]
+    if is_instance_valid(objective_label):
+        objective_label.text = _chapter_objective(chapter_index)
     var tween := create_tween()
     tween.tween_interval(0.75)
     tween.tween_property(intro_label, "modulate:a", 0.0, 0.7)
@@ -549,6 +595,14 @@ func _build_hud() -> void:
     boss_bar.value = 620
     boss_bar.custom_minimum_size = Vector2(340, 14)
     boss_stats.add_child(boss_bar)
+    objective_label = Label.new()
+    objective_label.name = "ChapterObjective"
+    objective_label.position = Vector2(22, 154)
+    objective_label.size = Vector2(520, 34)
+    objective_label.add_theme_font_size_override("font_size", 16)
+    objective_label.add_theme_color_override("font_color", Color(0.88, 0.82, 0.68))
+    objective_label.text = _chapter_objective(chapter_index)
+    layer.add_child(objective_label)
     if is_instance_valid(boss):
         boss_bar.max_value = boss.max_health
         boss_bar.value = boss.health
@@ -794,6 +848,8 @@ func _on_enemy_defeated(is_boss_enemy: bool) -> void:
         continue_button.text = "REPLAY CAMPAIGN" if final_chapter else "NEXT CHAPTER"
         continue_button.visible = true
         retry_button.visible = false
+        if is_instance_valid(objective_label):
+            objective_label.text = "REALM RESTORED  |  CAMPAIGN PROGRESS SAVED"
         _save_campaign_progress(chapter_index if final_chapter else chapter_index + 1, final_chapter)
         camera_rig.shake(0.72, 0.65)
     elif defeated_count >= 2 and not boss_defeated:
@@ -803,6 +859,16 @@ func _on_enemy_defeated(is_boss_enemy: bool) -> void:
         for enemy in active_enemies:
             if is_instance_valid(enemy):
                 enemy.deactivate()
+
+func _chapter_objective(index: int) -> String:
+    match index:
+        0:
+            return "OBJECTIVE  |  Break the Ashen Gate guardians and defeat the Warden"
+        1:
+            return "OBJECTIVE  |  Cross the flooded sanctum and silence the Drowned Sentinel"
+        2:
+            return "OBJECTIVE  |  Survive the Crown of Ash and overthrow the Crowned Tyrant"
+    return "OBJECTIVE  |  Defeat the realm guardian"
 
 func _show_campaign_complete() -> void:
     combat_started = true
