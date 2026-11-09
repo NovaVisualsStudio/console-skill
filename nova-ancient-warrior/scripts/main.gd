@@ -1113,6 +1113,7 @@ func _build_hud() -> void:
 	pause_menu.pause_requested.connect(_on_pause_requested)
 	pause_menu.resume_requested.connect(_on_resume_requested)
 	pause_menu.audio_settings_changed.connect(_on_audio_settings_changed)
+	pause_menu.language_changed.connect(_on_language_changed)
 	layer.add_child(pause_menu)
 
 
@@ -1190,6 +1191,12 @@ func _on_resume_requested() -> void:
 	if is_instance_valid(pause_menu):
 		pause_menu.call("set_paused", false)
 	if is_instance_valid(status_label):
+		status_label.text = LevelCatalog.wave_title(current_wave)
+
+
+func _on_language_changed(_language: String) -> void:
+	_apply_gameplay_language()
+	if is_instance_valid(status_label) and not dialogue_active:
 		status_label.text = LevelCatalog.wave_title(current_wave)
 
 
