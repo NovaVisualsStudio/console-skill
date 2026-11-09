@@ -102,6 +102,7 @@ func _ready() -> void:
 	_build_world()
 	_build_player()
 	_build_hud()
+	_apply_gameplay_language()
 	_build_enemies()
 	_build_audio()
 	_update_hud()
@@ -636,6 +637,9 @@ func _play_chapter_intro(chapter: int) -> void:
 		"Cross the burning causeway. The Ember Warlord protects the second seal.",
 		"The last seal waits in the frozen throne room. End the Obsidian Sovereign."
 	]
+	if _is_arabic():
+		titles = ["", "الفصل الأول  |  الأطلال الغارقة", "الفصل الثاني  |  ممر الجمر", "الفصل الثالث  |  عرش السبج"]
+		subtitles = ["", "الختم الأول يرقد تحت المعبد الغارق. اكسر دفاع عملاق الرماد.", "اعبر ممر النار. قائد الحرب النارية يحرس الختم الثاني.", "الختم الأخير ينتظر في قاعة العرش المتجمدة. أنهِ حكم سيد السبج."]
 	var safe_chapter := clampi(chapter, 1, 3)
 	if chapter_intro_tween != null and chapter_intro_tween.is_running():
 		chapter_intro_tween.kill()
@@ -845,7 +849,7 @@ func _handle_wave_cleared() -> void:
 		game_over = true
 		_save_run(true)
 		status_label.text = "سقط حاكم العرش الأسود | اكتملت الحملة" if _is_arabic() else "THE OBSIDIAN SOVEREIGN HAS FALLEN | CAMPAIGN COMPLETE"
-		restart_button.text = "REPLAY FINAL CHAPTER"
+		restart_button.text = "إعادة الفصل الأخير" if _is_arabic() else "REPLAY FINAL CHAPTER"
 		restart_button.visible = true
 		upgrade_panel.visible = true
 		_refresh_upgrade_panel()
@@ -1071,6 +1075,7 @@ func _build_hud() -> void:
 	layer.add_child(upgrade_panel)
 	_refresh_upgrade_panel()
 	var hint := Label.new()
+	hint.name = "CombatHint"
 	hint.anchor_left = 0.5
 	hint.anchor_right = 0.5
 	hint.anchor_top = 1.0
@@ -1080,7 +1085,7 @@ func _build_hud() -> void:
 	hint.offset_top = -34.0
 	hint.offset_bottom = -8.0
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.text = "MOVE  |  J ATTACK  |  H HEAVY  |  I BLOCK  |  TAB LOCK  |  SHIFT DODGE"
+	hint.text = "تحرك  |  J هجوم  |  H ثقيل  |  I صد  |  TAB تثبيت  |  SHIFT مراوغة" if _is_arabic() else "MOVE  |  J ATTACK  |  H HEAVY  |  I BLOCK  |  TAB LOCK  |  SHIFT DODGE"
 	hint.add_theme_font_size_override("font_size", 14)
 	hint.add_theme_color_override("font_color", Color(0.72, 0.68, 0.61))
 	layer.add_child(hint)
@@ -1111,9 +1116,41 @@ func _build_hud() -> void:
 	layer.add_child(pause_menu)
 
 
+func _localized_touch_caption(action: String, fallback: String) -> String:
+	if not _is_arabic():
+		return fallback
+	var captions := {"attack": "هجوم", "heavy_attack": "ثقيل", "jump": "قفز", "lock_on": "تثبيت", "dodge": "مراوغة", "block": "صد"}
+	return str(captions.get(action, fallback))
+
+
+func _apply_gameplay_language() -> void:
+	var arabic := _is_arabic()
+	var hint := find_child("CombatHint", true, false) as Label
+	if hint != null:
+		hint.text = "تحرك  |  J هجوم  |  H ثقيل  |  I صد  |  TAB تثبيت  |  SHIFT مراوغة" if arabic else "MOVE  |  J ATTACK  |  H HEAVY  |  I BLOCK  |  TAB LOCK  |  SHIFT DODGE"
+		hint.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+	for action in ["attack", "heavy_attack", "jump", "lock_on", "dodge", "block"]:
+		var button := find_child("Touch_" + action, true, false) as Button
+		if button != null:
+			var captions := {"attack": "ATTACK", "heavy_attack": "HEAVY", "jump": "JUMP", "lock_on": "LOCK", "dodge": "DODGE", "block": "BLOCK"}
+			button.text = _localized_touch_caption(action, str(captions[action]))
+			button.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+	if is_instance_valid(interact_button):
+		interact_button.text = "تفاعل" if arabic else "INTERACT"
+		interact_button.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+	if is_instance_valid(restart_button):
+		restart_button.text = "إعادة المحاولة" if arabic else "RESTART"
+	if is_instance_valid(dialogue_panel):
+		dialogue_panel.layout_direction = Control.LAYOUT_DIRECTION_RTL if arabic else Control.LAYOUT_DIRECTION_LTR
+	if is_instance_valid(upgrade_panel):
+		_refresh_upgrade_panel()
+	_update_hud()
+
+
 func _add_touch_button(layer: CanvasLayer, caption: String, action: String, offset: Vector2, size: Vector2 = Vector2(92.0, 82.0), right_side: bool = false) -> void:
 	var button := Button.new()
-	button.text = caption
+	button.name = "Touch_" + action
+	button.text = _localized_touch_caption(action, caption)
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = size
 	button.anchor_top = 1.0
@@ -1436,7 +1473,7 @@ func _damage_player(amount: int, source: Node3D = null) -> void:
 		game_over = true
 		_save_run(false)
 		status_label.text = "سقطت في المعركة | الأرواح محفوظة | طوّر محاربك" if _is_arabic() else "YOU FELL | SOULS SAVED | FORGE YOUR WARRIOR"
-		restart_button.text = "CONTINUE CAMPAIGN"
+		restart_button.text = "متابعة الحملة" if _is_arabic() else "CONTINUE CAMPAIGN"
 		restart_button.visible = true
 		upgrade_panel.visible = true
 		_refresh_upgrade_panel()
@@ -1475,9 +1512,9 @@ func _refresh_upgrade_panel() -> void:
 	if not is_instance_valid(upgrade_panel):
 		return
 	var labels := {
-		"blade": "BLADE  +4 DAMAGE",
-		"vitality": "VITALITY  +15 MAX HP",
-		"guard": "GUARD  -12% DAMAGE"
+		"blade": "النصل  +4 ضرر" if _is_arabic() else "BLADE  +4 DAMAGE",
+		"vitality": "الحيوية  +15 صحة قصوى" if _is_arabic() else "VITALITY  +15 MAX HP",
+		"guard": "الدرع  -12% ضرر" if _is_arabic() else "GUARD  -12% DAMAGE"
 	}
 	for key in upgrade_buttons:
 		var button := upgrade_buttons[key] as Button
@@ -1485,10 +1522,10 @@ func _refresh_upgrade_panel() -> void:
 		var level_key := "upgrade_" + str(key)
 		var level := int(_save_profile().get(level_key, 0))
 		if cost < 0:
-			button.text = "%s  |  MAX LEVEL" % labels[key]
+			button.text = "%s  |  %s" % [labels[key], "أقصى مستوى" if _is_arabic() else "MAX LEVEL"]
 			button.disabled = true
 		else:
-			button.text = "%s  |  LV %d/3  |  %d SOULS" % [labels[key], level, cost]
+			button.text = ("%s  |  مستوى %d/3  |  %d روح" % [labels[key], level, cost]) if _is_arabic() else ("%s  |  LV %d/3  |  %d SOULS" % [labels[key], level, cost])
 			button.disabled = int(_save_profile().get("total_souls", 0)) < cost
 
 
