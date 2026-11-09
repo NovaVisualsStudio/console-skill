@@ -62,7 +62,8 @@ static func _build_sunken_layout(root: Node3D) -> void:
 	_solid_block(root, "SunkenAltarTop", Vector3(3.6, 0.24, 1.5), Vector3(0.0, 0.46, -13.6), trim)
 	for side in [-1.0, 1.0]:
 		# Keep the opening combat spawn ring clear; cover remains on the outer flank.
-		_solid_block(root, "SunkenCoverStone", Vector3(2.2, 0.82, 1.0), Vector3(side * 10.0, 0.41, 3.4), stone)
+		var side_label := "Left" if side < 0.0 else "Right"
+		_solid_block(root, "SunkenCoverStone_%s" % side_label, Vector3(2.2, 0.82, 1.0), Vector3(side * 10.0, 0.41, 3.4), stone)
 	_add_arch(root, "SunkenEntryArch", Vector3(0.48, 5.4, 0.55), stone, trim)
 
 
