@@ -16,7 +16,7 @@ func _run() -> void:
         quit(1)
         return
     if rig.skeleton.get_bone_count() < 50:
-        push_error("Humanoid asset test: expected a production humanoid skeleton with at least 60 joints.")
+        push_error("Humanoid asset test: expected a production humanoid skeleton with at least 50 joints.")
         rig.free()
         quit(1)
         return
@@ -72,7 +72,7 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
-    print("HUMANOID TEST PASS: %d bones, %d retargeted CC0 clips, idle=%s, attack=%s, death=%s." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count, idle_name, attack_name, death_name])
+    print("HUMANOID TEST PASS: %d bones, %d retargeted clips, %d skinned outfit meshes, idle=%s, attack=%s, death=%s." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count, rig.attached_clothing_mesh_count, idle_name, attack_name, death_name])
     rig.free()
     await process_frame
     quit(0)
