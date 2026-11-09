@@ -88,7 +88,7 @@ func play_dodge(direction: Vector3) -> void:
 	if absf(local_direction.x) > absf(local_direction.z):
 		_play_action("dodge_left" if local_direction.x < 0.0 else "dodge_right", 2.2)
 	else:
-		_play_action("roll_forward", 3.0)
+		_play_action("forward_roll", 3.0)
 
 
 func phase_change(phase: int) -> void:
@@ -102,7 +102,7 @@ func hit_react() -> void:
 	if _model is WarriorVisual:
 		_model.call("hit_react")
 	else:
-		_play_action("hit_front", 1.4)
+		_play_action("hit_from_front", 1.4)
 
 
 func _find_animation(fragment: String) -> String:
