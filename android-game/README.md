@@ -5,7 +5,8 @@ An original Godot 4 action-adventure prototype for Android ARM64, built as a sep
 ## Playable slice
 
 - Third-person shoulder camera with smoothing, cinematic opening move, target lock-on and impact shake.
-- Procedural low-poly warrior model with heavy war axe, armor parts and swing motion.
+- Skinned Quaternius humanoid hero with a 65-joint skeleton, PBR material setup, a hand-bone-attached war axe and retargeted CC0 combat/locomotion animation clips.
+- Rigged humanoid enemy and boss variants using the same reusable character pipeline, with tint/scale variations and state-driven idle, chase, attack, hit and death animation requests.
 - Three-hit light combo and stamina-cost heavy attack with distinct startup/active/recovery windows, one hit per target per swing, cancelable pending hits, dodge i-frames, guard and timed perfect parry.
 - Two guardian enemies with visible pre-attack telegraphs.
 - Ashen Warden boss with a 50% health phase transition and three distinct patterns: frontal melee, lateral sweep and radial slam. Warning rings change size and colour to signal the danger area; phase two cycles all three faster.
@@ -13,7 +14,7 @@ An original Godot 4 action-adventure prototype for Android ARM64, built as a sep
 - Cinematic letterbox/title handoff, original procedural ambient drone and combat sounds, hit sparks, player/boss health UI, stamina and mobile touch controls.
 - Android landscape export preset and reproducible CI-built debug APK.
 
-The models and animation motions are still procedural primitives/tweens. This is a cinematic mechanics slice, not final AAA character art or a finished full game. Replace primitives with original rigged Blender models and authored animation clips before production release.
+The player and enemy bodies now use a real skinned humanoid mesh and a reusable 65-joint skeleton. The free Quaternius Universal Animation Library 2 Standard pack is retargeted to the base rig at runtime. The GLB is fetched automatically in CI; local development can run `python3 tools/fetch_cc0_animations.py` from this folder. The imported character mesh has no original texture maps in this redistribution copy, so NOVA applies custom PBR materials. The result is a stronger production foundation, but it is not a claim of AAA realism: bespoke high-resolution face/armor textures, additional distinct enemy meshes, animation polish, and real-device visual review remain required.
 
 ## Controls
 
@@ -33,6 +34,6 @@ The workflow uploads `nova-ancient-warrior-android-debug` as a 14-day artifact a
 
 Compatibility renderer; aim for 30 FPS on entry-level Android and 60 FPS on capable devices after physical testing. Particle counts, shadows, lights and draw calls are intentionally restrained. Headless CI success is not a performance benchmark.
 
-## Licences
+## Licences and asset setup
 
-All current game scripts and procedural geometry are original project content. Third-party assets must be reviewed individually and recorded in an asset manifest with creator, source URL, licence and attribution requirements. Do not include God of War assets, models, animations, audio, logos or level layouts.
+See `assets/ASSET_MANIFEST.md` for the CC0 character and animation sources, provenance, and reproducible setup. No paid asset service is required. Do not include God of War assets, models, animations, audio, logos or level layouts.
