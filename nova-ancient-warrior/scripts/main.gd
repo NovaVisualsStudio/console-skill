@@ -478,6 +478,8 @@ func _build_player() -> void:
 	hero_visual.name = "WarriorVisual"
 	hero_visual.set("blade_upgrade", int(_save_profile().get("upgrade_blade", 0)))
 	player.add_child(hero_visual)
+	if hero_visual is RiggedWarriorVisual:
+		hero_visual.rotation.y = PI
 
 
 func _build_enemies() -> void:
