@@ -7,6 +7,7 @@ const ANIMATION_SCENE_PATH := "res://assets/animations/UAL2_Standard.glb"
 @export var tint_color := Color(0.20, 0.27, 0.34)
 @export var character_scale := 1.0
 @export var accent_color := Color(0.62, 0.43, 0.20)
+@export_enum("hero", "enemy", "boss") var armor_style := "hero"
 
 var model_root: Node3D
 var skeleton: Skeleton3D
@@ -34,6 +35,7 @@ func _build_character() -> void:
         push_error("NOVA character GLB is missing its Skeleton3D.")
     else:
         skeleton.show_rest_only = false
+        _build_armor_set()
 
 func _apply_character_materials(root: Node) -> void:
     var armor := StandardMaterial3D.new()
@@ -62,6 +64,69 @@ func _apply_character_materials(root: Node) -> void:
                     primary_material = armor
             mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
         _apply_character_materials(child)
+
+func _build_armor_set() -> void:
+    var steel := StandardMaterial3D.new()
+    steel.albedo_color = tint_color.lightened(0.10)
+    steel.metallic = 0.76
+    steel.roughness = 0.40
+    var trim := StandardMaterial3D.new()
+    trim.albedo_color = accent_color
+    trim.metallic = 0.84
+    trim.roughness = 0.31
+    var leather := StandardMaterial3D.new()
+    leather.albedo_color = tint_color.darkened(0.28)
+    leather.roughness = 0.88
+    _add_bone_piece("spine_02", _box_mesh(Vector3(0.48, 0.42, 0.16)), Vector3(0.0, 0.0, 0.07), Vector3.ZERO, Vector3.ONE, steel)
+    _add_bone_piece("spine_02", _box_mesh(Vector3(0.40, 0.045, 0.19)), Vector3(0.0, -0.17, 0.16), Vector3.ZERO, Vector3.ONE, trim)
+    _add_bone_piece("pelvis", _box_mesh(Vector3(0.48, 0.13, 0.22)), Vector3(0.0, 0.0, 0.04), Vector3.ZERO, Vector3.ONE, trim)
+    _add_bone_piece("clavicle_l", _sphere_mesh(0.19), Vector3.ZERO, Vector3.ZERO, Vector3(1.30, 0.78, 1.18), trim)
+    _add_bone_piece("clavicle_r", _sphere_mesh(0.19), Vector3.ZERO, Vector3.ZERO, Vector3(1.30, 0.78, 1.18), trim)
+    _add_bone_piece("lowerarm_l", _capsule_mesh(0.105, 0.34), Vector3.ZERO, Vector3(0.0, 0.0, 90.0), Vector3(1.0, 1.0, 1.0), steel)
+    _add_bone_piece("lowerarm_r", _capsule_mesh(0.105, 0.34), Vector3.ZERO, Vector3(0.0, 0.0, 90.0), Vector3(1.0, 1.0, 1.0), steel)
+    _add_bone_piece("calf_l", _box_mesh(Vector3(0.18, 0.36, 0.15)), Vector3.ZERO, Vector3.ZERO, Vector3.ONE, steel)
+    _add_bone_piece("calf_r", _box_mesh(Vector3(0.18, 0.36, 0.15)), Vector3.ZERO, Vector3.ZERO, Vector3.ONE, steel)
+    if armor_style == "boss":
+        for side in [-1.0, 1.0]:
+            _add_bone_piece("Head", _horn_mesh(), Vector3(side * 0.15, 0.18, 0.0), Vector3(0.0, 0.0, side * -34.0), Vector3.ONE, trim)
+
+func _add_bone_piece(bone_name: String, mesh: Mesh, local_position: Vector3, local_rotation_degrees: Vector3, local_scale: Vector3, material: Material) -> void:
+    var attachment := attach_to_bone(bone_name)
+    if attachment == self:
+        return
+    var piece := MeshInstance3D.new()
+    piece.mesh = mesh
+    piece.position = local_position
+    piece.rotation_degrees = local_rotation_degrees
+    piece.scale = local_scale
+    piece.material_override = material
+    piece.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+    attachment.add_child(piece)
+
+func _box_mesh(size: Vector3) -> BoxMesh:
+    var mesh := BoxMesh.new()
+    mesh.size = size
+    return mesh
+
+func _sphere_mesh(radius: float) -> SphereMesh:
+    var mesh := SphereMesh.new()
+    mesh.radius = radius
+    mesh.height = radius * 2.0
+    return mesh
+
+func _capsule_mesh(radius: float, height: float) -> CapsuleMesh:
+    var mesh := CapsuleMesh.new()
+    mesh.radius = radius
+    mesh.height = height
+    return mesh
+
+func _horn_mesh() -> CylinderMesh:
+    var mesh := CylinderMesh.new()
+    mesh.top_radius = 0.012
+    mesh.bottom_radius = 0.075
+    mesh.height = 0.34
+    mesh.radial_segments = 8
+    return mesh
 
 func _load_and_retarget_animations() -> void:
     if skeleton == null:
