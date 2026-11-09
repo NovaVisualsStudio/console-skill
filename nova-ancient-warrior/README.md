@@ -36,7 +36,7 @@ This is a functional prototype character, not a photorealistic human. It does no
 - Android renderer: Godot GL Compatibility, using the OpenGL ES 3 path for broader device coverage than a Vulkan-only requirement.
 - Desktop master viewport: 1920 x 1080.
 - Android viewport: 1280 x 720; quality scaling and sustained performance still require physical-device profiling.
-- Android export preset enables ARMv7 and ARM64 architectures.
+- Android export preset targets ARM64 only, matching the mid/high-tier device scope and avoiding the extra ARMv7 native library payload. The APK workflow verifies that the ARM64 library is present and no ARMv7 libraries are packaged.
 - Android now exposes a saved MID profile (45 FPS cap, conservative lighting) and an opt-in HIGH profile (60 FPS cap, glow and key-light shadows) with larger environment-detail budgets. These are configurable caps, not measured performance guarantees; high-tier 256px PBR maps, effects and increased geometry still require physical-device memory, thermal and frame-pacing tests.
 - Desktop retains a 60 FPS cap, glow and key-light shadows.
 - Raising Android frame rate or re-enabling expensive effects requires measurements on representative physical devices.
