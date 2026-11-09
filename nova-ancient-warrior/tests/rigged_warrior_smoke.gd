@@ -80,6 +80,10 @@ func _run_rigged_hero_smoke() -> void:
 	if "sidedodgeright" not in str(animation_player.current_animation).to_lower().replace(" ", ""):
 		_fail(visual, "Right dodge must select the right motion-captured evade")
 		return
+	visual.call("play_dodge", Vector3.FORWARD)
+	if "forwardroll" not in str(animation_player.current_animation).to_lower().replace(" ", ""):
+		_fail(visual, "Forward dodge must select the forward roll clip")
+		return
 	visual.call("hit_react")
 	if "hitfromfront" not in str(animation_player.current_animation).to_lower().replace(" ", ""):
 		_fail(visual, "Hit reaction must select a directional reaction clip")
