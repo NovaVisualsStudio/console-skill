@@ -33,13 +33,22 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
-    if not rig.uses_realistic_character or rig.attached_clothing_mesh_count < 4:
-        push_error("Humanoid asset test: CC0 realistic body and four skinned outfit pieces must load.")
+    if not rig.uses_realistic_character or rig.attached_clothing_mesh_count < 5:
+        push_error("Humanoid asset test: CC0 realistic body, four outfit pieces and short hair must load.")
         rig.free()
         quit(1)
         return
     if rig.primary_mesh == null or rig.primary_material == null:
         push_error("Humanoid asset test: character mesh or PBR material was not assigned.")
+        rig.free()
+        quit(1)
+        return
+    var hair_mesh_found := false
+    for child in rig.skeleton.get_children():
+        if child is MeshInstance3D and String(child.name).to_lower().contains("hairshort02"):
+            hair_mesh_found = true
+    if not hair_mesh_found:
+        push_error("Humanoid appearance test: skinned CC0 short-hair mesh was not attached to the hero skeleton.")
         rig.free()
         quit(1)
         return
