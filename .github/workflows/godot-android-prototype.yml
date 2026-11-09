@@ -17,8 +17,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: nova-android-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
+    timeout-minutes: 20
     name: Validate Godot prototype (twelve gates + six repeat stability passes)
     runs-on: ubuntu-latest
     env:
