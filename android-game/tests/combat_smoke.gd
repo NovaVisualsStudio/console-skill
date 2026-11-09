@@ -204,6 +204,38 @@ func _run_tests() -> void:
         await _finish(1, test_root)
         return
 
+    # Camera-relative movement must follow the active shoulder camera, not world axes.
+    var movement_camera := Camera3D.new()
+    movement_camera.rotation.y = PI * 0.5
+    test_root.add_child(movement_camera)
+    player.movement_camera = movement_camera
+    var camera_forward := player._get_camera_relative_direction(Vector2(0.0, -1.0))
+    if camera_forward.distance_to(Vector3.LEFT) > 0.01:
+        push_error("Camera-relative forward movement did not follow the camera yaw.")
+        await _finish(1, test_root)
+        return
+    var camera_right := player._get_camera_relative_direction(Vector2(1.0, 0.0))
+    if camera_right.distance_to(Vector3.BACK) > 0.01:
+        push_error("Camera-relative right movement did not follow the camera yaw.")
+        await _finish(1, test_root)
+        return
+    # A lock-on dodge must preserve target-facing orientation while moving evasively.
+    player.lock_target = boss
+    player.rotation.y = 0.37
+    Input.action_press("move_right")
+    if not player.perform_dodge():
+        Input.action_release("move_right")
+        push_error("Lock-on dodge could not be activated.")
+        await _finish(1, test_root)
+        return
+    Input.action_release("move_right")
+    if not is_equal_approx(player.rotation.y, 0.37):
+        push_error("Lock-on dodge incorrectly rotated the warrior away from the target.")
+        await _finish(1, test_root)
+        return
+    player.lock_target = null
+    await create_timer(0.46).timeout
+
     var attacker := ENEMY_SCRIPT.new() as NovaEnemy
     attacker.player = player
     attacker.position = Vector3(0, 0, -1.5)
