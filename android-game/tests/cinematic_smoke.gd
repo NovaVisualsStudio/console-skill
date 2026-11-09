@@ -34,6 +34,13 @@ func _run_tests() -> void:
         push_error("Encounter should contain two guardians and one boss.")
         await _finish(1, arena)
         return
+    # Guardians must take distinct flank roles and stagger their opening attacks.
+    var left_guardian := arena.active_enemies[0]
+    var right_guardian := arena.active_enemies[1]
+    if left_guardian.flank_side >= 0.0 or right_guardian.flank_side <= 0.0 or arena.boss.flank_side != 0.0:
+        push_error("Encounter AI did not assign opposing guardian flank roles and a neutral boss role.")
+        await _finish(1, arena)
+        return
     if arena.combat_started or arena.player.input_enabled:
         push_error("The cinematic opening should lock combat input before the intro completes.")
         await _finish(1, arena)
@@ -98,6 +105,17 @@ func _run_tests() -> void:
             await _finish(1, arena)
             return
 
+    if arena.active_enemies[0].attack_cooldown >= arena.active_enemies[1].attack_cooldown:
+        push_error("Guardian opening attacks were not staggered to prevent synchronized pressure.")
+        await _finish(1, arena)
+        return
+    var second_guardian_position := right_guardian.global_position
+    right_guardian.global_position = left_guardian.global_position + Vector3(0.0, 0.0, 1.0)
+    if left_guardian._get_separation_vector().length() <= 0.01:
+        push_error("Enemy separation steering failed when guardians overlap.")
+        await _finish(1, arena)
+        return
+    right_guardian.global_position = second_guardian_position
     # Exercise the actual Android touch widgets, not just their node names.
     var forward_button := arena.find_child("move_forward", true, false) as Button
     var light_button := arena.find_child("light_attack", true, false) as Button
