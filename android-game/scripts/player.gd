@@ -20,6 +20,7 @@ const MAX_STAMINA := 100.0
 
 var health := MAX_HEALTH
 var stamina := MAX_STAMINA
+var stamina_regen_delay := 0.0
 var current_state: CombatState = CombatState.IDLE
 var dodge_timer := 0.0
 var attack_cooldown := 0.0
@@ -218,7 +219,10 @@ func _update_timers(delta: float) -> void:
     parry_timer = maxf(0.0, parry_timer - delta)
     stagger_timer = maxf(0.0, stagger_timer - delta)
     combo_chain_timer = maxf(0.0, combo_chain_timer - delta)
-    stamina = minf(MAX_STAMINA, stamina + 14.0 * delta)
+    stamina_regen_delay = maxf(0.0, stamina_regen_delay - delta)
+    if stamina_regen_delay <= 0.0:
+        var regen_rate := 7.0 if guard_active else 14.0
+        stamina = minf(MAX_STAMINA, stamina + regen_rate * delta)
     invulnerable = dodge_timer > 0.0
     stamina_changed.emit(stamina, MAX_STAMINA)
 
@@ -281,6 +285,7 @@ func perform_heavy_attack() -> bool:
     if stamina < 30.0:
         return false
     stamina -= 30.0
+    stamina_regen_delay = 1.05
     stamina_changed.emit(stamina, MAX_STAMINA)
     combo_step = 0
     combo_chain_timer = 0.0
@@ -343,6 +348,7 @@ func perform_dodge() -> bool:
         return false
     _cancel_pending_attack()
     stamina -= 18.0
+    stamina_regen_delay = 0.65
     stamina_changed.emit(stamina, MAX_STAMINA)
     var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
     dodge_direction = Vector3(input_vector.x, 0.0, input_vector.y)
