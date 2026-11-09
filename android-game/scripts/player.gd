@@ -33,6 +33,7 @@ var pending_attack_damage := 0
 var pending_attack_range := LIGHT_RANGE
 var pending_attack_min_dot := 0.08
 var pending_attack_heavy := false
+var attack_start_position := Vector3.ZERO
 var attack_hit_targets: Array[int] = []
 var parry_timer := 0.0
 var stagger_timer := 0.0
@@ -350,18 +351,41 @@ func _cancel_pending_attack() -> void:
 
 func _hit_enemies(damage: int, attack_range: float, min_dot: float, heavy: bool) -> void:
     var forward := -global_transform.basis.z
+    forward.y = 0.0
+    forward = forward.normalized()
     for target in get_tree().get_nodes_in_group("enemies"):
         if not is_instance_valid(target) or not target.has_method("take_damage"):
             continue
         var target_id := target.get_instance_id()
         if attack_hit_targets.has(target_id):
             continue
-        var offset: Vector3 = target.global_position - global_position
+        var target_point := target.global_position + Vector3.UP * 0.95
+        var attack_origin := global_position + Vector3.UP * 1.0
+        var offset := target_point - attack_origin
         var distance := offset.length()
-        if distance <= attack_range and distance > 0.01 and forward.dot(offset.normalized()) > min_dot:
-            attack_hit_targets.append(target_id)
-            target.take_damage(damage, global_position, heavy)
-            hit_confirmed.emit(target.global_position + Vector3.UP, heavy, combo_step)
+        if distance > attack_range or distance <= 0.01:
+            continue
+        var horizontal_offset := Vector3(offset.x, 0.0, offset.z)
+        if horizontal_offset.length_squared() <= 0.001 or forward.dot(horizontal_offset.normalized()) <= min_dot:
+            continue
+        if not _has_clear_attack_line(target, attack_origin, target_point):
+            continue
+        attack_hit_targets.append(target_id)
+        target.take_damage(damage, global_position, heavy)
+        hit_confirmed.emit(target_point, heavy, combo_step)
+
+func _has_clear_attack_line(target: Node, origin: Vector3, target_point: Vector3) -> bool:
+    if not target is CollisionObject3D:
+        return true
+    var world := get_world_3d()
+    if world == null:
+        return true
+    var exclusions: Array[RID] = [get_rid()]
+    var query := PhysicsRayQueryParameters3D.create(origin, target_point, 1, exclusions)
+    query.collide_with_areas = false
+    query.collide_with_bodies = true
+    var hit := world.direct_space_state.intersect_ray(query)
+    return not hit.is_empty() and hit.collider == target
 
 func _animate_weapon(heavy: bool, step: int) -> void:
     if not is_instance_valid(weapon_pivot):
