@@ -24,7 +24,8 @@ func _run_title_screen_smoke() -> void:
 		"SettingsPanel/SettingsStack/SfxVolumeSlider",
 		"SettingsPanel/SettingsStack/QualityButton",
 		"SettingsPanel/SettingsStack/LanguageButton",
-		"CreditsPanel/CreditsStack/CreditsNotice"
+		"CreditsPanel/CreditsStack/CreditsNotice",
+		"ControlsPanel/ControlsStack/ControlsNotice"
 	]:
 		if menu.get_node_or_null(node_path) == null:
 			_fail(menu, "Title screen is missing required control: %s" % node_path)
@@ -59,8 +60,7 @@ func _run_title_screen_smoke() -> void:
 	var credits_button := menu.get_node("MainMenuButtons/CreditsButton") as Button
 	credits_button.pressed.emit()
 	var credits_panel := menu.get_node("CreditsPanel") as PanelContainer
-	var credits_notice := menu.get_node("CreditsPanel/CreditsStack/CreditsNotice",
-		"ControlsPanel/ControlsStack/ControlsNotice") as Label
+	var credits_notice := menu.get_node("CreditsPanel/CreditsStack/CreditsNotice") as Label
 	if not credits_panel.visible or "mocap.cs.cmu.edu" not in credits_notice.text:
 		_fail(menu, "Credits panel or required CMU acknowledgement is missing")
 		return
