@@ -14,6 +14,7 @@ ANIMATION_DEST.mkdir(parents=True, exist_ok=True)
 # Both URLs are pinned to immutable public source commits; no account or payment is required.
 CHARACTER_BASE = "https://raw.githubusercontent.com/glanderness/BeefTV/035003e2acb4f7e47599f8cf7b9792042c24eeb5/web/public/canvas/models/"
 ANIMATION_BASE = "https://raw.githubusercontent.com/lluancarlo/ReadyToStrategize/1a9c05693f705cd7ebe0dd7af022d6b9e250d5c5/"
+CHARACTERCREATOR_BASE = "https://raw.githubusercontent.com/kblood/CharacterCreator/852e48f316b90a0937234886630e4fb4cdfd1f78/output/"
 ANIMATION_PACK = "assets/quaternius/Universal%20Animation%20Library%202%5BStandard%5D/"
 
 def fetch(base: str, relative_url: str, destination: Path, name: str) -> bytes:
@@ -35,7 +36,20 @@ def validate_glb(data: bytes, name: str, minimum_size: int) -> None:
 
 character = fetch(CHARACTER_BASE, "quaternius-standard-male.glb", CHARACTER_DEST, "quaternius-standard-male.glb")
 validate_glb(character, "Quaternius humanoid", 500_000)
-character_license = fetch(CHARACTER_BASE, "quaternius-standard-male.LICENSE.md", CHARACTER_DEST, "QUATERNIUS-CC0-LICENSE.md")
+
+# CharacterCreator generated outputs are CC0 even though its generator source is GPL-3.0.
+# Only the generated GLB assets are used; no generator source code is bundled.
+body = fetch(CHARACTERCREATOR_BASE, "base_body.glb", CHARACTER_DEST, "charactercreator-base-body.glb")
+validate_glb(body, "CharacterCreator realistic base body", 5_000_000)
+for source_name, output_name, minimum_size in [
+    ("clothing_tshirt.glb", "charactercreator-tshirt.glb", 100_000),
+    ("clothing_jeans.glb", "charactercreator-jeans.glb", 100_000),
+    ("clothing_boots.glb", "charactercreator-boots.glb", 200_000),
+    ("clothing_trenchcoat.glb", "charactercreator-trenchcoat.glb", 500_000),
+    ("hair_short02.glb", "charactercreator-hair-short02.glb", 300_000),
+]:
+    clothing = fetch(CHARACTERCREATOR_BASE, source_name, CHARACTER_DEST, output_name)
+    validate_glb(clothing, output_name, minimum_size)character_license = fetch(CHARACTER_BASE, "quaternius-standard-male.LICENSE.md", CHARACTER_DEST, "QUATERNIUS-CC0-LICENSE.md")
 (CHARACTER_DEST / "QUATERNIUS-CC0-LICENSE.md").write_text(character_license.decode("utf-8").replace("\u2014", "-"), encoding="utf-8")
 
 animation = fetch(ANIMATION_BASE, ANIMATION_PACK + "Unreal-Godot/UAL2_Standard.glb", ANIMATION_DEST, "UAL2_Standard.glb")
