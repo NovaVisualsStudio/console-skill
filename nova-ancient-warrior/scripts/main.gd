@@ -28,6 +28,7 @@ const PauseMenuScript = preload("res://scripts/pause_menu.gd")
 var player: CharacterBody3D
 var hero_visual: Node3D
 var camera: Camera3D
+var active_chapter_scene: Node3D
 var enemies: Array[Node3D] = []
 var current_wave := 1
 var wave_transitioning := false
@@ -265,7 +266,7 @@ func _update_stage_hazards(delta: float) -> void:
 	var rune_pulse := stage_index == 2 and (bool(hazard.get("warning", false)) or bool(hazard.get("active", false)))
 	if rune_pulse != rune_hazard_lit:
 		rune_hazard_lit = rune_pulse
-		StageBuilder.set_rune_intensity(self, 1.0 if rune_hazard_lit else 0.0)
+		StageBuilder.set_rune_intensity(active_chapter_scene if is_instance_valid(active_chapter_scene) else self, 1.0 if rune_hazard_lit else 0.0)
 	if bool(hazard.get("warning", false)) and hazard_warning_cooldown <= 0.0:
 		status_label.text = "%s CHARGING - MOVE!" % str(hazard.get("label", "ARENA HAZARD"))
 		_play_sfx_or_tone("hazard_warning", 720.0, 0.16, 0.20)
@@ -514,14 +515,30 @@ func _apply_level_theme(wave: int) -> void:
 			sky_material.sky_horizon_color = level["sky_horizon"]
 	var next_stage_index := LevelCatalog.stage_index(wave)
 	if next_stage_index != built_stage_index:
-		StageBuilder.build_stage(self, next_stage_index, graphics_quality)
-		CampaignLayout.build_stage(self, next_stage_index, graphics_quality)
+		if is_instance_valid(active_chapter_scene):
+			remove_child(active_chapter_scene)
+			active_chapter_scene.queue_free()
+		var chapter_paths := [
+			"res://scenes/chapters/sunken_ruins.tscn",
+			"res://scenes/chapters/ember_causeway.tscn",
+			"res://scenes/chapters/obsidian_throne.tscn"
+		]
+		var chapter_packed := load(chapter_paths[next_stage_index]) as PackedScene
+		if chapter_packed != null:
+			active_chapter_scene = chapter_packed.instantiate() as Node3D
+			active_chapter_scene.name = "ActiveChapter"
+			active_chapter_scene.set("graphics_quality", graphics_quality)
+			add_child(active_chapter_scene)
+		else:
+			active_chapter_scene = null
+			StageBuilder.build_stage(self, next_stage_index, graphics_quality)
+			CampaignLayout.build_stage(self, next_stage_index, graphics_quality)
 		built_stage_index = next_stage_index
 		hazard_elapsed = 0.0
 		hazard_damage_cooldown = 0.0
 		hazard_warning_cooldown = 0.0
 		rune_hazard_lit = false
-		StageBuilder.set_rune_intensity(self, 0.0)
+		StageBuilder.set_rune_intensity(active_chapter_scene if is_instance_valid(active_chapter_scene) else self, 0.0)
 		mission_relics = MissionObjectiveDirector.build_stage(self, next_stage_index)
 		mission_relic_count = 0
 		boss_gate_pending = false
