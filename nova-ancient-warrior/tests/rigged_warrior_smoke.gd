@@ -22,7 +22,7 @@ func _run_rigged_hero_smoke() -> void:
 	if animation_player == null:
 		_fail(visual, "Generated Nova hero has no AnimationPlayer")
 		return
-	var required := ["Idle", "Walk", "Run", "Sword idle", "Sword slash", "Sword thrust", "Sword block", "Sword combo", "Side dodge left", "Side dodge right", "Hit from front", "Death (fall backward)", "Forward roll"]
+	var required := ["Idle", "Walk", "Run", "Sword idle", "Sword slash", "Sword thrust", "Sword block", "Sword combo", "Side dodge left", "Side dodge right", "Hit from front", "Death (fall backward)", "Forward roll", "Jump start", "Jump air", "Jump land"]
 	var names := animation_player.get_animation_list()
 	if names.size() > 25:
 		_fail(visual, "Mobile hero export must not ship the entire unused animation catalog")
@@ -83,6 +83,18 @@ func _run_rigged_hero_smoke() -> void:
 	visual.call("play_dodge", Vector3.FORWARD)
 	if "forwardroll" not in str(animation_player.current_animation).to_lower().replace(" ", ""):
 		_fail(visual, "Forward dodge must select the forward roll clip")
+		return
+	visual.call("play_jump")
+	if "jumpstart" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
+		_fail(visual, "Jump takeoff must select the jump-start clip")
+		return
+	visual.call("_on_animation_finished", animation_player.current_animation)
+	if "jumpair" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
+		_fail(visual, "Jump takeoff must transition to the airborne loop")
+		return
+	visual.call("play_jump_land")
+	if "jumpland" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
+		_fail(visual, "Landing must select the jump-land clip")
 		return
 	visual.call("hit_react")
 	if "hitfromfront" not in str(animation_player.current_animation).to_lower().replace(" ", ""):
