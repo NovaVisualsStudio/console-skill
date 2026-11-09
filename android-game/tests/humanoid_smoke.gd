@@ -25,6 +25,21 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    var armor_attachment_count := 0
+    for child in rig.skeleton.get_children():
+        if child is BoneAttachment3D:
+            armor_attachment_count += 1
+    if armor_attachment_count < 8:
+        push_error("Humanoid armor test: expected bone-attached armor pieces, found %d." % armor_attachment_count)
+        rig.free()
+        quit(1)
+        return
+    var right_hand_attachment := rig.attach_to_bone("hand_r")
+    if right_hand_attachment == rig or not right_hand_attachment is BoneAttachment3D:
+        push_error("Humanoid weapon test: right-hand bone attachment failed.")
+        rig.free()
+        quit(1)
+        return
     if rig.animation_player == null or rig.loaded_animation_count < 20:
         push_error("Humanoid animation test: CC0 animation retargeting did not produce enough usable clips. Loaded: %d" % rig.loaded_animation_count)
         rig.free()
