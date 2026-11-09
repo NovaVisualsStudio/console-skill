@@ -177,8 +177,9 @@ jobs:
           test -s "$apk"
           unzip -t "$apk"
           "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$apk"
-          "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk" | \
-            grep -F "package: name='com.novavisualsstudio.novaancientwarrior'"
+          badging="$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk")"
+          printf '%s\\n' "$badging" | grep -F "package: name='com.novavisualsstudio.novaancientwarrior'"
+          printf '%s\\n' "$badging" | grep -F "targetSdkVersion:'36'"
           unzip -Z1 "$apk" | grep -Fx "lib/arm64-v8a/libgodot_android.so"
           if unzip -Z1 "$apk" | grep -q "^lib/armeabi-v7a/"; then
             echo "Legacy ARMv7 libraries must not ship in the mid/high-tier Android build"
