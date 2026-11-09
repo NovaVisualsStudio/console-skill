@@ -50,7 +50,7 @@ Compatibility mode improves the range of devices that may run the game, but it d
 2. Open this folder as a Godot project.
 3. Run `scenes/main.tscn`.
 
-The Android GitHub Actions workflow generates the hero and sound assets, imports the project, exports a signed debug APK and validates the archive, signature and package identifier. The resulting workflow artifact is named `nova-ancient-warrior-android-debug`.
+The Android GitHub Actions workflow generates the hero and sound assets, imports the project, exports a signed debug APK and validates the archive, signature, package identifier, target SDK 36 and ARM64-only native payload. The resulting workflow artifact is named `nova-ancient-warrior-android-debug`. This is still a debug artifact, not a signed production AAB.
 
 ## Optional local model review
 
