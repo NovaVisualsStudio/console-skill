@@ -1,4 +1,4 @@
-# GitLab Game-Development Skills Review — Nova Ancient Warrior
+# GitLab Game-Development Skills Review  -  Nova Ancient Warrior
 
 Review date: 2026-11-08  
 Project target: Godot 4.7, 3D third-person sword action, Android ARM64  
@@ -6,7 +6,7 @@ Decision: adopt one GitLab skill as a design/research advisor; do not replace th
 
 ## Best verified GitLab candidate
 
-### Shawn Benson — game-development
+### Shawn Benson  -  game-development
 Repository: https://gitlab.com/shawn-benson/game-development  
 Skill directory: `skills/game-development/`  
 Latest observed commit: `d74c3742` (short SHA as displayed by GitLab during this review)  
