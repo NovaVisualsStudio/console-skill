@@ -360,6 +360,7 @@ def main():
         export_nla_strips=True,
         export_skins=True,
         export_apply=True,
+        export_draco_mesh_compression_enable=False,
     )
     if not os.path.isfile(output) or os.path.getsize(output) < 10000:
         raise RuntimeError("Nova hero GLB export is missing or unexpectedly small")
