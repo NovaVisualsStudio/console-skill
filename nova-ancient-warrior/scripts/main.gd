@@ -518,7 +518,7 @@ func _apply_level_theme(wave: int) -> void:
 	if next_stage_index != built_stage_index:
 		if is_instance_valid(active_chapter_scene):
 			remove_child(active_chapter_scene)
-			active_chapter_scene.queue_free()
+			active_chapter_scene.free()
 		var chapter_paths := [
 			"res://scenes/chapters/sunken_ruins.tscn",
 			"res://scenes/chapters/ember_causeway.tscn",
