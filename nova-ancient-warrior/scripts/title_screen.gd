@@ -354,7 +354,7 @@ func _build_controls_panel() -> void:
 	stack.add_child(heading)
 	var notice := Label.new()
 	notice.name = "ControlsNotice"
-	notice.text = "ANDROID: Left joystick moves; drag the right side to orbit the camera. Tap ATTACK, HEAVY, GUARD, DODGE, LOCK, JUMP and INTERACT on the touch controls. Hold GUARD; tap just before impact for a perfect parry. PC: WASD / arrows move; mouse drag orbits; Space jumps; Shift or K dodges; J / Enter attacks; H heavy attack; I guard; Tab locks on; E interacts; R restarts. Collect numbered seal fragments in the displayed order; each chapter has a different sequence. Defeat the boss after the gate opens."
+	notice.text = "ANDROID: Left joystick moves; drag the right side to orbit the camera. Tap ATTACK, HEAVY, GUARD, DODGE, LOCK, JUMP and INTERACT on the touch controls. Hold GUARD; tap just before impact for a perfect parry. PC: WASD / arrows move; mouse drag orbits; Space jumps; Shift or K dodges; J / Enter attacks; H heavy attack; I guard; Tab locks on; E interacts; R restarts; Esc pauses. Collect numbered seal fragments in the displayed order; each chapter has a different sequence. Defeat the boss after the gate opens."
 	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	notice.custom_minimum_size = Vector2(510.0, 300.0)
 	notice.add_theme_font_size_override("font_size", 15)
@@ -477,7 +477,7 @@ func _apply_language() -> void:
 	var controls_notice := find_child("ControlsNotice", true, false) as Label
 	if controls_notice != null:
 		if arabic:
-			controls_notice.text = "أندرويد: حرّك عصا التحكم اليسرى للمشي، واسحب الجهة اليمنى لتحريك الكاميرا. استخدم أزرار الهجوم الثقيل والدفاع والمراوغة والقفل والقفز والتفاعل. استمر في الضغط على الدرع، واضغط قبل وصول الضربة مباشرة لتنفيذ صد مثالي. الكمبيوتر: WASD أو الأسهم للحركة، وسحب الفأرة للكاميرا، وSpace للقفز، وShift أو K للمراوغة، وJ أو Enter للهجوم، وH للهجوم الثقيل، وI للدفاع، وTab لقفل الهدف، وE للتفاعل، وR لإعادة المحاولة. اجمع شظايا الأختام المرقمة بالترتيب الظاهر؛ لكل فصل ترتيب مختلف. اهزم الزعيم بعد فتح البوابة."
+			controls_notice.text = "أندرويد: حرّك عصا التحكم اليسرى للمشي، واسحب الجهة اليمنى لتحريك الكاميرا. استخدم أزرار الهجوم الثقيل والدفاع والمراوغة والقفل والقفز والتفاعل. استمر في الضغط على الدرع، واضغط قبل وصول الضربة مباشرة لتنفيذ صد مثالي. الكمبيوتر: WASD أو الأسهم للحركة، وسحب الفأرة للكاميرا، وSpace للقفز، وShift أو K للمراوغة، وJ أو Enter للهجوم، وH للهجوم الثقيل، وI للدفاع، وTab لقفل الهدف، وE للتفاعل، وR لإعادة المحاولة، وEsc للإيقاف المؤقت والاستئناف. اجمع شظايا الأختام المرقمة بالترتيب الظاهر؛ لكل فصل ترتيب مختلف. اهزم الزعيم بعد فتح البوابة."
 		else:
 			controls_notice.text = "ANDROID: Left joystick moves. Drag the right side to orbit the camera. ATTACK: tap sword. HEAVY: use the heavy-strike button. GUARD: hold shield; tap just before impact for a perfect parry. DODGE: evade to avoid damage. LOCK: lock onto a target. JUMP: clear hazards. INTERACT: collect the numbered seal fragments in the displayed order. Each chapter has a different sequence. Defeat the boss after the gate opens."
 		controls_notice.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
