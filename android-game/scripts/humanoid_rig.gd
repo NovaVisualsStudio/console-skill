@@ -88,17 +88,6 @@ func _load_and_retarget_animations() -> void:
     animation_player.playback_default_blend_time = 0.14
     add_child(animation_player)
 
-    print("NOVA UAL2 source animation names: ", source_player.get_animation_list().slice(0, 12))
-    print("NOVA UAL2 source skeleton bones: ", _source_skeleton.get_bone_count())
-    for bone_index in range(mini(12, _source_skeleton.get_bone_count())):
-        print("NOVA UAL2 source bone ", bone_index, ": ", _source_skeleton.get_bone_name(bone_index))
-    print("NOVA target skeleton bones: ", skeleton.get_bone_count())
-    for bone_index in range(mini(12, skeleton.get_bone_count())):
-        print("NOVA target bone ", bone_index, ": ", skeleton.get_bone_name(bone_index))
-    var debug_animation := source_player.get_animation(source_player.get_animation_list()[0])
-    if debug_animation != null:
-        for track_index in range(mini(12, debug_animation.get_track_count())):
-            print("NOVA UAL2 source track ", track_index, ": ", debug_animation.track_get_path(track_index))
     var library := AnimationLibrary.new()
     for animation_name in source_player.get_animation_list():
         var source_animation := source_player.get_animation(animation_name)
@@ -123,24 +112,18 @@ func _retarget_animation(source: Animation) -> Animation:
     result.loop_mode = source.loop_mode
     for track_index in range(source.get_track_count()):
         var source_path := String(source.track_get_path(track_index))
-        var marker := "bone_pose/"
-        var marker_index := source_path.find(marker)
-        if marker_index < 0:
+        var separator := source_path.find(":")
+        if separator < 0:
             continue
-        var tail := source_path.substr(marker_index + marker.length())
-        var parts := tail.split("/")
-        if parts.size() < 2 or not parts[0].is_valid_int():
-            continue
-        var source_bone_index := int(parts[0])
-        if source_bone_index < 0 or source_bone_index >= _source_skeleton.get_bone_count():
-            continue
-        var source_bone_name := _source_skeleton.get_bone_name(source_bone_index)
-        var target_bone_index := _find_target_bone(source_bone_name)
+        var source_bone_name := source_path.substr(separator + 1)
+        var target_bone_index := skeleton.find_bone(source_bone_name)
+        if target_bone_index < 0:
+            target_bone_index = _find_target_bone(source_bone_name)
         if target_bone_index < 0:
             continue
-        var property_name := parts[1]
+        var target_bone_name := skeleton.get_bone_name(target_bone_index)
         var new_track_index := result.add_track(source.track_get_type(track_index))
-        var target_path := "%s:bone_pose/%d/%s" % [String(get_path_to(skeleton)), target_bone_index, property_name]
+        var target_path := "%s:%s" % [String(get_path_to(skeleton)), target_bone_name]
         result.track_set_path(new_track_index, NodePath(target_path))
         result.track_set_interpolation_type(new_track_index, source.track_get_interpolation_type(track_index))
         result.track_set_enabled(new_track_index, source.track_is_enabled(track_index))
@@ -218,19 +201,31 @@ func attach_to_bone(bone_name: String) -> Node3D:
 func play_action(action: String, blend: float = 0.14) -> void:
     if animation_player == null or loaded_animation_count == 0:
         return
-    var choices := {
-        "idle": ["Idle_Loop", "Sword_Idle"],
-        "walk": ["Walk_Loop", "Jog_Fwd_Loop"],
-        "run": ["Sprint_Loop", "Jog_Fwd_Loop"],
-        "attack": ["Sword_Attack", "Sword_Attack_01", "Sword_Attack_Combo_1", "Punch_Cross"],
-        "heavy": ["Sword_Attack_Combo_1", "Sword_Attack", "Punch_Cross"],
-        "dodge": ["Roll", "Roll_RM"],
-        "guard": ["Sword_Idle", "Idle_Loop"],
-        "hit": ["Hit_Chest", "Hit_Head"],
-        "death": ["Death01"]
+    var search_terms := {
+        "idle": ["idle_loop", "idle_stand", "idle"],
+        "walk": ["walk_loop", "walk", "jog"],
+        "run": ["sprint", "run", "jog"],
+        "attack": ["sword_attack", "melee_attack", "attack", "combo", "punch"],
+        "heavy": ["heavy_attack", "sword_attack", "combo", "attack", "punch"],
+        "dodge": ["roll", "dodge", "evade"],
+        "guard": ["block", "guard", "sword_idle", "idle"],
+        "hit": ["hit", "knockback"],
+        "death": ["death"]
     }
-    for candidate in choices.get(action, []):
-        if animation_player.has_animation(candidate):
-            if animation_player.current_animation != candidate or not animation_player.is_playing():
-                animation_player.play(candidate, blend)
-            return
+    var available := animation_player.get_animation_list()
+    for term in search_terms.get(action, []):
+        for animation_name in available:
+            var name_text := String(animation_name)
+            if name_text.to_lower() == String(term):
+                _play_animation(name_text, blend)
+                return
+    for term in search_terms.get(action, []):
+        for animation_name in available:
+            var name_text := String(animation_name)
+            if name_text.to_lower().contains(String(term)):
+                _play_animation(name_text, blend)
+                return
+
+func _play_animation(animation_name: String, blend: float) -> void:
+    if animation_player.current_animation != animation_name or not animation_player.is_playing():
+        animation_player.play(animation_name, blend)
