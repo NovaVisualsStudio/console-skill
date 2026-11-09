@@ -69,6 +69,7 @@ func _build_character() -> void:
     humanoid = HUMANOID_SCRIPT.new() as NovaHumanoidRig
     humanoid.name = "HeroHumanoid"
     humanoid.tint_color = Color(0.16, 0.25, 0.34)
+    humanoid.armor_style = "hero"
     humanoid.accent_color = Color(0.62, 0.43, 0.20)
     body_pivot.add_child(humanoid)
 
