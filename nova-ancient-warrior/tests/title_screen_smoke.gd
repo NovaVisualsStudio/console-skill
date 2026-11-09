@@ -19,6 +19,7 @@ func _run_title_screen_smoke() -> void:
 		"CampaignProgress",
 		"MainMenuButtons/SettingsButton",
 		"MainMenuButtons/CreditsButton",
+		"MainMenuButtons/HowToPlayButton",
 		"SettingsPanel/SettingsStack/MusicVolumeSlider",
 		"SettingsPanel/SettingsStack/SfxVolumeSlider",
 		"SettingsPanel/SettingsStack/QualityButton",
@@ -58,9 +59,18 @@ func _run_title_screen_smoke() -> void:
 	var credits_button := menu.get_node("MainMenuButtons/CreditsButton") as Button
 	credits_button.pressed.emit()
 	var credits_panel := menu.get_node("CreditsPanel") as PanelContainer
-	var credits_notice := menu.get_node("CreditsPanel/CreditsNotice") as Label
+	var credits_notice := menu.get_node("CreditsPanel/CreditsStack/CreditsNotice",
+		"ControlsPanel/ControlsStack/ControlsNotice") as Label
 	if not credits_panel.visible or "mocap.cs.cmu.edu" not in credits_notice.text:
 		_fail(menu, "Credits panel or required CMU acknowledgement is missing")
+		return
+
+	var how_to_play_button := menu.get_node("MainMenuButtons/HowToPlayButton") as Button
+	how_to_play_button.pressed.emit()
+	var controls_panel := menu.get_node("ControlsPanel") as PanelContainer
+	var controls_notice := menu.get_node("ControlsPanel/ControlsStack/ControlsNotice") as Label
+	if not controls_panel.visible or controls_notice.text.is_empty():
+		_fail(menu, "Player controls tutorial did not open")
 		return
 
 	var manager := get_root().get_node_or_null("SaveManager")
@@ -75,7 +85,7 @@ func _run_title_screen_smoke() -> void:
 		_fail(menu, "Continue availability does not match saved campaign progress")
 		return
 
-	print("Title screen smoke test passed: 3D preview, campaign entry, save-aware continue, settings and credits")
+	print("Title screen smoke test passed: 3D preview, campaign entry, save-aware continue, settings, tutorial and credits")
 	menu.free()
 	quit(0)
 
