@@ -508,8 +508,7 @@ func _spawn_wave() -> void:
 		var enemy := Node3D.new()
 		var enemy_variant := i % 3
 		enemy.name = CombatRules.boss_display_name(current_wave).replace(" ", "_") if boss_wave else "AshEnemy_W%d_%d" % [current_wave, i + 1]
-		var spawn_radius := 7.8 if boss_wave else 6.2 + float(CombatRules.chapter_for_wave(current_wave) - 1) * 0.7
-		enemy.position = Vector3(cos(angle) * spawn_radius, 0.0, sin(angle) * spawn_radius)
+		enemy.position = CombatRules.wave_enemy_spawn_position(current_wave, i)
 		var enemy_health := CombatRules.wave_enemy_health(current_wave)
 		var enemy_speed := 1.35 if boss_wave else ENEMY_SPEED + float(CombatRules.chapter_for_wave(current_wave) - 1) * 0.16
 		var enemy_damage := CombatRules.wave_enemy_damage(current_wave)
