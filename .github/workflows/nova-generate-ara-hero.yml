@@ -81,7 +81,7 @@ jobs:
           pnpm exec tsx scripts/nova_export_hero.ts
           test -s "$NOVA_HERO_OUTPUT"
           file "$NOVA_HERO_OUTPUT"
-          sha256sum "$NOVA_HERO_OUTPUT" | tee "$RUNNER_TEMP/nova-hero.sha256"
+          sha256sum "$NOVA_HERO_OUTPUT" | awk '{print $1}' | tee "$RUNNER_TEMP/nova-hero.sha256"
 
       - name: Import, test and commit the realistic hero on the latest feature branch
         shell: bash
