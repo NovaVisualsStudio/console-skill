@@ -62,6 +62,8 @@ func _build_enemy() -> void:
     humanoid = HUMANOID_SCRIPT.new() as NovaHumanoidRig
     humanoid.name = "EnemyHumanoid"
     humanoid.tint_color = Color(0.29, 0.12, 0.11) if not is_boss else Color(0.17, 0.10, 0.25)
+    humanoid.armor_style = "enemy" if not is_boss else "boss"
+    humanoid.accent_color = Color(0.58, 0.22, 0.10) if not is_boss else Color(0.55, 0.24, 0.82)
     humanoid.character_scale = 1.0 if not is_boss else 1.55
     add_child(humanoid)
     body_mesh = humanoid.primary_mesh
