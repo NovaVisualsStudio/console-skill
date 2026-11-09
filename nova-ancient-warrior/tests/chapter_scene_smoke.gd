@@ -52,11 +52,19 @@ func _run_chapter_scene_smoke() -> void:
 		var landing_collision := landing.get_node_or_null("Collision") as CollisionShape3D
 		assert(approach_collision != null and approach_collision.shape is BoxShape3D, "Secret-route approach must have physical collision")
 		assert(landing_collision != null and landing_collision.shape is BoxShape3D, "Secret-route landing must have physical collision")
-		var approach_top := approach_collision.global_position.y + (approach_collision.shape as BoxShape3D).size.y * 0.5
-		var landing_top := landing_collision.global_position.y + (landing_collision.shape as BoxShape3D).size.y * 0.5
+		var approach_shape := approach_collision.shape as BoxShape3D
+		var landing_shape := landing_collision.shape as BoxShape3D
+		var approach_top := approach_collision.global_position.y + approach_shape.size.y * 0.5
+		var landing_top := landing_collision.global_position.y + landing_shape.size.y * 0.5
 		assert(is_equal_approx(approach_top, ROUTE_APPROACH_TOPS[index]), "Secret-route approach height must be authored for this chapter")
 		assert(is_equal_approx(landing_top, ROUTE_LANDING_TOPS[index]), "Secret-route landing height must be authored for this chapter")
 		assert(landing_top > approach_top, "Secret route must require an upward traversal step")
+		assert(landing_top - approach_top <= 0.35, "Secret route vertical step must stay within the authored jump allowance")
+		var horizontal_dx := absf(approach_collision.global_position.x - landing_collision.global_position.x)
+		var horizontal_dz := absf(approach_collision.global_position.z - landing_collision.global_position.z)
+		var gap_x := maxf(0.0, horizontal_dx - (approach_shape.size.x + landing_shape.size.x) * 0.5)
+		var gap_z := maxf(0.0, horizontal_dz - (approach_shape.size.z + landing_shape.size.z) * 0.5)
+		assert(Vector2(gap_x, gap_z).length() <= 0.05, "Secret-route stair and landing must touch or overlap horizontally")
 		var puzzle_runes := ExplorationPuzzleDirector.build_stage(scene, index)
 		var puzzle_positions := ExplorationPuzzleDirector.rune_positions(index)
 		assert(puzzle_runes.size() == 3, "Every chapter must provide three environmental puzzle runes")
