@@ -4,8 +4,8 @@ Both texture sets are dedicated to the public domain under **CC0 1.0 Universal**
 
 | Asset | Author credit | Official source | Maps bundled at build time |
 |---|---|---|---|
-| Stone Wall | Charlotte Baglioni (photography), Dario Barresi (processing) | https://polyhaven.com/a/stone_wall | Diffuse, OpenGL normal, roughness — 1K JPG |
-| Rock Tile Floor | Charlotte Baglioni | https://polyhaven.com/a/rock_tile_floor | Diffuse, OpenGL normal, roughness — 1K JPG |
+| Stone Wall | Charlotte Baglioni (photography), Dario Barresi (processing) | https://polyhaven.com/a/stone_wall | Diffuse, OpenGL normal, roughness - 1K JPG |
+| Rock Tile Floor | Charlotte Baglioni | https://polyhaven.com/a/rock_tile_floor | Diffuse, OpenGL normal, roughness - 1K JPG |
 
 The files are downloaded from the Poly Haven public API and its official download CDN. The fetcher accepts only HTTPS files on `dl.polyhaven.org` in the `Textures/jpg/1k` path, checks JPEG signatures and verifies each file against the MD5 supplied by the API. No paid account, subscription, token, or API key is used.
 

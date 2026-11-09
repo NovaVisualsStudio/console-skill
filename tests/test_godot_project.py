@@ -108,9 +108,9 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn("nor_gl", fetcher)
         self.assertIn("dl.polyhaven.org", fetcher)
         main_script = self.read("scripts/main.gd")
-        for token in ("rock_tile_floor_diff_1k.jpg", "stone_wall_diff_1k.jpg",
-                      "_make_pbr_material", "_apply_pbr_material", "PolyHavenCredits",
-                      "POWERED BY POLY HAVEN"):
+        for token in ("rock_tile_floor", "stone_wall", "_diff_1k.jpg", "_nor_gl_1k.jpg",
+                      "_rough_1k.jpg", "_make_pbr_material", "_apply_pbr_material",
+                      "PolyHavenCredits", "POWERED BY POLY HAVEN"):
             self.assertIn(token, main_script)
         visual_test = self.read("tests/visual_material_smoke.gd")
         self.assertIn("normal_texture", visual_test)
