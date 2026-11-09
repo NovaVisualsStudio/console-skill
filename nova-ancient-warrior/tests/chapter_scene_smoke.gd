@@ -8,7 +8,7 @@ const CHAPTER_SCENES := [
 const EXPECTED_NAMES := ["SunkenRuins", "EmberCauseway", "ObsidianThrone"]
 const ExplorationSecretDirector = preload("res://scripts/exploration_secret_director.gd")
 const ExplorationPuzzleDirector = preload("res://scripts/exploration_puzzle_director.gd")
-const CACHE_POSITIONS := [Vector3(-10.6, 0.17, -3.5), Vector3(8.2, 0.07, -7.0), Vector3(-13.0, 0.09, -8.0)]
+const CACHE_POSITIONS := [Vector3(-10.6, 0.45, -3.5),		Vector3(8.2, 0.31, -7.0),		Vector3(-13.0, 0.49, -8.0)]
 const CACHE_PLATFORM_NAMES := ["SunkenSidePlatform", "EmberFlankStep", "ObsidianSideWalk"]
 const PUZZLE_RAISED_PLATFORM_NAME := "EmberCauseway"
 
