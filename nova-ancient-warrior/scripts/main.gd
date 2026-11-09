@@ -78,6 +78,15 @@ func _ready() -> void:
 	_build_enemies()
 	_build_audio()
 	_update_hud()
+	if OS.get_environment("NOVA_SMOKE_GRACEFUL_SHUTDOWN") == "1":
+		_run_graceful_shutdown_smoke.call_deferred()
+
+
+func _run_graceful_shutdown_smoke() -> void:
+	await get_tree().create_timer(0.8).timeout
+	await stop_audio_and_wait()
+	print("MAIN_SCENE_GRACEFUL_SHUTDOWN_OK")
+	get_tree().quit()
 
 
 func _notification(what: int) -> void:

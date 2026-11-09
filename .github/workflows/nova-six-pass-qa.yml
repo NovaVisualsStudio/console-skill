@@ -91,7 +91,7 @@ jobs:
           set -euo pipefail
           "$GODOT_BIN" --headless --path nova-ancient-warrior --script res://tests/mobile_render_profile_smoke.gd
           log_file="$RUNNER_TEMP/nova-main-scene.log"
-          if ! "$GODOT_BIN" --headless --verbose --path nova-ancient-warrior --script res://tests/main_scene_shutdown_smoke.gd --quit-after 600 >"$log_file" 2>&1; then
+          if ! NOVA_SMOKE_GRACEFUL_SHUTDOWN=1 "$GODOT_BIN" --headless --verbose --path nova-ancient-warrior --quit-after 600 >"$log_file" 2>&1; then
             cat "$log_file"
             exit 1
           fi

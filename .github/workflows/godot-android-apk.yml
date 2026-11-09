@@ -146,8 +146,8 @@ jobs:
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/stage_hazard_rules_smoke.gd
           smoke_log="$(mktemp)"
-          if ! "$GODOT_BIN" --headless --verbose --path nova-ancient-warrior \
-              --script res://tests/main_scene_shutdown_smoke.gd --quit-after 600 >"$smoke_log" 2>&1; then
+          if ! NOVA_SMOKE_GRACEFUL_SHUTDOWN=1 "$GODOT_BIN" --headless --verbose --path nova-ancient-warrior \
+              --quit-after 600 >"$smoke_log" 2>&1; then
             cat "$smoke_log"
             exit 1
           fi
