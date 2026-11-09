@@ -40,16 +40,21 @@ func _run_rigged_hero_smoke() -> void:
 		_fail(visual, "Realistic rigged hero must import at least one skinned mesh instance")
 		return
 	var textured_materials := 0
+	var blend_shape_count := 0
 	for mesh_node in mesh_nodes:
 		var mesh_instance := mesh_node as MeshInstance3D
 		if mesh_instance == null or mesh_instance.mesh == null:
 			continue
+		blend_shape_count += mesh_instance.mesh.get_blend_shape_count()
 		for surface_index in range(mesh_instance.mesh.get_surface_count()):
 			var surface_material := mesh_instance.get_active_material(surface_index) as StandardMaterial3D
 			if surface_material != null and surface_material.albedo_texture != null and surface_material.normal_texture != null:
 				textured_materials += 1
 	if textured_materials < 4:
 		_fail(visual, "Hero must import with textured PBR albedo and normal maps")
+		return
+	if blend_shape_count > 0:
+		_fail(visual, "Mobile hero must bake its determined expression and omit unused facial/speech blend shapes")
 		return
 	visual.call("set_locomotion", 0.5, 0.016)
 	var locomotion_name := str(animation_player.current_animation).to_lower()
