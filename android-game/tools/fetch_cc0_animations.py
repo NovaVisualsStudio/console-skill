@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch the free CC0 Quaternius humanoid character and animation assets."""
+"""Fetch free CC0 realistic humanoid, outfit and animation assets."""
 from pathlib import Path
 from urllib.request import Request, urlopen
 import hashlib
@@ -49,7 +49,9 @@ for source_name, output_name, minimum_size in [
     ("hair_short02.glb", "charactercreator-hair-short02.glb", 300_000),
 ]:
     clothing = fetch(CHARACTERCREATOR_BASE, source_name, CHARACTER_DEST, output_name)
-    validate_glb(clothing, output_name, minimum_size)character_license = fetch(CHARACTER_BASE, "quaternius-standard-male.LICENSE.md", CHARACTER_DEST, "QUATERNIUS-CC0-LICENSE.md")
+    validate_glb(clothing, output_name, minimum_size)
+
+character_license = fetch(CHARACTER_BASE, "quaternius-standard-male.LICENSE.md", CHARACTER_DEST, "QUATERNIUS-CC0-LICENSE.md")
 (CHARACTER_DEST / "QUATERNIUS-CC0-LICENSE.md").write_text(character_license.decode("utf-8").replace("\u2014", "-"), encoding="utf-8")
 
 animation = fetch(ANIMATION_BASE, ANIMATION_PACK + "Unreal-Godot/UAL2_Standard.glb", ANIMATION_DEST, "UAL2_Standard.glb")
