@@ -93,6 +93,8 @@ func _run_tests() -> void:
         await _finish(1, test_root)
         return
     await _wait_attack_ready(player)
+    # Move the combo dummy away so it cannot occlude the boss's independent hit test.
+    grunt.position = Vector3(8.0, 0.0, -2.0)
 
     var boss := ENEMY_SCRIPT.new() as NovaEnemy
     boss.player = player
