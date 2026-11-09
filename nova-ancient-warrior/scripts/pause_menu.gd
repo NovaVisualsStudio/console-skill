@@ -4,11 +4,13 @@ extends Control
 signal pause_requested
 signal resume_requested
 signal audio_settings_changed(music_volume: float, sfx_volume: float)
+signal language_changed(language: String)
 
 var _pause_button: Button
 var _panel: PanelContainer
 var _music_slider: HSlider
 var _sfx_slider: HSlider
+var _language_button: Button
 
 
 func _ready() -> void:
@@ -125,6 +127,12 @@ func _build_ui() -> void:
 	_music_slider.value_changed.connect(_emit_audio_settings)
 	_sfx_slider.value_changed.connect(_emit_audio_settings)
 
+	_language_button = Button.new()
+	_language_button.name = "LanguageButton"
+	_language_button.custom_minimum_size = Vector2(340.0, 48.0)
+	_language_button.pressed.connect(_toggle_language)
+	stack.add_child(_language_button)
+
 	var credits := Label.new()
 	credits.name = "CreditsLabel"
 	credits.text = "HERO: Ara 3D Gen / MakeHuman CC0. MOTION DATA: CMU Graphics Lab. The data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217."
@@ -146,9 +154,22 @@ func _emit_audio_settings(_changed_value: float) -> void:
 	audio_settings_changed.emit(_music_slider.value, _sfx_slider.value)
 
 
+func _toggle_language() -> void:
+	var next_language := "en" if TranslationServer.get_locale().begins_with("ar") else "ar"
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager != null:
+		manager.call("set_language", next_language)
+	else:
+		TranslationServer.set_locale(next_language)
+	_apply_language()
+	language_changed.emit(next_language)
+
+
 func _apply_language() -> void:
 	var arabic := TranslationServer.get_locale().begins_with("ar")
 	_pause_button.text = "إيقاف مؤقت" if arabic else "PAUSE"
+	_language_button.text = "اللغة: العربية" if arabic else "LANGUAGE: ENGLISH"
+	_language_button.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
 	var heading := _panel.get_node("SettingsStack/PauseHeading") as Label
 	heading.text = "متوقف مؤقتاً" if arabic else "PAUSED"
 	heading.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
