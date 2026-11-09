@@ -10,6 +10,7 @@ const CombatRules = preload("res://scripts/combat_rules.gd")
 const EnemyTactics = preload("res://scripts/enemy_tactics.gd")
 const NarrativeDirector = preload("res://scripts/narrative_director.gd")
 const MissionObjectiveDirector = preload("res://scripts/mission_objective_director.gd")
+const ExplorationSecretDirector = preload("res://scripts/exploration_secret_director.gd")
 const WarriorVisual = preload("res://scripts/warrior_visual.gd")
 const MusicDirector = preload("res://scripts/music_director.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
@@ -83,6 +84,7 @@ var dialogue_lines: Array[Dictionary] = []
 var dialogue_index := -1
 var dialogue_active := false
 var mission_relics: Array[Node3D] = []
+var exploration_cache: Node3D
 var mission_relic_count := 0
 var mission_sequence: Array[int] = []
 var boss_gate_pending := false
@@ -546,6 +548,7 @@ func _apply_level_theme(wave: int) -> void:
 		hazard_warning_cooldown = 0.0
 		rune_hazard_lit = false
 		StageBuilder.set_rune_intensity(active_chapter_scene if is_instance_valid(active_chapter_scene) else self, 0.0)
+		exploration_cache = ExplorationSecretDirector.build_stage(self, next_stage_index)
 		if CombatRules.is_boss_wave(wave):
 			MissionObjectiveDirector.clear_stage(self)
 			mission_relics.clear()
@@ -752,15 +755,25 @@ func _update_mission_relic_interaction() -> void:
 		return
 	var nearest_distance := 3.0
 	var nearby := false
+	var cache_is_nearest := false
 	if is_instance_valid(player):
+		if is_instance_valid(exploration_cache) and not bool(exploration_cache.get_meta("collected", false)):
+			var cache_distance := player.global_position.distance_to(exploration_cache.global_position)
+			if cache_distance <= nearest_distance:
+				nearby = true
+				cache_is_nearest = true
+				nearest_distance = cache_distance
 		for relic in mission_relics:
 			if not is_instance_valid(relic) or bool(relic.get_meta("collected", false)):
 				continue
 			var distance := player.global_position.distance_to(relic.global_position)
 			if distance <= nearest_distance:
 				nearby = true
+				cache_is_nearest = false
 				nearest_distance = distance
 	interact_button.visible = nearby and not cinematic_active and not game_over
+	if nearby and cache_is_nearest:
+		interact_button.text = "افتح الصندوق السري" if _is_arabic() else "OPEN SECRET CACHE"
 	_update_mission_objective_ui()
 
 
@@ -769,6 +782,11 @@ func _try_collect_mission_relic() -> void:
 		return
 	var nearest: Node3D = null
 	var nearest_distance := 3.0
+	if is_instance_valid(exploration_cache) and not bool(exploration_cache.get_meta("collected", false)):
+		var cache_distance := player.global_position.distance_to(exploration_cache.global_position)
+		if cache_distance <= nearest_distance:
+			nearest = exploration_cache
+			nearest_distance = cache_distance
 	for relic in mission_relics:
 		if not is_instance_valid(relic) or bool(relic.get_meta("collected", false)):
 			continue
@@ -777,6 +795,16 @@ func _try_collect_mission_relic() -> void:
 			nearest = relic
 			nearest_distance = distance
 	if nearest == null:
+		return
+	if nearest == exploration_cache:
+		if ExplorationSecretDirector.collect(exploration_cache):
+			score += 450
+			souls_earned += 18
+			_save_checkpoint()
+			status_label.text = "عثرت على كنز مخفي! +450 نقطة و18 روحاً" if _is_arabic() else "SECRET CACHE FOUND! +450 SCORE AND 18 SOULS"
+			_play_sfx_or_tone("upgrade", 880.0, 0.22, 0.22)
+			_update_hud()
+			_update_mission_relic_interaction()
 		return
 	var expected_order := mission_sequence[mission_relic_count] if mission_relic_count < mission_sequence.size() else 0
 	var found_order := int(nearest.get_meta("sequence_order", 0))
