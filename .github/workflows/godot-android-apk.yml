@@ -1,0 +1,239 @@
+name: Nova Ancient Warrior Android debug APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release/nova-ancient-warrior-integration-20261108
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "nova-ancient-warrior/**"
+      - ".github/workflows/godot-android-apk.yml"
+
+concurrency:
+  group: nova-android-build-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  export-android-debug:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+
+      - name: Install pinned Android SDK packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager --install \
+            "platform-tools" \
+            "build-tools;35.0.1" \
+            "platforms;android-35" \
+            "cmdline-tools;latest" \
+            "cmake;3.10.2.4988404" \
+            "ndk;28.1.13356709"
+
+      - name: Generate original game sound effects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile nova-ancient-warrior/tools/generate_game_audio.py
+          python3 nova-ancient-warrior/tools/generate_game_audio.py --output nova-ancient-warrior/audio/generated
+
+      - name: Verify realistic hero asset or generate safe fallback
+        shell: bash
+        run: |
+          set -euo pipefail
+          hero="nova-ancient-warrior/assets/characters/nova_hero.glb"
+          provenance="nova-ancient-warrior/assets/characters/ara_source_commit.txt"
+          digest="nova-ancient-warrior/assets/characters/nova_hero.sha256"
+          if [[ -s "$hero" && -s "$provenance" && -s "$digest" ]]; then
+            expected="$(cat "$digest")"
+            actual="$(sha256sum "$hero" | awk '{print $1}')"
+            test "$expected" = "$actual"
+            echo "Verified Ara-generated realistic hero; preserving the committed GLB"
+          else
+            sudo apt-get update
+            sudo apt-get install -y blender python3-numpy
+            blender --background --python-expr "import bpy, numpy; print('BLENDER_NUMPY_OK', bpy.app.version_string, numpy.__version__)"
+            python3 -m py_compile nova-ancient-warrior/tools/blender/generate_nova_hero.py
+            blender --background --python nova-ancient-warrior/tools/blender/generate_nova_hero.py -- --output "$hero"
+            test -s "$hero"
+            echo "Fallback hero generated; Ara realistic hero is not present"
+          fi
+          python3 -m py_compile nova-ancient-warrior/tools/blender/optimize_mocap_glb.py nova-ancient-warrior/tests/test_optimize_mocap_glb.py
+          PYTHONPATH=nova-ancient-warrior/tools/blender python3 nova-ancient-warrior/tests/test_optimize_mocap_glb.py
+          python3 nova-ancient-warrior/tools/blender/optimize_mocap_glb.py \
+            "$hero" "$RUNNER_TEMP/nova_hero_mobile.glb" --max-mb 24
+          cp "$RUNNER_TEMP/nova_hero_mobile.glb" "$hero"
+          echo "Optimized mobile hero (unused facial morph targets stripped):"
+          ls -lh "$hero"
+
+      - name: Download Godot 4.7.2 editor and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot" "$RUNNER_TEMP/templates"
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" \
+            -o "$RUNNER_TEMP/godot-editor.zip"
+          unzip -q "$RUNNER_TEMP/godot-editor.zip" -d "$RUNNER_TEMP/godot"
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz" \
+            -o "$RUNNER_TEMP/godot-templates.tpz"
+          unzip -q "$RUNNER_TEMP/godot-templates.tpz" -d "$RUNNER_TEMP/templates"
+          template_file="$(find "$RUNNER_TEMP/templates" -type f -name android_debug.apk -print -quit)"
+          test -n "$template_file"
+          template_dir="$(dirname "$template_file")"
+          install_dir="$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          mkdir -p "$install_dir"
+          cp -a "$template_dir/." "$install_dir/"
+          test -s "$install_dir/android_debug.apk"
+          editor="$(find "$RUNNER_TEMP/godot" -type f -name 'Godot_v4.7.2-stable_linux.x86_64' -print -quit)"
+          test -n "$editor"
+          chmod +x "$editor"
+          echo "GODOT_BIN=$editor" >> "$GITHUB_ENV"
+
+      - name: Configure Godot Android SDK paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$ANDROID_HOME/platform-tools"
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          EOF
+
+      - name: Create ephemeral debug signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          keytool -genkeypair -noprompt -storetype JKS \
+            -keystore "$RUNNER_TEMP/nova-debug.keystore" \
+            -storepass android -keypass android \
+            -alias androiddebugkey -keyalg RSA -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Import, export and verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$RUNNER_TEMP/nova-debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+          import_log="$RUNNER_TEMP/godot-android-import.log"
+          if ! "$GODOT_BIN" --verbose --headless --editor --path nova-ancient-warrior --quit >"$import_log" 2>&1; then
+            cat "$import_log"
+            exit 1
+          fi
+          cat "$import_log"
+          hero_import="nova-ancient-warrior/assets/characters/nova_hero.glb.import"
+          hero_scene="$(find nova-ancient-warrior/.godot/imported -type f -name 'nova_hero.glb-*.scn' -print -quit)"
+          test -s "$hero_import"
+          if [[ -z "$hero_scene" ]]; then
+            echo "Godot did not produce the expected imported hero scene."
+            cat "$hero_import"
+            find nova-ancient-warrior/.godot/imported -maxdepth 1 -type f -printf '%f %s bytes\\n' 2>/dev/null | head -80 || true
+            exit 1
+          fi
+          hero_scene_bytes="$(stat -c%s "$hero_scene")"
+          echo "Imported Android hero scene size: $hero_scene_bytes bytes"
+          if (( hero_scene_bytes > 50000000 )); then
+            echo "Hero import exceeds the 50 MB Android scene budget; check embedded texture compression."
+            exit 1
+          fi
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/rigged_warrior_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/audio_assets_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/combat_rules_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/pause_menu_smoke.gd
+          combat_log="$RUNNER_TEMP/combat-window.log"
+          if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/combat_window_smoke.gd >"$combat_log" 2>&1; then
+            cat "$combat_log"
+            exit 1
+          fi
+          cat "$combat_log"
+          grep -q "Combat window smoke test passed" "$combat_log"
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$combat_log"; then
+            exit 1
+          fi
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/warrior_visual_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/save_manager_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/level_catalog_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/campaign_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/stage_builder_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/campaign_layout_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/mobile_render_profile_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/stage_hazard_rules_smoke.gd
+          smoke_log="$(mktemp)"
+          if ! "$GODOT_BIN" --verbose --headless --path nova-ancient-warrior \
+              --script res://tests/combat_window_smoke.gd >"$smoke_log" 2>&1; then
+            cat "$smoke_log"
+            exit 1
+          fi
+          cat "$smoke_log"
+          grep -q "Combat window smoke test passed" "$smoke_log"
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$smoke_log"; then
+            exit 1
+          fi
+          mkdir -p artifacts
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --export-debug "Android Debug" \
+            "$GITHUB_WORKSPACE/artifacts/nova-ancient-warrior-debug.apk"
+          apk="artifacts/nova-ancient-warrior-debug.apk"
+          test -s "$apk"
+          apk_bytes="$(stat -c%s "$apk")"
+          echo "Verified Android debug APK size: $apk_bytes bytes"
+          unzip -t "$apk"
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$apk"
+          badging="$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk")"
+          printf '%s\n' "$badging" | grep -F "package: name='com.novavisualsstudio.novaancientwarrior'"
+          printf '%s\n' "$badging" | grep -F "targetSdkVersion:'36'"
+          unzip -Z1 "$apk" | grep -Fx "lib/arm64-v8a/libgodot_android.so"
+          if unzip -Z1 "$apk" | grep -q "^lib/armeabi-v7a/"; then
+            echo "Legacy ARMv7 libraries must not ship in the mid/high-tier Android build"
+            exit 1
+          fi
+          echo "Verified Android ABI: ARM64 only"
+
+      - name: Publish verified debug APK artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: nova-ancient-warrior-android-debug
+          path: artifacts/nova-ancient-warrior-debug.apk
+          if-no-files-found: error
+          retention-days: 14

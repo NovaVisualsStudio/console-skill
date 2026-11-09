@@ -1,0 +1,147 @@
+name: NOVA realistic hero generation
+
+on:
+  push:
+    branches:
+      - release/nova-ancient-warrior-integration-20261108
+    paths:
+      - "nova-ancient-warrior/tools/ara_export_hero.ts"
+      - "nova-ancient-warrior/scripts/rigged_warrior_visual.gd"
+      - "nova-ancient-warrior/tests/rigged_warrior_smoke.gd"
+      - ".github/workflows/nova-generate-ara-hero.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: nova-realistic-hero-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  generate-realistic-hero:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout NOVA
+        uses: actions/checkout@v4
+
+      - name: Clone the audited Ara 3D Gen source
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARA_COMMIT="87222b353929814822b5ca2e2f1acf61743b02e2"
+          git clone --depth 1 https://github.com/olatunde85/3d-gen.git "$RUNNER_TEMP/ara-3d-gen"
+          git -C "$RUNNER_TEMP/ara-3d-gen" fetch --depth 1 origin "$ARA_COMMIT"
+          git -C "$RUNNER_TEMP/ara-3d-gen" checkout --detach "$ARA_COMMIT"
+          git -C "$RUNNER_TEMP/ara-3d-gen" rev-parse HEAD | tee "$RUNNER_TEMP/ara-source-commit.txt"
+
+      - name: Restore audited CC0 MakeHuman assets
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.temp }}/ara-3d-gen/vendor/mh
+            ${{ runner.temp }}/ara-3d-gen/vendor/sys
+            ${{ runner.temp }}/ara-3d-gen/public/assets
+          key: ara-3d-gen-cc0-assets-87222b353929814822b5ca2e2f1acf61743b02e2-v1
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+
+      - name: Install Node 22 and dependencies
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Ara dependencies
+        shell: bash
+        working-directory: ${{ runner.temp }}/ara-3d-gen
+        run: |
+          set -euo pipefail
+          corepack enable
+          pnpm install --no-frozen-lockfile
+
+      - name: Prepare CC0 MakeHuman assets without downloading unused raw mocap
+        shell: bash
+        working-directory: ${{ runner.temp }}/ara-3d-gen
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("scripts/setup-assets.ts")
+          source = path.read_text()
+          needle = "await fetchMocap();"
+          if needle not in source:
+              raise SystemExit("Ara setup script changed; review the new setup flow before proceeding")
+          source = source.replace(
+              needle,
+              "log('Skipping optional raw CMU downloads; the selected animation clips are already baked into source.');"
+          )
+          path.write_text(source)
+          PY
+          pnpm run setup-assets
+
+      - name: Generate rigged NOVA warrior with sword and curated mobile animation set
+        shell: bash
+        working-directory: ${{ runner.temp }}/ara-3d-gen
+        env:
+          NOVA_HERO_OUTPUT: ${{ runner.temp }}/nova_hero.glb
+        run: |
+          set -euo pipefail
+          cp "$GITHUB_WORKSPACE/nova-ancient-warrior/tools/ara_export_hero.ts" scripts/nova_export_hero.ts
+          pnpm exec tsx scripts/nova_export_hero.ts
+          test -s "$NOVA_HERO_OUTPUT"
+          file "$NOVA_HERO_OUTPUT"
+          sha256sum "$NOVA_HERO_OUTPUT" | awk '{print $1}' | tee "$RUNNER_TEMP/nova-hero.sha256"
+
+      - name: Import, test and commit the realistic hero on the latest feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot"
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" \
+            -o "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          GODOT_BIN="$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+          test -s "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5 6; do
+            echo "Hero integration attempt $attempt/6"
+            git fetch origin "$GITHUB_REF_NAME"
+            git reset --hard "origin/$GITHUB_REF_NAME"
+            mkdir -p nova-ancient-warrior/assets/characters
+            cp "$RUNNER_TEMP/nova_hero.glb" nova-ancient-warrior/assets/characters/nova_hero.glb
+            cp "$RUNNER_TEMP/nova-hero.sha256" nova-ancient-warrior/assets/characters/nova_hero.sha256
+            cp "$RUNNER_TEMP/ara-source-commit.txt" nova-ancient-warrior/assets/characters/ara_source_commit.txt
+            "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
+            "$GODOT_BIN" --headless --path nova-ancient-warrior --script res://tests/rigged_warrior_smoke.gd
+            git add -f nova-ancient-warrior/assets/characters/nova_hero.glb nova-ancient-warrior/assets/characters/nova_hero.sha256 nova-ancient-warrior/assets/characters/ara_source_commit.txt
+            if git diff --cached --quiet; then
+              echo "Generated hero and provenance are byte-identical to the validated branch asset; no commit is required."
+              exit 0
+            fi
+            git commit -m "Add validated Ara-generated realistic NOVA hero"
+            if git push origin "HEAD:$GITHUB_REF_NAME"; then
+              echo "Validated hero committed successfully."
+              exit 0
+            fi
+            echo "Branch advanced during hero validation; refetching and retrying without discarding generated assets."
+            sleep 2
+          done
+          echo "Could not publish the validated hero after six branch-race retries."
+          exit 1
+
+      - name: Upload generated hero for review and integration
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-realistic-hero-glb
+          path: |
+            ${{ runner.temp }}/nova_hero.glb
+          if-no-files-found: error
+          retention-days: 14

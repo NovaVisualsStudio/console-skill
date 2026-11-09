@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+import os
+import sys
+from SCons.Script import Environment, Glob, SConscript, Variables, Help, Default
+libname = "nova_combat_kernel"
+local_env = Environment(tools=["default"], PLATFORM="")
+customs = [os.path.abspath("custom.py")] if os.path.isfile("custom.py") else []
+opts = Variables(customs, ARGUMENTS)
+opts.Update(local_env)
+Help(opts.GenerateHelpText(local_env))
+env = local_env.Clone()
+if not (os.path.isdir("godot-cpp") and os.listdir("godot-cpp")):
+ print("godot-cpp checkout is missing. Build through the native GDExtension workflow.")
+ sys.exit(1)
+env = SConscript("godot-cpp/SConstruct", {"api_version": "4.7", "env": env, "customs": customs})
+env.Append(CPPPATH=["src/"])
+sources = Glob("src/*.cpp")
+suffix = env["suffix"].replace(".dev", "").replace(".universal", "")
+filename = "{}{}{}".format(env.subst("$SHLIBPREFIX"), libname, suffix)
+library = env.SharedLibrary("bin/{}/{}".format(env["platform"], filename), source=sources)
+Default(library)

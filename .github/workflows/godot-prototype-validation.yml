@@ -1,0 +1,144 @@
+name: Nova Ancient Warrior — Godot validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-godot-project:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download Godot 4.7.2
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+
+      - name: Syntax-check the Blender character packaging tool
+        run: |
+          python3 -m py_compile \
+            nova-ancient-warrior/tools/blender/export_humanoid_for_godot.py \
+            nova-ancient-warrior/tools/blender/optimize_mocap_glb.py \
+            nova-ancient-warrior/tools/blender/generate_nova_hero.py \
+            nova-ancient-warrior/tools/generate_game_audio.py
+
+      - name: Generate original game sound effects
+        run: |
+          python3 nova-ancient-warrior/tools/generate_game_audio.py --output nova-ancient-warrior/audio/generated
+
+      - name: Generate original skinned Nova hero and animation library
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender python3-numpy
+          blender --background --python-expr "import bpy, numpy; print('BLENDER_NUMPY_OK', bpy.app.version_string, numpy.__version__)"
+          blender --background --python nova-ancient-warrior/tools/blender/generate_nova_hero.py -- --output nova-ancient-warrior/assets/characters/nova_hero.glb
+          test -s nova-ancient-warrior/assets/characters/nova_hero.glb
+          ls -lh nova-ancient-warrior/assets/characters/nova_hero.glb
+
+      - name: Import project resources
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path nova-ancient-warrior --quit
+
+      - name: Verify generated rigged hero and animation library
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/rigged_warrior_smoke.gd
+
+      - name: Validate imported original sound effects
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/audio_assets_smoke.gd
+
+      - name: Verify pause menu and persistent audio settings
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/pause_menu_smoke.gd
+
+      - name: Run deterministic gameplay combat checks
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/combat_rules_smoke.gd
+
+      - name: Verify timed melee hit windows in the real scene
+        run: |
+          log_file="$RUNNER_TEMP/combat-window.log"
+          if ! ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/combat_window_smoke.gd >"$log_file" 2>&1; then
+            cat "$log_file"
+            exit 1
+          fi
+          cat "$log_file"
+          grep -q "Combat window smoke test passed" "$log_file"
+          if grep -E "SCRIPT ERROR:|ERROR:|ObjectDB instance was leaked|Leaked instance:|RID allocations of type" "$log_file"; then
+            exit 1
+          fi
+
+      - name: Smoke-test articulated warrior visuals and animation methods
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/warrior_visual_smoke.gd
+
+      - name: Verify save data and chapter unlock persistence
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/save_manager_smoke.gd
+
+      - name: Validate data-driven campaign themes
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/level_catalog_smoke.gd
+
+      - name: Verify all nine waves and three boss encounters
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/campaign_smoke.gd
+
+      - name: Build each procedural chapter environment
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/stage_builder_smoke.gd
+
+      - name: Verify collision-backed chapter layouts
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/campaign_layout_smoke.gd
+
+      - name: Verify procedural PBR material maps
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/pbr_material_smoke.gd
+
+      - name: Verify multi-touch camera orbit input
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/touch_camera_controller_smoke.gd
+
+      - name: Verify analogue movement joystick input
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/virtual_joystick_smoke.gd
+
+      - name: Verify Android and desktop rendering profiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          mobile_log="$(mktemp)"
+          if ! ./Godot_v4.7.2-stable_linux.x86_64 --verbose --headless --path nova-ancient-warrior --script res://tests/mobile_render_profile_smoke.gd >"$mobile_log" 2>&1; then
+            cat "$mobile_log"
+            exit 1
+          fi
+          cat "$mobile_log"
+          if grep -E "SCRIPT ERROR:|ERROR:|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$mobile_log"; then
+            exit 1
+          fi
+
+      - name: Verify stage hazard warning, timing and safe routes
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/stage_hazard_rules_smoke.gd
+
+      - name: Smoke-run main scene and reject script errors
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          if ! ./Godot_v4.7.2-stable_linux.x86_64 --verbose --headless --path nova-ancient-warrior --script res://tests/combat_window_smoke.gd >"$log_file" 2>&1; then
+            cat "$log_file"
+            exit 1
+          fi
+          cat "$log_file"
+          grep -q "Combat window smoke test passed" "$log_file"
+          if grep -E "SCRIPT ERROR:|ERROR:|ObjectDB instance was leaked|Leaked instance:|RID allocations of type|resources still in use" "$log_file"; then
+            exit 1
+          fi

@@ -63,8 +63,14 @@ class Repo(unittest.TestCase):
             top = relpath.split("/", 1)[0]
             if not top.startswith(".git"):
                 root.add(top)
-        self.assertEqual(sorted(root),
-                         sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "ps2-game", "tests"] + SKILLS))
+        # The canonical root also carries the project's governance documents.
+        # Keep this an exact inventory so accidental files still fail CI.
+        expected_root = [
+            ".agents", ".claude-plugin", "AGENTS.md", "AI_DEVELOPMENT_WORKFLOW.md",
+            "CLAUDE.md", "LICENSE", "README.md", "ZERO_COST_POLICY.md", "docs",
+            "nova-ancient-warrior", "ps2-game", "tests",
+        ] + SKILLS
+        self.assertEqual(sorted(root), sorted(expected_root))
 
     def test_frontmatter_name_description_hint(self):
         for s in SKILLS:
@@ -157,6 +163,13 @@ class Repo(unittest.TestCase):
                 self.assertFalse(rel.lower().endswith((".iso", ".pdf", ".elf", ".irx")), rel)
                 continue
             self.assertFalse(rel.lower().endswith(GAME_EXT), "%s looks like game data" % rel)
+            # The NOVA game needs its generated, licensed hero mesh at runtime.
+            # Permit only this exact GLB path; keep all other repository files under 512 KiB.
+            if rel == os.path.join("nova-ancient-warrior", "assets", "characters", "nova_hero.glb"):
+                self.assertLessEqual(os.path.getsize(p), 32 * 1024 * 1024, rel)
+                with open(p, "rb") as fh:
+                    self.assertEqual(fh.read(4), b"glTF", rel)
+                continue
             self.assertLess(os.path.getsize(p), MAX_FILE, "%s is too big for this repo" % rel)
             with open(p, "rb") as fh:
                 head = fh.read(4)
@@ -238,6 +251,107 @@ class Repo(unittest.TestCase):
             self.assertIn("Codex does not document a corresponding skill-directory environment variable", text)
             self.assertIn("parent directory of that provided path", text)
             self.assertIn("${CLAUDE_SKILL_DIR}", text)
+
+    def test_android_orientation_matches_landscape_viewport(self):
+        project_path = os.path.join(ROOT, "nova-ancient-warrior", "project.godot")
+        with open(project_path, encoding="utf-8") as fh:
+            project = fh.read()
+        self.assertIn("window/size/viewport_width=1920", project)
+        self.assertIn("window/size/viewport_height=1080", project)
+        self.assertIn("window/size/viewport_width.mobile=1280", project)
+        self.assertIn("window/size/viewport_height.mobile=720", project)
+        self.assertIn('renderer/rendering_method="forward_plus"', project)
+        self.assertIn('renderer/rendering_method.mobile="gl_compatibility"', project)
+        self.assertIn("window/handheld/orientation=0", project)
+
+    def test_android_game_has_touch_restart_and_audio_pool(self):
+        script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
+        with open(script_path, encoding="utf-8") as fh:
+            script = fh.read()
+        self.assertIn('restart_button.button_down.connect(func(): Input.action_press("restart"))', script)
+        self.assertIn("restart_button.visible = true", script)
+        self.assertIn("var sound_players: Array[AudioStreamPlayer] = []", script)
+        self.assertNotIn(chr(0x2014), script)
+
+    def test_android_debug_export_preset_and_workflow(self):
+        preset_path = os.path.join(ROOT, "nova-ancient-warrior", "export_presets.cfg")
+        workflow_path = os.path.join(ROOT, ".github", "workflows", "godot-android-apk.yml")
+        with open(preset_path, encoding="utf-8") as fh:
+            preset = fh.read()
+        with open(workflow_path, encoding="utf-8") as fh:
+            workflow = fh.read()
+        self.assertIn('name="Android Debug"', preset)
+        self.assertIn('platform="Android"', preset)
+        self.assertIn('export_filter="all_resources"', preset)
+        self.assertIn('include_filter=""', preset)
+        self.assertIn('exclude_filter=""', preset)
+        self.assertIn('python3 nova-ancient-warrior/tools/generate_game_audio.py --output nova-ancient-warrior/audio/generated', workflow)
+        self.assertIn('hero="nova-ancient-warrior/assets/characters/nova_hero.glb"', workflow)
+        self.assertNotIn('export_filter="resources"', preset)
+        self.assertIn('architectures/arm64-v8a=true', preset)
+        self.assertIn('package/unique_name="com.novavisualsstudio.novaancientwarrior"', preset)
+        self.assertIn('Godot_v4.7.2-stable_export_templates.tpz', workflow)
+        self.assertIn('--export-debug "Android Debug"', workflow)
+        self.assertIn('apksigner', workflow)
+
+    def test_android_export_has_explicit_enemy_types_and_etc2(self):
+        script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
+        project_path = os.path.join(ROOT, "nova-ancient-warrior", "project.godot")
+        with open(script_path, encoding="utf-8") as fh:
+            script = fh.read()
+        with open(project_path, encoding="utf-8") as fh:
+            project = fh.read()
+        self.assertIn("var offset: Vector3 = player.global_position - enemy.global_position", script)
+        self.assertIn("var distance: float = offset.length()", script)
+        self.assertIn("textures/vram_compression/import_etc2_astc=true", project)
+
+    def test_android_attack_arc_uses_explicit_vector_types(self):
+        script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
+        with open(script_path, encoding="utf-8") as fh:
+            script = fh.read()
+        self.assertIn("var to_enemy: Vector3 = enemy.global_position - player.global_position", script)
+        self.assertIn("CombatRules.is_target_in_attack_arc(facing, to_enemy, ATTACK_RANGE)", script)
+
+    def test_player_is_clamped_to_arena_bounds(self):
+        script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
+        with open(script_path, encoding="utf-8") as fh:
+            script = fh.read()
+        self.assertIn("const ARENA_LIMIT := 16.0", script)
+        self.assertIn("safe_position.x = clampf(safe_position.x, -ARENA_LIMIT, ARENA_LIMIT)", script)
+        self.assertIn("safe_position.z = clampf(safe_position.z, -ARENA_LIMIT, ARENA_LIMIT)", script)
+        self.assertIn("player.global_position = safe_position", script)
+
+    def test_project_has_original_application_icon(self):
+        project_path = os.path.join(ROOT, "nova-ancient-warrior", "project.godot")
+        icon_path = os.path.join(ROOT, "nova-ancient-warrior", "icon.svg")
+        with open(project_path, encoding="utf-8") as fh:
+            project = fh.read()
+        with open(icon_path, encoding="utf-8") as fh:
+            icon = fh.read()
+        self.assertIn('config/icon="res://icon.svg"', project)
+        self.assertIn("<svg", icon)
+        self.assertIn("Nova", project)
+
+    def test_enemy_ai_uses_fixed_tick_and_avoids_per_frame_copy(self):
+        script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
+        with open(script_path, encoding="utf-8") as fh:
+            script = fh.read()
+        process_body = script.split("func _process", 1)[1].split("func _physics_process", 1)[0]
+        physics_body = script.split("func _physics_process", 1)[1].split("func _setup_input", 1)[0]
+        self.assertNotIn("enemies.duplicate()", script)
+        self.assertNotIn("_update_enemies(delta)", process_body)
+        self.assertIn("_update_enemies(delta)", physics_body)
+
+    def test_combat_rules_have_a_headless_gameplay_smoke_test(self):
+        rules_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "combat_rules.gd")
+        test_path = os.path.join(ROOT, "nova-ancient-warrior", "tests", "combat_rules_smoke.gd")
+        with open(rules_path, encoding="utf-8") as fh:
+            rules = fh.read()
+        with open(test_path, encoding="utf-8") as fh:
+            smoke = fh.read()
+        self.assertIn("static func is_target_in_attack_arc", rules)
+        self.assertIn("target behind player is not hittable", smoke)
+        self.assertIn("target outside attack range is not hittable", smoke)
 
 
 if __name__ == "__main__":
