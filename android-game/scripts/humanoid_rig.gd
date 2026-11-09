@@ -393,7 +393,43 @@ func play_action(action: String, blend: float = 0.14) -> void:
     var available := animation_player.get_animation_list()
     var selected := _select_action_animation(action, available)
     if not selected.is_empty():
+        if action != "attack" and action != "heavy":
+            animation_player.speed_scale = 1.0
         _play_animation(selected, blend)
+
+func play_attack_variant(combo_step: int, heavy: bool, blend: float = 0.06) -> void:
+    if animation_player == null or loaded_animation_count == 0:
+        return
+    var available := animation_player.get_animation_list()
+    var selected := ""
+    if heavy:
+        selected = _select_action_animation("heavy", available)
+    else:
+        var preferred_variants := {
+            1: ["light_attack", "sword_attack", "melee_attack", "slash"],
+            2: ["slice", "swing", "diagonal", "cross"],
+            3: ["chop", "overhead", "stab", "thrust", "finisher"]
+        }
+        var terms: Array = preferred_variants.get(clampi(combo_step, 1, 3), preferred_variants[1])
+        for term in terms:
+            for animation_name in available:
+                var candidate := String(animation_name)
+                var lowered := candidate.to_lower()
+                var is_attack_clip := lowered.contains("attack") or lowered.contains("sword") or lowered.contains("melee") or lowered.contains("combo") or lowered.contains("slash") or lowered.contains("slice") or lowered.contains("swing") or lowered.contains("chop") or lowered.contains("stab")
+                if is_attack_clip and not lowered.contains("heavy") and lowered.contains(String(term)):
+                    selected = candidate
+                    break
+            if not selected.is_empty():
+                break
+        if selected.is_empty():
+            selected = _select_action_animation("attack", available)
+    if selected.is_empty():
+        return
+    var clip := animation_player.get_animation(selected)
+    var desired_duration := 0.66 if heavy else 0.38
+    if clip != null and clip.length > 0.05:
+        animation_player.speed_scale = clampf(clip.length / desired_duration, 0.65, 2.4)
+    _play_animation(selected, blend)
 
 func _select_action_animation(action: String, available: Array[StringName]) -> String:
     var terms := {
