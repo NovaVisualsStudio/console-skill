@@ -255,6 +255,7 @@ func _run_tests() -> void:
     await create_timer(0.46).timeout
 
     # A wall must block melee damage even when the target is inside the nominal range.
+    grunt.position = Vector3(8.0, 0.0, -2.0)
     var occluded_target := ENEMY_SCRIPT.new() as NovaEnemy
     occluded_target.player = player
     occluded_target.position = Vector3(0.0, 0.0, -2.0)
