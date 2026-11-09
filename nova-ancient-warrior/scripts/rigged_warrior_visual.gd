@@ -145,6 +145,9 @@ func _play_loop(fragment: String) -> void:
 	var animation := _animation_player.get_animation(animation_name)
 	if animation != null:
 		animation.loop_mode = Animation.LOOP_LINEAR
+	# A looping stance may interrupt a one-shot action (attack/parry). Clear the
+	# one-shot latch before the same-clip early return as well as before a new play.
+	_one_shot = false
 	if _active_animation == animation_name and _animation_player.is_playing():
 		return
 	_active_animation = animation_name
