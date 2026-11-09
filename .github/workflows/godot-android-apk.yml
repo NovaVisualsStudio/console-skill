@@ -78,7 +78,8 @@ jobs:
             test -s "$hero"
             echo "Fallback hero generated; Ara realistic hero is not present"
           fi
-          python3 -m py_compile nova-ancient-warrior/tools/blender/optimize_mocap_glb.py
+          python3 -m py_compile nova-ancient-warrior/tools/blender/optimize_mocap_glb.py nova-ancient-warrior/tests/test_optimize_mocap_glb.py
+          PYTHONPATH=nova-ancient-warrior/tools/blender python3 nova-ancient-warrior/tests/test_optimize_mocap_glb.py
           python3 nova-ancient-warrior/tools/blender/optimize_mocap_glb.py \
             "$hero" "$RUNNER_TEMP/nova_hero_mobile.glb" --max-mb 24
           cp "$RUNNER_TEMP/nova_hero_mobile.glb" "$hero"
