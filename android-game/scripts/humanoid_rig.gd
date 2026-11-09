@@ -392,10 +392,27 @@ func play_action(action: String, blend: float = 0.14) -> void:
         return
     var available := animation_player.get_animation_list()
     var selected := _select_action_animation(action, available)
-    if not selected.is_empty():
-        if action != "attack" and action != "heavy":
-            animation_player.speed_scale = 1.0
-        _play_animation(selected, blend)
+    if selected.is_empty():
+        return
+    animation_player.speed_scale = 1.0
+    var transition := blend
+    if action == "idle":
+        transition = maxf(blend, 0.22)
+    elif action == "walk" or action == "run":
+        transition = maxf(blend, 0.18)
+    elif action == "hit" or action == "dodge":
+        transition = minf(blend, 0.07)
+    _play_animation(selected, transition)
+
+func play_locomotion(action: String, speed_ratio: float) -> void:
+    if animation_player == null or loaded_animation_count == 0:
+        return
+    var selected := _select_action_animation(action, animation_player.get_animation_list())
+    if selected.is_empty():
+        return
+    var ratio := clampf(speed_ratio, 0.45, 1.25)
+    animation_player.speed_scale = clampf(0.72 + ratio * 0.48, 0.72, 1.36)
+    _play_animation(selected, 0.20)
 
 func play_attack_variant(combo_step: int, heavy: bool, blend: float = 0.06) -> void:
     if animation_player == null or loaded_animation_count == 0:
