@@ -148,8 +148,19 @@ func _run_tests() -> void:
 
     await _wait_attack_ready(player)
     var boss_health_before_heavy := boss.health
+    var stamina_before_heavy := player.stamina
     if not player.perform_heavy_attack() or boss.health != boss_health_before_heavy:
         push_error("Heavy attack should observe startup before its active hit window.")
+        await _finish(1, test_root)
+        return
+    if not is_equal_approx(player.stamina, stamina_before_heavy - 30.0):
+        push_error("Heavy attack should consume exactly 30 stamina.")
+        await _finish(1, test_root)
+        return
+    var stamina_after_heavy := player.stamina
+    await create_timer(0.35).timeout
+    if not is_equal_approx(player.stamina, stamina_after_heavy):
+        push_error("Stamina regenerated before the heavy-attack recovery delay elapsed.")
         await _finish(1, test_root)
         return
     await _wait_for_enemy_health(boss, boss_health_before_heavy - 82)
