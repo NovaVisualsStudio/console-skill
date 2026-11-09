@@ -8,7 +8,7 @@ The two user-provided screenshots are visual direction references for a polished
 
 The game remains an original IP. Do not copy PUBG/BGMI names, logos, maps, character designs, UI artwork, weapon skins, sounds, or proprietary assets. Build original environments, characters, UI and audio.
 
-Target only supported mid-range and high-end Android phones. Do not spend production time maintaining a low-end/legacy visual preset. Still expose sensible Medium / High / Ultra settings within the supported device class so heat and battery can be managed.
+Target only supported mid-range and high-end Android phones. Do not spend production time maintaining a low-end/legacy visual preset. Expose only the requested Mid and High profiles within the supported device class so heat and battery can be managed; do not spend effort on a low-end preset.
 
 ## Product direction
 
@@ -38,7 +38,7 @@ Hero, enemies, weapons and major environment assets should use authored PBR mate
 - LODs and distance-based detail reduction for scenery.
 
 Target texture budgets:
-- Hero body/gear: 2K for the main atlas on High/Ultra; 1K on Medium.
+- Hero body/gear: 2K for the main atlas on High; 1K on Mid.
 - Hero face/head: dedicated 1K-2K atlas where needed.
 - Weapons and hero-critical props: 1K-2K.
 - Large environment modular surfaces: reusable 1K-2K tiling materials with variation decals.
@@ -107,7 +107,7 @@ Landscape-first, touch-first HUD:
 
 ## Device tiers and acceptance
 
-Supported class: mid-range and high-end Android devices with Vulkan-capable GPUs for the preferred Mobile renderer. Publish a tested compatibility list rather than promising support for every phone.
+Supported class: mid-range and high-end Android devices. The current Android build uses Godot GL Compatibility (OpenGL ES 3); Vulkan/Mobile renderer support remains a future benchmark candidate, not a current device requirement. Publish a tested compatibility list rather than promising support for every phone.
 
 Provisional performance gates, to be measured on physical devices:
 - Mid-range target: stable 30 FPS minimum in the heaviest encounter; aim for 40-45 FPS where thermals permit.
