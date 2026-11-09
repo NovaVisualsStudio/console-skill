@@ -125,6 +125,22 @@ func _run_rigged_hero_smoke() -> void:
 	if "hitfromfront" not in str(animation_player.current_animation).to_lower().replace(" ", ""):
 		_fail(visual, "Hit reaction must select a directional reaction clip")
 		return
+	# Re-entering a looping guard stance must clear the one-shot latch even
+	# when parry and guard use the same imported clip name.
+	visual.call("set_blocking", true)
+	visual.call("play_parry")
+	visual.call("set_blocking", true)
+	if bool(visual.get("_one_shot")):
+		_fail(visual, "Guard loop remained latched as a one-shot after parry")
+		return
+	if animation_player.get_animation(animation_player.current_animation).loop_mode != Animation.LOOP_LINEAR:
+		_fail(visual, "Guard stance must resume looping after parry")
+		return
+	visual.call("set_blocking", false)
+	visual.call("set_locomotion", 0.5, 0.016)
+	if "walk" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Locomotion must resume after releasing guard")
+		return
 	print("Rigged Nova hero smoke test passed: %d bones, %d animation clips, %d mesh nodes, %d textured PBR materials" % [skeleton.get_bone_count(), names.size(), mesh_nodes.size(), textured_materials])
 	visual.free()
 	quit(0)
