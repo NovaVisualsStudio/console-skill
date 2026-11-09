@@ -31,9 +31,9 @@ ASSETS = {
     },
     "rock_tile_floor": {
         "maps": {
-            "diff": ("_diff_1k.jpg", "_diffuse_1k.jpg"),
-            "nor_gl": ("_nor_gl_1k.jpg",),
-            "rough": ("_rough_1k.jpg",),
+            "diff": (f"_diff_{TEXTURE_TIER}.jpg", f"_diffuse_{TEXTURE_TIER}.jpg"),
+            "nor_gl": (f"_nor_gl_{TEXTURE_TIER}.jpg",),
+            "rough": (f"_rough_{TEXTURE_TIER}.jpg",),
         },
     },
 }
