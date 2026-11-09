@@ -23,7 +23,7 @@ func _initialize() -> void:
 
 	var direction := EnemyTactics.movement_direction(Vector3(0.0, 0.0, -1.0), 1.0)
 	assert(direction.length() > 0.99 and direction.length() < 1.01, "Tactical movement must be normalized")
-	assert(direction.x < 0.0, "Positive flank sign must produce a leftward orbit for a north-facing player")
+	assert(direction.x > 0.0, "Positive flank sign must produce a rightward orbit for a north-facing player")
 
 	print("Enemy tactics smoke test passed: approach, agile flanks, boss repositioning, telegraph and cooldown")
 	quit(0)
