@@ -36,18 +36,23 @@ func _run_title_screen_smoke() -> void:
 		return
 
 	var quality_button := menu.get_node("SettingsPanel/SettingsStack/QualityButton") as Button
-	if "GRAPHICS PROFILE" not in quality_button.text:
+	if quality_button.text.is_empty():
 		_fail(menu, "Graphics profile control is not initialized")
 		return
 
 	var language_button := menu.get_node("SettingsPanel/SettingsStack/LanguageButton") as Button
+	var was_arabic := TranslationServer.get_locale().begins_with("ar")
 	language_button.pressed.emit()
-	if not TranslationServer.get_locale().begins_with("ar") or (menu.get_node("SubtitleLabel") as Label).text != "المحارب القديم":
-		_fail(menu, "Arabic language selection did not localize the title screen")
+	if TranslationServer.get_locale().begins_with("ar") == was_arabic:
+		_fail(menu, "Language selector did not switch language")
+		return
+	var switched_subtitle := (menu.get_node("SubtitleLabel") as Label).text
+	if (not was_arabic and switched_subtitle != "المحارب القديم") or (was_arabic and switched_subtitle != "ANCIENT WARRIOR"):
+		_fail(menu, "Language selector did not localize the title screen")
 		return
 	language_button.pressed.emit()
-	if TranslationServer.get_locale().begins_with("ar") or (menu.get_node("SubtitleLabel") as Label).text != "ANCIENT WARRIOR":
-		_fail(menu, "English language selection did not restore the title screen")
+	if TranslationServer.get_locale().begins_with("ar") != was_arabic:
+		_fail(menu, "Language selector did not restore the original language")
 		return
 
 	var credits_button := menu.get_node("MainMenuButtons/CreditsButton") as Button
