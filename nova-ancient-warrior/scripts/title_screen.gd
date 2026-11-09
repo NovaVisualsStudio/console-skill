@@ -198,6 +198,7 @@ func _build_settings_panel() -> void:
 	add_child(_settings_panel)
 
 	var stack := VBoxContainer.new()
+	stack.name = "SettingsStack"
 	stack.add_theme_constant_override("separation", 13)
 	_settings_panel.add_child(stack)
 	var heading := Label.new()
@@ -258,6 +259,7 @@ func _build_credits_panel() -> void:
 	_credits_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_credits_panel)
 	var stack := VBoxContainer.new()
+	stack.name = "CreditsStack"
 	stack.add_theme_constant_override("separation", 12)
 	_credits_panel.add_child(stack)
 	var heading := Label.new()
