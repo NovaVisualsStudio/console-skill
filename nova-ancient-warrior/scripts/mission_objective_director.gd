@@ -22,12 +22,12 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 	root.name = ROOT_NAME
 	parent.add_child(root)
 
-	var palettes := [
+	var palettes: Array[Color] = [
 		Color(0.22, 0.82, 0.95),
 		Color(1.0, 0.24, 0.07),
 		Color(0.38, 0.48, 1.0)
 	]
-	var glow := palettes[clampi(stage_index, 0, 2)]
+	var glow: Color = palettes[clampi(stage_index, 0, 2)]
 	var material := StandardMaterial3D.new()
 	material.albedo_color = glow.lightened(0.18)
 	material.metallic = 0.52
