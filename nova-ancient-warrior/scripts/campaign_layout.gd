@@ -57,7 +57,8 @@ static func _build_sunken_layout(root: Node3D) -> void:
 	_solid_block(root, "SunkenAltarBase", Vector3(5.4, 0.34, 2.2), Vector3(0.0, 0.17, -13.6), stone)
 	_solid_block(root, "SunkenAltarTop", Vector3(3.6, 0.24, 1.5), Vector3(0.0, 0.46, -13.6), trim)
 	for side in [-1.0, 1.0]:
-		_solid_block(root, "SunkenCoverStone", Vector3(2.2, 0.82, 1.0), Vector3(side * 5.8, 0.41, 3.4), stone)
+		# Keep the opening combat spawn ring clear; cover remains on the outer flank.
+		_solid_block(root, "SunkenCoverStone", Vector3(2.2, 0.82, 1.0), Vector3(side * 8.2, 0.41, 3.4), stone)
 	_add_arch(root, "SunkenEntryArch", Vector3(0.48, 5.4, 0.55), stone, trim)
 
 
@@ -96,7 +97,8 @@ static func _build_obsidian_layout(root: Node3D) -> void:
 		for index in range(3):
 			var z := -7.0 + float(index) * 6.0
 			_solid_block(root, "ObsidianSideWalk", Vector3(2.2, 0.20, 2.6), Vector3(side * 9.0, 0.10, z), obsidian)
-		_solid_block(root, "ObsidianGuardStone", Vector3(2.0, 0.9, 1.1), Vector3(side * 5.8, 0.45, 3.6), obsidian)
+		# Keep the opening combat spawn ring clear; guard stones sit beyond the approach lane.
+		_solid_block(root, "ObsidianGuardStone", Vector3(2.0, 0.9, 1.1), Vector3(side * 8.0, 0.45, 3.6), obsidian)
 	_add_arch(root, "ObsidianEntryArch", Vector3(0.48, 6.2, 0.55), obsidian, rune)
 
 
