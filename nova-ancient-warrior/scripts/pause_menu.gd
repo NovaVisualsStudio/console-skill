@@ -20,11 +20,15 @@ func _ready() -> void:
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") and not (event is InputEventKey and (event as InputEventKey).echo):
-		if is_paused():
-			resume_requested.emit()
-		else:
-			pause_requested.emit()
+		_handle_cancel()
 		get_viewport().set_input_as_handled()
+
+
+func _handle_cancel() -> void:
+	if is_paused():
+		resume_requested.emit()
+	else:
+		pause_requested.emit()
 
 
 func is_paused() -> bool:
