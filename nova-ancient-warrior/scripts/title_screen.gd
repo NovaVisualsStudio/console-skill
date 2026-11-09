@@ -437,9 +437,12 @@ func _apply_language() -> void:
 		"SettingsCloseButton": "إغلاق" if arabic else "CLOSE",
 		"CreditsHeading": "الاعتمادات وإشعارات الأصول" if arabic else "CREDITS & ASSET NOTICES",
 		"CreditsCloseButton": "إغلاق" if arabic else "CLOSE",
+		"ControlsHeading": "طريقة اللعب والتحكم" if arabic else "HOW TO PLAY",
+		"ControlsCloseButton": "إغلاق" if arabic else "CLOSE",
 		"NewCampaignButton": "حملة جديدة" if arabic else "NEW CAMPAIGN",
 		"SettingsButton": "الإعدادات" if arabic else "SETTINGS",
 		"CreditsButton": "الاعتمادات" if arabic else "CREDITS",
+		"HowToPlayButton": "طريقة اللعب" if arabic else "HOW TO PLAY",
 		"QuitButton": "خروج" if arabic else "QUIT"
 	}
 	for node_name in texts:
@@ -452,6 +455,14 @@ func _apply_language() -> void:
 			var button := node as Button
 			button.text = texts[node_name]
 			button.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
+
+	var controls_notice := find_child("ControlsNotice", true, false) as Label
+	if controls_notice != null:
+		if arabic:
+			controls_notice.text = "أندرويد: حرّك عصا التحكم اليسرى للمشي. اسحب الجهة اليمنى لتحريك الكاميرا. الهجوم: اضغط زر السيف. الهجوم الثقيل: استخدم زر الضربة الثقيلة. الدفاع: استمر في الضغط على الدرع، واضغط قبل وصول الضربة مباشرة لتنفيذ صد مثالي. المراوغة: تفادَ الهجمات لتجنب الضرر. القفل: ثبّت الهدف. القفز: تجاوز الأخطار. التفاعل: اجمع شظايا الأختام المرقمة بالترتيب الظاهر؛ لكل فصل ترتيب مختلف. اهزم الزعيم بعد فتح البوابة."
+		else:
+			controls_notice.text = "ANDROID: Left joystick moves. Drag the right side to orbit the camera. ATTACK: tap sword. HEAVY: use the heavy-strike button. GUARD: hold shield; tap just before impact for a perfect parry. DODGE: evade to avoid damage. LOCK: lock onto a target. JUMP: clear hazards. INTERACT: collect the numbered seal fragments in the displayed order. Each chapter has a different sequence. Defeat the boss after the gate opens."
+		controls_notice.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
 
 	var notice := find_child("CreditsNotice", true, false) as Label
 	if notice != null:
@@ -466,6 +477,8 @@ func _apply_language() -> void:
 		_settings_panel.layout_direction = Control.LAYOUT_DIRECTION_RTL if arabic else Control.LAYOUT_DIRECTION_LTR
 	if is_instance_valid(_credits_panel):
 		_credits_panel.layout_direction = Control.LAYOUT_DIRECTION_RTL if arabic else Control.LAYOUT_DIRECTION_LTR
+	if is_instance_valid(_controls_panel):
+		_controls_panel.layout_direction = Control.LAYOUT_DIRECTION_RTL if arabic else Control.LAYOUT_DIRECTION_LTR
 	if is_instance_valid(_language_button):
 		_language_button.text = "اللغة: العربية" if arabic else "LANGUAGE: ENGLISH"
 		_language_button.text_direction = Control.TEXT_DIRECTION_RTL if arabic else Control.TEXT_DIRECTION_LTR
