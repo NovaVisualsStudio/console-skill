@@ -16,6 +16,7 @@ const LEVELS := [
 		"accent": Color(0.73, 0.43, 0.20),
 		"emission": Color(0.0, 0.0, 0.0),
 		"boss_name": "THE ASH TITAN",
+		"boss_name_ar": "عملاق الرماد",
 		"boss_kind": "ash_titan"
 	},
 	{
@@ -32,6 +33,7 @@ const LEVELS := [
 		"accent": Color(0.70, 0.20, 0.08),
 		"emission": Color(1.0, 0.12, 0.025),
 		"boss_name": "THE EMBER WARLORD",
+		"boss_name_ar": "قائد الحرب النارية",
 		"boss_kind": "ember_warlord"
 	},
 	{
@@ -48,6 +50,7 @@ const LEVELS := [
 		"accent": Color(0.34, 0.48, 0.86),
 		"emission": Color(0.10, 0.22, 0.82),
 		"boss_name": "THE OBSIDIAN SOVEREIGN",
+		"boss_name_ar": "حاكم العرش الأسود",
 		"boss_kind": "obsidian_sovereign"
 	}
 ]
@@ -68,5 +71,8 @@ static func level_count() -> int:
 static func wave_title(wave: int) -> String:
 	var safe_wave := clampi(wave, 1, 9)
 	var level := get_level(safe_wave)
+	if TranslationServer.get_locale().begins_with("ar"):
+		var encounter_ar := "مواجهة الزعيم" if safe_wave % 3 == 0 else "مواجهة الأعداء"
+		return "%s  |  الموجة %d/9  |  %s" % [str(level["chapter_title_ar"]), safe_wave, encounter_ar]
 	var encounter := "BOSS ENCOUNTER" if safe_wave % 3 == 0 else "ENEMY ENCOUNTER"
 	return "%s  |  WAVE %d/9  |  %s" % [str(level["chapter_title"]), safe_wave, encounter]
