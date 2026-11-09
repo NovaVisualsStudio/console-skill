@@ -28,6 +28,7 @@ var retry_button: Button
 var continue_button: Button
 var chapter_index := 0
 var unlocked_chapter := 0
+var campaign_complete := false
 var intro_timer := 3.1
 var defeated_count := 0
 var combat_started := false
@@ -618,22 +619,26 @@ func _on_continue_pressed() -> void:
         _save_campaign_progress(0, false)
     get_tree().reload_current_scene()
 
-func _load_campaign_progress() -> void:
+func _load_campaign_progress(path: String = SAVE_PATH) -> void:
     var config := ConfigFile.new()
-    if config.load(SAVE_PATH) != OK:
+    if config.load(path) != OK:
         chapter_index = 0
         unlocked_chapter = 0
+        campaign_complete = false
         return
     chapter_index = clampi(int(config.get_value("progress", "current_chapter", 0)), 0, CHAPTER_NAMES.size() - 1)
     unlocked_chapter = clampi(int(config.get_value("progress", "unlocked_chapter", 0)), 0, CHAPTER_NAMES.size() - 1)
+    campaign_complete = bool(config.get_value("progress", "campaign_complete", false))
 
-func _save_campaign_progress(next_chapter: int, campaign_complete: bool) -> void:
+func _save_campaign_progress(next_chapter: int, is_complete: bool, path: String = SAVE_PATH) -> void:
     var config := ConfigFile.new()
-    config.load(SAVE_PATH)
+    config.load(path)
     unlocked_chapter = maxi(unlocked_chapter, next_chapter)
-    config.set_value("progress", "current_chapter", next_chapter)
+    chapter_index = clampi(next_chapter, 0, CHAPTER_NAMES.size() - 1)
+    campaign_complete = is_complete
+    config.set_value("progress", "current_chapter", chapter_index)
     config.set_value("progress", "unlocked_chapter", unlocked_chapter)
     config.set_value("progress", "campaign_complete", campaign_complete)
-    var save_error := config.save(SAVE_PATH)
+    var save_error := config.save(path)
     if save_error != OK:
         push_warning("Could not save NOVA campaign progress: %s" % error_string(save_error))
