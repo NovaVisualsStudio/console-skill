@@ -76,14 +76,14 @@ func _validate_pbr(mesh_instance: MeshInstance3D, expected_asset: String, label:
 
 func _count_torch_lights(node: Node) -> int:
     var count := 0
-    if node is OmniLight3D and node.name.to_string().begins_with("TorchGlow"):
+    if node is OmniLight3D and str(node.name).begins_with("TorchGlow"):
         count += 1
     for child in node.get_children():
         count += _count_torch_lights(child)
     return count
 
 func _validate_torch_lights(node: Node) -> bool:
-    if node is OmniLight3D and node.name.to_string().begins_with("TorchGlow"):
+    if node is OmniLight3D and str(node.name).begins_with("TorchGlow"):
         var light := node as OmniLight3D
         if light.shadow_enabled or light.omni_range > 7.0 or light.light_energy <= 0.0:
             return false
