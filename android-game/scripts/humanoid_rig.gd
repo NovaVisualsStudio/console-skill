@@ -172,6 +172,7 @@ func _load_and_retarget_animations() -> void:
                 loaded_animation_count += 1
     if library.get_animation_list().size() > 0:
         animation_player.add_animation_library("", library)
+    print("NOVA UAL2 death-like clips: ", library.get_animation_list().filter(func(name): return String(name).to_lower().contains("death") or String(name).to_lower().contains("die") or String(name).to_lower().contains("fall") or String(name).to_lower().contains("knock")))
     source_root.queue_free()
     if loaded_animation_count == 0:
         push_warning("NOVA animation library imported, but no tracks matched the target humanoid skeleton.")
