@@ -442,6 +442,9 @@ func _build_hud() -> void:
     boss_bar.value = 620
     boss_bar.custom_minimum_size = Vector2(340, 14)
     boss_stats.add_child(boss_bar)
+    if is_instance_valid(boss):
+        boss_bar.max_value = boss.max_health
+        boss_bar.value = boss.health
 
     result_label = Label.new()
     result_label.set_anchors_preset(Control.PRESET_CENTER)
