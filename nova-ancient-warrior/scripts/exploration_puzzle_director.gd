@@ -62,7 +62,7 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 	var result: Array[Node3D] = []
 	var positions := rune_positions(safe_index)
 	for index in range(positions.size()):
-		var rune := Node3D.new()
+		var rune := StaticBody3D.new()
 		rune.name = "ResonanceRune_%d" % (index + 1)
 		rune.position = positions[index]
 		rune.set_meta("rune_index", index + 1)
@@ -72,6 +72,8 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 
 		_add_cylinder(rune, "RunePedestal", 0.68, 0.24, Vector3(0.0, 0.12, 0.0), stone)
 		_add_cylinder(rune, "RuneColumn", 0.22, 1.08, Vector3(0.0, 0.78, 0.0), stone)
+		_add_collision_cylinder(rune, "PedestalCollision", 0.68, 0.24, Vector3(0.0, 0.12, 0.0))
+		_add_collision_cylinder(rune, "ColumnCollision", 0.22, 1.08, Vector3(0.0, 0.78, 0.0))
 		var crystal_mesh := SphereMesh.new()
 		crystal_mesh.radius = 0.25
 		crystal_mesh.height = 0.72
@@ -81,6 +83,13 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 		crystal.position = Vector3(0.0, 1.48, 0.0)
 		crystal.material_override = local_rune_material
 		rune.add_child(crystal)
+		var crystal_collision := CollisionShape3D.new()
+		crystal_collision.name = "CrystalCollision"
+		var crystal_shape := SphereShape3D.new()
+		crystal_shape.radius = 0.25
+		crystal_collision.shape = crystal_shape
+		crystal_collision.position = crystal.position
+		rune.add_child(crystal_collision)
 
 		var ring_mesh := TorusMesh.new()
 		ring_mesh.inner_radius = 0.38
@@ -169,6 +178,18 @@ static func _roman(value: int) -> String:
 			return "II"
 		_:
 			return "III"
+
+
+static func _add_collision_cylinder(parent: StaticBody3D, node_name: String, radius: float, height: float, position: Vector3) -> CollisionShape3D:
+	var collision := CollisionShape3D.new()
+	collision.name = node_name
+	var shape := CylinderShape3D.new()
+	shape.radius = radius
+	shape.height = height
+	collision.shape = shape
+	collision.position = position
+	parent.add_child(collision)
+	return collision
 
 
 static func _add_cylinder(parent: Node3D, node_name: String, radius: float, height: float, position: Vector3, material: Material) -> MeshInstance3D:
