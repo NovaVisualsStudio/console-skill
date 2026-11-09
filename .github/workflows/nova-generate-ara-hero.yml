@@ -39,8 +39,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: ${{ runner.temp }}/ara-3d-gen/pnpm-lock.yaml
 
       - name: Install Ara dependencies
         shell: bash
