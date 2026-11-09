@@ -555,6 +555,7 @@ func _apply_level_theme(wave: int) -> void:
 			mission_relics = MissionObjectiveDirector.build_stage(self, next_stage_index)
 			mission_sequence = MissionObjectiveDirector.relic_sequence(next_stage_index)
 			mission_relic_count = 0
+			MissionObjectiveDirector.set_expected_order(mission_relics, mission_sequence[0])
 		boss_gate_pending = false
 
 
@@ -786,6 +787,8 @@ func _try_collect_mission_relic() -> void:
 	if not MissionObjectiveDirector.collect(nearest):
 		return
 	mission_relic_count = mini(3, mission_relic_count + 1)
+	if mission_relic_count < mission_sequence.size():
+		MissionObjectiveDirector.set_expected_order(mission_relics, mission_sequence[mission_relic_count])
 	_play_sfx_or_tone("upgrade", 640.0 + float(mission_relic_count) * 100.0, 0.12, 0.18)
 	status_label.text = ("تم استرجاع جزء الختم  |  %d/3" % mission_relic_count) if TranslationServer.get_locale().begins_with("ar") else ("SEAL FRAGMENT RECOVERED  |  %d/3" % mission_relic_count)
 	_update_mission_objective_ui()
