@@ -4,6 +4,7 @@ import { nodeLibrary } from './node-assets';
 import { buildHuman } from '../src/core/human';
 import { DEFAULT_PARAMS, PRESETS } from '../src/core/params';
 import { exportCharacter } from '../src/export';
+import { CLIPS } from '../src/core/anim/clips';
 
 const preset = PRESETS['The Soldier'];
 if (!preset) throw new Error('Ara 3D Gen preset "The Soldier" is missing');
@@ -44,6 +45,28 @@ const params = {
   expression: 'determined' as const,
   weapon: 'sword' as const,
 };
+
+const requiredClipIds = new Set([
+  'idle',
+  'walk',
+  'run',
+  'sword_idle',
+  'sword_slash',
+  'sword_thrust',
+  'sword_block',
+  'sword_combo',
+  'dodge_left',
+  'dodge_right',
+  'roll_forward',
+  'hit_front',
+  'death_backward',
+  'jump_start',
+  'jump_air',
+  'jump_land',
+]);
+for (let index = CLIPS.length - 1; index >= 0; index -= 1) {
+  if (!requiredClipIds.has(CLIPS[index].id)) CLIPS.splice(index, 1);
+}
 
 const library = await nodeLibrary();
 const character = await buildHuman(library, params);
