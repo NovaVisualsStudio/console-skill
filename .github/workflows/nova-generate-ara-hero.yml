@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: nova-realistic-hero-${{ github.ref }}
+  group: nova-realistic-hero-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
