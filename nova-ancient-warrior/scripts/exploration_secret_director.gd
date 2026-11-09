@@ -3,9 +3,9 @@ extends RefCounted
 
 const ROOT_NAME := "GeneratedExplorationSecret"
 const CACHE_POSITIONS := [
-	Vector3(-10.6, 0.17, -3.5),
-	Vector3(8.2, 0.07, -7.0),
-	Vector3(-13.0, 0.09, -8.0)
+	Vector3(-10.6, 0.45, -3.5),
+	Vector3(8.2, 0.31, -7.0),
+	Vector3(-13.0, 0.49, -8.0)
 ]
 const GLOWS := [
 	Color(0.18, 0.82, 0.96),
