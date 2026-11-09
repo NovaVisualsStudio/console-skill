@@ -546,7 +546,10 @@ func _select_action_animation(action: String) -> String:
 
 func _get_available_animation_list() -> Array[StringName]:
     _animation_clip_list_fetch_count += 1
-    return animation_player.get_animation_list()
+    var available: Array[StringName] = []
+    for animation_name in animation_player.get_animation_list():
+        available.append(StringName(animation_name))
+    return available
 
 func _select_action_animation_uncached(action: String, available: Array[StringName]) -> String:
     var terms := {
