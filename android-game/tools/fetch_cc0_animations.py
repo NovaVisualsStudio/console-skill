@@ -4,6 +4,9 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 import hashlib
 import struct
+import os
+import shutil
+import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 CHARACTER_DEST = ROOT / "assets" / "characters"
@@ -57,4 +60,17 @@ character_license = fetch(CHARACTER_BASE, "quaternius-standard-male.LICENSE.md",
 animation = fetch(ANIMATION_BASE, ANIMATION_PACK + "Unreal-Godot/UAL2_Standard.glb", ANIMATION_DEST, "UAL2_Standard.glb")
 validate_glb(animation, "Quaternius UAL2 Standard", 1_000_000)
 fetch(ANIMATION_BASE, ANIMATION_PACK + "License.txt", ANIMATION_DEST, "LICENSE-UAL2-CC0.txt")
+
+# Godot 4.7 does not import KHR_mesh_quantization without an extension plugin.
+# Dequantize the CC0 generated GLBs into standard glTF vertex formats before import.
+if shutil.which("gltf-transform") is None:
+    raise SystemExit("Missing gltf-transform. Install with: npm install --global @gltf-transform/cli@4.5.1")
+for asset_path in sorted(CHARACTER_DEST.glob("charactercreator-*.glb")):
+    converted_path = asset_path.with_name(asset_path.stem + ".dequantized.glb")
+    subprocess.run(["gltf-transform", "dequantize", str(asset_path), str(converted_path)], check=True)
+    subprocess.run(["gltf-transform", "validate", str(converted_path)], check=True)
+    os.replace(converted_path, asset_path)
+    validate_glb(asset_path.read_bytes(), asset_path.name, 100_000)
+    print("Dequantized and validated:", asset_path.name)
+
 print("CC0 skinned humanoid and animation assets are ready for Godot import.")
