@@ -37,5 +37,16 @@ func _run() -> void:
         return
     arena._save_campaign_progress(0, false, TEST_SAVE_PATH)
     DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE_PATH))
-    print("CAMPAIGN TEST PASS: three chapters, unlock progression, resume state and completion save verified.")
+    arena.free()
+    for stage_index in [1, 2]:
+        var stage_arena := ARENA_SCRIPT.new() as NovaArenaController
+        stage_arena.chapter_index = stage_index
+        stage_arena._build_world()
+        if stage_arena.world_root == null or stage_arena.world_root.get_child_count() < 10:
+            push_error("Campaign test: chapter %d did not build its environment geometry." % (stage_index + 1))
+            stage_arena.free()
+            quit(1)
+            return
+        stage_arena.free()
+    print("CAMPAIGN TEST PASS: three chapters, persistent saves, and both later chapter environments verified.")
     quit(0)
