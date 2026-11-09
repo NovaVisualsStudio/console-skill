@@ -95,7 +95,7 @@ func _load_and_retarget_animations() -> void:
             continue
         var retargeted := _retarget_animation(source_animation)
         if retargeted != null and retargeted.get_track_count() > 0:
-            var safe_name := String(animation_name).get_slice("/", -1)
+            var safe_name := String(animation_name)
             if not library.has_animation(safe_name):
                 library.add_animation(safe_name, retargeted)
                 loaded_animation_count += 1
