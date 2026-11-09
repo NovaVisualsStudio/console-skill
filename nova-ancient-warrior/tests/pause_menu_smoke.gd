@@ -33,10 +33,19 @@ func _run_pause_menu_smoke() -> void:
 	if (menu.get_node("PauseButton") as Button).text != "إيقاف مؤقت":
 		_fail(menu, "Pause menu did not localize its pause button to Arabic")
 		return
+	if (menu.get_node("PausePanel/SettingsStack/PauseHeading") as Label).text != "متوقف مؤقتاً":
+		_fail(menu, "Pause menu heading did not localize to Arabic")
+		return
+	if (menu.get_node("PausePanel/SettingsStack/ResumeButton") as Button).text != "استئناف":
+		_fail(menu, "Resume control did not localize to Arabic")
+		return
 	TranslationServer.set_locale("en")
 	menu.call("_apply_language")
 	if (menu.get_node("PauseButton") as Button).text != "PAUSE":
 		_fail(menu, "Pause menu did not restore its English labels")
+		return
+	if (menu.get_node("PausePanel/SettingsStack/ResumeButton") as Button).text != "RESUME":
+		_fail(menu, "Resume control did not restore its English label")
 		return
 	TranslationServer.set_locale(original_locale)
 	menu.call("_apply_language")
