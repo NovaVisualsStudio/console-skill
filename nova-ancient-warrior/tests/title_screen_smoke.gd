@@ -22,6 +22,7 @@ func _run_title_screen_smoke() -> void:
 		"SettingsPanel/SettingsStack/MusicVolumeSlider",
 		"SettingsPanel/SettingsStack/SfxVolumeSlider",
 		"SettingsPanel/SettingsStack/QualityButton",
+		"SettingsPanel/SettingsStack/LanguageButton",
 		"CreditsPanel/CreditsStack/CreditsNotice"
 	]:
 		if menu.get_node_or_null(node_path) == null:
@@ -37,6 +38,16 @@ func _run_title_screen_smoke() -> void:
 	var quality_button := menu.get_node("SettingsPanel/SettingsStack/QualityButton") as Button
 	if "GRAPHICS PROFILE" not in quality_button.text:
 		_fail(menu, "Graphics profile control is not initialized")
+		return
+
+	var language_button := menu.get_node("SettingsPanel/SettingsStack/LanguageButton") as Button
+	language_button.pressed.emit()
+	if not TranslationServer.get_locale().begins_with("ar") or (menu.get_node("SubtitleLabel") as Label).text != "المحارب القديم":
+		_fail(menu, "Arabic language selection did not localize the title screen")
+		return
+	language_button.pressed.emit()
+	if TranslationServer.get_locale().begins_with("ar") or (menu.get_node("SubtitleLabel") as Label).text != "ANCIENT WARRIOR":
+		_fail(menu, "English language selection did not restore the title screen")
 		return
 
 	var credits_button := menu.get_node("MainMenuButtons/CreditsButton") as Button
