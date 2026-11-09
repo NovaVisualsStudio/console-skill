@@ -33,6 +33,7 @@ func _build_hero_preview() -> void:
 	container.add_child(viewport)
 
 	var world := Node3D.new()
+	world.name = "PreviewWorld"
 	viewport.add_child(world)
 	var environment_node := WorldEnvironment.new()
 	var environment := Environment.new()
@@ -210,6 +211,7 @@ func _build_settings_panel() -> void:
 	music_label.text = "MUSIC VOLUME"
 	stack.add_child(music_label)
 	_music_slider = HSlider.new()
+	_music_slider.name = "MusicVolumeSlider"
 	_music_slider.min_value = 0.0
 	_music_slider.max_value = 1.0
 	_music_slider.step = 0.05
@@ -220,6 +222,7 @@ func _build_settings_panel() -> void:
 	sfx_label.text = "SOUND EFFECTS"
 	stack.add_child(sfx_label)
 	_sfx_slider = HSlider.new()
+	_sfx_slider.name = "SfxVolumeSlider"
 	_sfx_slider.min_value = 0.0
 	_sfx_slider.max_value = 1.0
 	_sfx_slider.step = 0.05
@@ -230,6 +233,7 @@ func _build_settings_panel() -> void:
 	_sfx_slider.value_changed.connect(_save_audio_options)
 
 	_quality_button = _make_button("", Vector2(400.0, 48.0))
+	_quality_button.name = "QualityButton"
 	_quality_button.pressed.connect(_toggle_graphics_quality)
 	stack.add_child(_quality_button)
 	_refresh_quality_button()
