@@ -7,6 +7,7 @@ signal defeated
 signal parry_success
 signal hit_confirmed(target_position: Vector3, heavy: bool, combo_step: int)
 signal attack_started(heavy: bool, combo_step: int)
+signal attack_impact(heavy: bool, combo_step: int)
 signal dodge_started
 
 enum CombatState { IDLE, MOVE, ATTACK, DODGE, GUARD, STAGGER, DEAD }
@@ -287,6 +288,7 @@ func _update_timers(delta: float) -> void:
             attack_startup_timer = maxf(0.0, attack_startup_timer - delta)
             if attack_startup_timer <= 0.0:
                 attack_active_timer = pending_attack_active_duration
+                attack_impact.emit(pending_attack_heavy, combo_step)
         if attack_active_timer > 0.0:
             _hit_enemies(pending_attack_damage, pending_attack_range, pending_attack_min_dot, pending_attack_heavy)
             attack_active_timer = maxf(0.0, attack_active_timer - delta)
@@ -420,20 +422,20 @@ func _animate_weapon(heavy: bool, step: int) -> void:
     weapon_tween.set_trans(Tween.TRANS_CUBIC)
     weapon_tween.set_parallel(true)
     if heavy:
-        weapon_tween.tween_property(weapon_pivot, "rotation:z", -1.75, 0.18)
-        weapon_tween.tween_property(weapon_pivot, "rotation:x", 0.72, 0.18)
+        weapon_tween.tween_property(weapon_pivot, "rotation:z", -1.75, 0.16)
+        weapon_tween.tween_property(weapon_pivot, "rotation:x", 0.72, 0.16)
         weapon_tween.set_parallel(false)
-        weapon_tween.tween_property(weapon_pivot, "rotation:z", 0.04, 0.30)
-        weapon_tween.parallel().tween_property(weapon_pivot, "rotation:x", 0.0, 0.30)
+        weapon_tween.tween_property(weapon_pivot, "rotation:z", 0.04, 0.20)
+        weapon_tween.parallel().tween_property(weapon_pivot, "rotation:x", 0.0, 0.20)
     else:
         var end_angles := [-1.04, 1.02, -0.16]
         var lift_angles := [-0.18, 0.22, 0.92]
         var variant_index := clampi(step - 1, 0, 2)
-        weapon_tween.tween_property(weapon_pivot, "rotation:z", end_angles[variant_index], 0.12)
-        weapon_tween.tween_property(weapon_pivot, "rotation:x", lift_angles[variant_index], 0.12)
+        weapon_tween.tween_property(weapon_pivot, "rotation:z", end_angles[variant_index], 0.10)
+        weapon_tween.tween_property(weapon_pivot, "rotation:x", lift_angles[variant_index], 0.10)
         weapon_tween.set_parallel(false)
-        weapon_tween.tween_property(weapon_pivot, "rotation:z", 0.0, 0.22)
-        weapon_tween.parallel().tween_property(weapon_pivot, "rotation:x", 0.0, 0.22)
+        weapon_tween.tween_property(weapon_pivot, "rotation:z", 0.0, 0.14)
+        weapon_tween.parallel().tween_property(weapon_pivot, "rotation:x", 0.0, 0.14)
 
 func perform_dodge() -> bool:
     if current_state == CombatState.DEAD or dodge_timer > 0.0 or stamina < 18.0 or not input_enabled:
