@@ -148,6 +148,7 @@ jobs:
 
       - name: Gate 11 - CC0 PBR environment material smoke test
         run: |
+          set -o pipefail
           godot --headless --verbose --path android-game --script res://tests/visual_material_smoke.gd 2>&1 | tee "$RUNNER_TEMP/nova-pbr-visual.log"
           if grep -Eq "ObjectDB instances were leaked|Leaked instance:" "$RUNNER_TEMP/nova-pbr-visual.log"; then
             echo "PBR smoke test leaked audio resources during shutdown."
@@ -184,6 +185,7 @@ jobs:
             godot --headless --verbose --path android-game --script res://tests/cinematic_smoke.gd
             godot --headless --verbose --path android-game --script res://tests/audio_smoke.gd
             PBR_LOG="$RUNNER_TEMP/nova-pbr-stability-$pass.log"
+            set -o pipefail
             godot --headless --verbose --path android-game --script res://tests/visual_material_smoke.gd 2>&1 | tee "$PBR_LOG"
             if grep -Eq "ObjectDB instances were leaked|Leaked instance:" "$PBR_LOG"; then
               echo "PBR stability pass $pass leaked audio resources during shutdown."
