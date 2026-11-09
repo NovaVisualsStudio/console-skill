@@ -1,5 +1,8 @@
 extends SceneTree
 
+var _active_game: Node
+
+
 func _initialize() -> void:
 	call_deferred("_run_gameplay_localization_smoke")
 
@@ -14,6 +17,7 @@ func _run_gameplay_localization_smoke() -> void:
 		_fail("Main gameplay scene could not be loaded")
 		return
 	var game := packed.instantiate()
+	_active_game = game
 	get_root().add_child(game)
 	await process_frame
 	await process_frame
@@ -71,12 +75,28 @@ func _run_gameplay_localization_smoke() -> void:
 		_fail("Pause menu language change did not restore Arabic dialogue")
 		return
 
-	game.queue_free()
-	await process_frame
 	print("Gameplay localization smoke test passed")
-	quit(0)
+	# Return from the test coroutine first so PackedScene and UI references are
+	# released before the main scene is destroyed and Godot checks resource leaks.
+	call_deferred("_cleanup_and_quit", 0)
 
 
 func _fail(message: String) -> void:
 	push_error(message)
-	quit(1)
+	# Each failure path returns immediately after this call; defer cleanup until
+	# the test coroutine has unwound and dropped its temporary resource references.
+	call_deferred("_cleanup_and_quit", 1)
+
+
+func _cleanup_and_quit(exit_code: int) -> void:
+	if is_instance_valid(_active_game):
+		_active_game.free()
+	_active_game = null
+	await process_frame
+	await process_frame
+	call_deferred("_quit_after_cleanup", exit_code)
+
+
+func _quit_after_cleanup(exit_code: int) -> void:
+	await process_frame
+	quit(exit_code)
