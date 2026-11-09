@@ -16,13 +16,13 @@ func _run_rigged_hero_smoke() -> void:
 	var mesh_nodes := visual.find_children("*", "MeshInstance3D", true, false)
 	var skeleton := skeleton_nodes[0] as Skeleton3D if not skeleton_nodes.is_empty() else null
 	var animation_player := animation_nodes[0] as AnimationPlayer if not animation_nodes.is_empty() else null
-	if skeleton == null or skeleton.get_bone_count() < 16:
+	if skeleton == null or skeleton.get_bone_count() < 50:
 		_fail(visual, "Generated Nova hero has no valid humanoid skeleton")
 		return
 	if animation_player == null:
 		_fail(visual, "Generated Nova hero has no AnimationPlayer")
 		return
-	var required := ["Idle", "Walk", "Run", "LightAttack", "HeavyAttack", "Dodge", "Block", "Parry", "HitReact", "Death"]
+	var required := ["idle", "walk", "run", "sword_idle", "sword_slash", "sword_thrust", "sword_block", "sword_combo", "death_backward", "roll_forward"]
 	var names := animation_player.get_animation_list()
 	for required_name in required:
 		var found := false
@@ -33,8 +33,8 @@ func _run_rigged_hero_smoke() -> void:
 		if not found:
 			_fail(visual, "Missing required hero animation: %s" % required_name)
 			return
-	if mesh_nodes.size() < 40:
-		_fail(visual, "Detailed armoured hero should contain at least 40 skinned mesh parts")
+	if mesh_nodes.is_empty():
+		_fail(visual, "Realistic rigged hero must import at least one skinned mesh instance")
 		return
 	var textured_materials := 0
 	for mesh_node in mesh_nodes:
@@ -58,8 +58,17 @@ func _run_rigged_hero_smoke() -> void:
 		_fail(visual, "Locomotion clips must loop continuously")
 		return
 	visual.call("play_attack", 0)
+	if "sword_slash" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Light attack must select the sword slash clip")
+		return
 	visual.call("play_heavy_attack")
+	if "sword_thrust" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Heavy attack must select the sword thrust clip")
+		return
 	visual.call("set_blocking", true)
+	if "sword_block" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Guard must select the sword block clip")
+		return
 	visual.call("play_parry")
 	visual.call("hit_react")
 	print("Rigged Nova hero smoke test passed: %d bones, %d animation clips, %d mesh parts, %d textured PBR materials" % [skeleton.get_bone_count(), names.size(), mesh_nodes.size(), textured_materials])
