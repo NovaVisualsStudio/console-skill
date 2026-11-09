@@ -78,6 +78,10 @@ Current presentation includes chapter title cards, boss introduction camera move
 
 The hero and audio generator code is original to this repository and generates its assets during CI. Record third-party asset sources, author, license and attribution requirements in `ASSET_PROVENANCE.csv` before adding external content. Do not assume a downloadable asset permits commercial use.
 
+## Validated mobile hero pipeline
+
+The committed Ara-generated NOVA hero is a 69-bone humanoid with 16 curated locomotion, sword-combat, dodge, hit, death and jump clips, plus eight textured PBR materials. The Android packaging workflow verifies the committed GLB checksum, creates a temporary mobile copy, removes unused facial morph-target data, and keeps the full source GLB unchanged in the repository. The imported mobile hero is then checked by the rig/animation smoke test before APK export. The current ARM64 debug APK measured 41,976,173 bytes; this is a debug build, not a production-signed release.
+
 ## Important platform note
 
 This is a Godot Android game, not a PlayStation 2 executable. A real PS2 port would require a separate PS2SDK implementation and a different rendering, memory and controller design.
