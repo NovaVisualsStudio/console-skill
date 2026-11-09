@@ -64,6 +64,21 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    var attack_bones := ["upperarm_r", "lowerarm_r", "spine_02"]
+    var attack_pose_before: Array[Quaternion] = []
+    for bone_name in attack_bones:
+        attack_pose_before.append(rig.skeleton.get_bone_pose_rotation(rig.skeleton.find_bone(bone_name)))
+    await create_timer(0.28).timeout
+    var attack_pose_changed := false
+    for bone_index in range(attack_bones.size()):
+        var target_bone := rig.skeleton.find_bone(attack_bones[bone_index])
+        if not attack_pose_before[bone_index].is_equal_approx(rig.skeleton.get_bone_pose_rotation(target_bone)):
+            attack_pose_changed = true
+    if not attack_pose_changed:
+        push_error("Humanoid animation test: melee clip started but did not change an upper-body bone pose.")
+        rig.free()
+        quit(1)
+        return
     rig.play_action("death", 0.0)
     await process_frame
     var death_name := String(rig.animation_player.current_animation)
