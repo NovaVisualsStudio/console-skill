@@ -76,6 +76,6 @@ for asset_path in assets_to_normalize:
     subprocess.run(["gltf-transform", "validate", str(converted_path)], check=True)
     os.replace(converted_path, asset_path)
     validate_glb(asset_path.read_bytes(), asset_path.name, 100_000)
-    print("Sparse-free, dequantized GLB validated:", asset_path.name)
+    print("sparse-free, dequantized GLB validated:", asset_path.name)
 
 print("CC0 skinned humanoid and animation assets are ready for Godot import.")
