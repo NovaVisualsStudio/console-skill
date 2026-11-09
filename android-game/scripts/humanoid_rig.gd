@@ -153,21 +153,47 @@ func _apply_character_materials(root: Node) -> void:
             mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
         _apply_character_materials(child)
     primary_material = hit_flash_material
+func _load_cc0_surface(asset_id: String, tint: Color, roughness: float, metallic: float, tiling: float) -> StandardMaterial3D:
+    var tier := OS.get_environment("NOVA_TEXTURE_TIER").to_lower()
+    if tier.is_empty():
+        tier = String(ProjectSettings.get_setting("nova/graphics/texture_tier", "2k")).to_lower()
+    if tier not in ["2k", "4k"]:
+        tier = "2k"
+    var root_path := "res://assets/textures/" + asset_id + "_"
+    var material := StandardMaterial3D.new()
+    material.albedo_color = tint
+    material.roughness = roughness
+    material.metallic = metallic
+    material.uv1_scale = Vector3.ONE * maxf(tiling, 0.1)
+    var diffuse := load(root_path + "diff_" + tier + ".jpg") as Texture2D
+    var normal_map := load(root_path + "nor_gl_" + tier + ".jpg") as Texture2D
+    var roughness_map := load(root_path + "rough_" + tier + ".jpg") as Texture2D
+    if diffuse != null:
+        material.albedo_texture = diffuse
+    if normal_map != null:
+        material.normal_enabled = true
+        material.normal_texture = normal_map
+        material.normal_scale = 0.42 if asset_id == "leather_red_02" else 0.68
+    if roughness_map != null:
+        material.roughness_texture = roughness_map
+    var metal_map := load(root_path + "metal_" + tier + ".jpg") as Texture2D
+    if metal_map != null:
+        material.metallic_texture = metal_map
+    if diffuse == null or normal_map == null or roughness_map == null:
+        push_warning("NOVA CC0 character surface is incomplete: " + asset_id)
+    return material
+
 func _build_armor_set() -> void:
-    var steel := StandardMaterial3D.new()
-    steel.albedo_color = tint_color.lightened(0.10)
-    steel.metallic = 0.76
-    steel.roughness = 0.40
+    var steel := _load_cc0_surface("metal_plate", tint_color.lightened(0.10), 0.46, 0.76, 1.8)
     var trim := StandardMaterial3D.new()
     trim.albedo_color = accent_color
     trim.metallic = 0.84
     trim.roughness = 0.31
-    var leather := StandardMaterial3D.new()
-    leather.albedo_color = tint_color.darkened(0.28)
-    leather.roughness = 0.88
+    var leather := _load_cc0_surface("leather_red_02", tint_color.darkened(0.28), 0.76, 0.0, 1.4)
     _add_bone_piece("spine_02", _box_mesh(Vector3(0.48, 0.42, 0.16)), Vector3(0.0, 0.0, 0.07), Vector3.ZERO, Vector3.ONE, steel)
     _add_bone_piece("spine_02", _box_mesh(Vector3(0.40, 0.045, 0.19)), Vector3(0.0, -0.17, 0.16), Vector3.ZERO, Vector3.ONE, trim)
     _add_bone_piece("pelvis", _box_mesh(Vector3(0.48, 0.13, 0.22)), Vector3(0.0, 0.0, 0.04), Vector3.ZERO, Vector3.ONE, trim)
+    _add_bone_piece("pelvis", _box_mesh(Vector3(0.52, 0.075, 0.24)), Vector3(0.0, -0.055, 0.16), Vector3.ZERO, Vector3.ONE, leather)
     _add_bone_piece("clavicle_l", _sphere_mesh(0.19), Vector3.ZERO, Vector3.ZERO, Vector3(1.30, 0.78, 1.18), trim)
     _add_bone_piece("clavicle_r", _sphere_mesh(0.19), Vector3.ZERO, Vector3.ZERO, Vector3(1.30, 0.78, 1.18), trim)
     _add_bone_piece("lowerarm_l", _capsule_mesh(0.105, 0.34), Vector3.ZERO, Vector3(0.0, 0.0, 90.0), Vector3(1.0, 1.0, 1.0), steel)
