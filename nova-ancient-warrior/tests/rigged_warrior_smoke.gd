@@ -22,12 +22,12 @@ func _run_rigged_hero_smoke() -> void:
 	if animation_player == null:
 		_fail(visual, "Generated Nova hero has no AnimationPlayer")
 		return
-	var required := ["idle", "walk", "run", "sword_idle", "sword_slash", "sword_thrust", "sword_block", "sword_combo", "death_backward", "roll_forward"]
+	var required := ["Idle", "Walk", "Run", "Sword idle", "Sword slash", "Sword thrust", "Sword block", "Sword combo", "Death backward", "Roll forward"]
 	var names := animation_player.get_animation_list()
 	for required_name in required:
 		var found := false
 		for actual_name in names:
-			if required_name.to_lower() in actual_name.to_lower():
+			if required_name.to_lower().replace(" ", "") in str(actual_name).to_lower().replace(" ", "").replace("_", ""):
 				found = true
 				break
 		if not found:
@@ -58,15 +58,15 @@ func _run_rigged_hero_smoke() -> void:
 		_fail(visual, "Locomotion clips must loop continuously")
 		return
 	visual.call("play_attack", 0)
-	if "sword_slash" not in str(animation_player.current_animation).to_lower():
+	if "swordslash" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
 		_fail(visual, "Light attack must select the sword slash clip")
 		return
 	visual.call("play_heavy_attack")
-	if "sword_thrust" not in str(animation_player.current_animation).to_lower():
+	if "swordthrust" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
 		_fail(visual, "Heavy attack must select the sword thrust clip")
 		return
 	visual.call("set_blocking", true)
-	if "sword_block" not in str(animation_player.current_animation).to_lower():
+	if "swordblock" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
 		_fail(visual, "Guard must select the sword block clip")
 		return
 	visual.call("play_parry")
