@@ -91,9 +91,6 @@ func _run() -> void:
     rig.play_action("attack", 0.0)
     await process_frame
     var attack_pose_name := String(rig.animation_player.current_animation)
-    var attack_pose_before: Array[Quaternion] = []
-    for bone_name in ["upperarm_r", "lowerarm_r", "spine_02"]:
-        attack_pose_before.append(rig.skeleton.get_bone_pose_rotation(rig.skeleton.find_bone(bone_name)))
     var attack_bones := ["upperarm_r", "lowerarm_r", "spine_02"]
     var attack_pose_before: Array[Quaternion] = []
     for bone_name in attack_bones:
