@@ -69,6 +69,7 @@ func _build_enemy() -> void:
     body_mesh = humanoid.primary_mesh
     body_material = humanoid.primary_material
     humanoid.play_action("idle")
+    _build_enemy_weapon()
     telegraph_mesh = MeshInstance3D.new()
     var ring := TorusMesh.new()
     ring.inner_radius = 1.0 if not is_boss else 2.0
@@ -83,6 +84,38 @@ func _build_enemy() -> void:
     telegraph_mesh.material_override = telegraph_material
     telegraph_mesh.visible = false
     add_child(telegraph_mesh)
+
+func _build_enemy_weapon() -> void:
+    var attachment := humanoid.attach_to_bone("hand_r")
+    if attachment == humanoid:
+        return
+    var weapon := Node3D.new()
+    weapon.name = "WardenBlade" if is_boss else "GuardianSword"
+    weapon.position = Vector3(0.0, -0.10, 0.02)
+    attachment.add_child(weapon)
+    var grip := MeshInstance3D.new()
+    var grip_mesh := CylinderMesh.new()
+    grip_mesh.top_radius = 0.035
+    grip_mesh.bottom_radius = 0.045
+    grip_mesh.height = 0.42 if not is_boss else 0.62
+    grip.mesh = grip_mesh
+    grip.position.y = -0.08
+    grip.material_override = _material(Color(0.16, 0.075, 0.035), 0.88, 0.08)
+    weapon.add_child(grip)
+    var blade := MeshInstance3D.new()
+    var blade_mesh := BoxMesh.new()
+    blade_mesh.size = Vector3(0.13, 0.78, 0.055) if not is_boss else Vector3(0.20, 1.22, 0.075)
+    blade.mesh = blade_mesh
+    blade.position.y = 0.48 if not is_boss else 0.73
+    blade.material_override = _material(Color(0.48, 0.57, 0.66), 0.24, 0.94)
+    weapon.add_child(blade)
+    var guard := MeshInstance3D.new()
+    var guard_mesh := BoxMesh.new()
+    guard_mesh.size = Vector3(0.34, 0.075, 0.10) if not is_boss else Vector3(0.48, 0.10, 0.14)
+    guard.mesh = guard_mesh
+    guard.position.y = 0.14
+    guard.material_override = _material(Color(0.56, 0.34, 0.12), 0.32, 0.86)
+    weapon.add_child(guard)
 
 func _material(color: Color, roughness: float, metallic: float) -> StandardMaterial3D:
     var material := StandardMaterial3D.new()
