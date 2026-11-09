@@ -19,7 +19,7 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and not event.is_echo():
+	if event.is_action_pressed("ui_cancel") and not (event is InputEventKey and (event as InputEventKey).echo):
 		if is_paused():
 			resume_requested.emit()
 		else:
@@ -74,6 +74,7 @@ func _build_ui() -> void:
 	add_child(_panel)
 
 	var stack := VBoxContainer.new()
+	stack.name = "SettingsStack"
 	stack.add_theme_constant_override("separation", 12)
 	_panel.add_child(stack)
 
