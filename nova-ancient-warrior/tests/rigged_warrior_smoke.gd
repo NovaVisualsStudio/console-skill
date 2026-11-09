@@ -22,7 +22,7 @@ func _run_rigged_hero_smoke() -> void:
 	if animation_player == null:
 		_fail(visual, "Generated Nova hero has no AnimationPlayer")
 		return
-	var required := ["Idle", "Walk", "Run", "Sword idle", "Sword slash", "Sword thrust", "Sword block", "Sword combo", "Death backward", "Roll forward"]
+	var required := ["Idle", "Walk", "Run", "Sword idle", "Sword slash", "Sword thrust", "Sword block", "Sword combo", "Death (fall backward)", "Forward roll"]
 	var names := animation_player.get_animation_list()
 	for required_name in required:
 		var found := false
@@ -71,7 +71,7 @@ func _run_rigged_hero_smoke() -> void:
 		return
 	visual.call("play_parry")
 	visual.call("hit_react")
-	print("Rigged Nova hero smoke test passed: %d bones, %d animation clips, %d mesh parts, %d textured PBR materials" % [skeleton.get_bone_count(), names.size(), mesh_nodes.size(), textured_materials])
+	print("Rigged Nova hero smoke test passed: %d bones, %d animation clips, %d mesh nodes, %d textured PBR materials" % [skeleton.get_bone_count(), names.size(), mesh_nodes.size(), textured_materials])
 	visual.free()
 	quit(0)
 
