@@ -50,6 +50,17 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    var available_clips := rig.animation_player.get_animation_list()
+    var has_light_melee_clip := false
+    var has_heavy_melee_clip := false
+    for clip in available_clips:
+        var clip_name := String(clip).to_lower()
+        var is_melee := clip_name.contains("sword") or clip_name.contains("melee") or clip_name.contains("attack") or clip_name.contains("combo") or clip_name.contains("punch")
+        if is_melee and not clip_name.contains("heavy"):
+            has_light_melee_clip = true
+        if is_melee and clip_name.contains("heavy"):
+            has_heavy_melee_clip = true
+
     rig.play_action("idle")
     await process_frame
     var idle_name := String(rig.animation_player.current_animation)
@@ -64,6 +75,25 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    if has_light_melee_clip and attack_lower.contains("heavy"):
+        push_error("Humanoid animation test: light attack incorrectly selected a heavy-only clip: " + attack_name)
+        rig.free()
+        quit(1)
+        return
+    rig.play_action("heavy", 0.0)
+    await process_frame
+    var heavy_name := String(rig.animation_player.current_animation)
+    if has_heavy_melee_clip and not heavy_name.to_lower().contains("heavy"):
+        push_error("Humanoid animation test: heavy attack did not select a heavy clip: " + heavy_name)
+        rig.free()
+        quit(1)
+        return
+    rig.play_action("attack", 0.0)
+    await process_frame
+    var attack_pose_name := String(rig.animation_player.current_animation)
+    var attack_pose_before: Array[Quaternion] = []
+    for bone_name in ["upperarm_r", "lowerarm_r", "spine_02"]:
+        attack_pose_before.append(rig.skeleton.get_bone_pose_rotation(rig.skeleton.find_bone(bone_name)))
     var attack_bones := ["upperarm_r", "lowerarm_r", "spine_02"]
     var attack_pose_before: Array[Quaternion] = []
     for bone_name in attack_bones:
@@ -96,7 +126,7 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
-    print("HUMANOID TEST PASS: %d bones, %d retargeted clips, %d skinned outfit meshes, idle=%s, attack=%s, death=%s." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count, rig.attached_clothing_mesh_count, idle_name, attack_name, death_name])
+    print("HUMANOID TEST PASS: %d bones, %d retargeted clips, %d skinned outfit meshes, idle=%s, light=%s, heavy=%s, death=%s." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count, rig.attached_clothing_mesh_count, idle_name, attack_pose_name, heavy_name, death_name])
     rig.free()
     await process_frame
     quit(0)
