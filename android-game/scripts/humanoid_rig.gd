@@ -1,7 +1,8 @@
 extends Node3D
 class_name NovaHumanoidRig
 
-const CHARACTER_SCENE: PackedScene = preload("res://assets/characters/quaternius-standard-male.glb")
+const REALISTIC_CHARACTER_PATH := "res://assets/characters/charactercreator-base-body.glb"
+const FALLBACK_CHARACTER_PATH := "res://assets/characters/quaternius-standard-male.glb"
 const ANIMATION_SCENE_PATH := "res://assets/animations/UAL2_Standard.glb"
 
 @export var tint_color := Color(0.20, 0.27, 0.34)
@@ -15,6 +16,9 @@ var animation_player: AnimationPlayer
 var loaded_animation_count := 0
 var primary_mesh: MeshInstance3D
 var primary_material: StandardMaterial3D
+var hit_flash_material: StandardMaterial3D
+var attached_clothing_mesh_count := 0
+var uses_realistic_character := false
 var _source_skeleton: Skeleton3D
 
 func _ready() -> void:
@@ -22,20 +26,91 @@ func _ready() -> void:
     _load_and_retarget_animations()
 
 func _build_character() -> void:
-    model_root = CHARACTER_SCENE.instantiate() as Node3D
+    var character_scene := load(REALISTIC_CHARACTER_PATH) as PackedScene
+    uses_realistic_character = character_scene != null
+    if character_scene == null:
+        character_scene = load(FALLBACK_CHARACTER_PATH) as PackedScene
+    if character_scene == null:
+        push_error("NOVA could not load either the CC0 realistic human or the Quaternius fallback GLB.")
+        return
+    model_root = character_scene.instantiate() as Node3D
     if model_root == null:
         push_error("NOVA humanoid GLB did not instantiate as Node3D.")
         return
-    model_root.name = "RiggedWarriorMesh"
+    model_root.name = "CharacterCreatorRealisticHuman" if uses_realistic_character else "QuaterniusFallbackHuman"
     model_root.scale = Vector3.ONE * character_scale
     add_child(model_root)
-    _apply_character_materials(model_root)
     skeleton = _find_skeleton(model_root)
     if skeleton == null:
         push_error("NOVA character GLB is missing its Skeleton3D.")
-    else:
-        skeleton.show_rest_only = false
-        _build_armor_set()
+        return
+    skeleton.show_rest_only = false
+    if uses_realistic_character:
+        var outfit_assets := [
+            ["res://assets/characters/charactercreator-tshirt.glb", "OutfitTShirt"],
+            ["res://assets/characters/charactercreator-jeans.glb", "OutfitJeans"],
+            ["res://assets/characters/charactercreator-boots.glb", "OutfitBoots"],
+            ["res://assets/characters/charactercreator-trenchcoat.glb", "OutfitTrenchcoat"],
+            ["res://assets/characters/charactercreator-hair-short02.glb", "HairShort02"]
+        ]
+        for asset in outfit_assets:
+            attached_clothing_mesh_count += _attach_skinned_asset(String(asset[0]), String(asset[1]))
+    _create_hit_flash_material()
+    _apply_character_materials(model_root)
+    _build_armor_set()
+
+func _create_hit_flash_material() -> void:
+    hit_flash_material = StandardMaterial3D.new()
+    hit_flash_material.albedo_color = Color(1.0, 0.12, 0.035, 0.28)
+    hit_flash_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    hit_flash_material.roughness = 0.38
+    hit_flash_material.emission_enabled = true
+    hit_flash_material.emission = Color(1.0, 0.055, 0.01)
+    hit_flash_material.emission_energy_multiplier = 0.0
+
+func _attach_skinned_asset(path: String, asset_label: String) -> int:
+    var packed_scene := load(path) as PackedScene
+    if packed_scene == null:
+        push_warning("NOVA optional CC0 outfit asset is missing: %s" % path)
+        return 0
+    var instance := packed_scene.instantiate()
+    if instance == null:
+        return 0
+    instance.transform = model_root.transform
+    add_child(instance)
+    var source_skeleton := _find_skeleton(instance)
+    if source_skeleton == null or not _skeletons_match(source_skeleton, skeleton):
+        push_warning("NOVA outfit skeleton does not match the base human rig: %s" % asset_label)
+        instance.queue_free()
+        return 0
+    var meshes: Array[MeshInstance3D] = []
+    _collect_mesh_instances(instance, meshes)
+    var attached := 0
+    for mesh_instance in meshes:
+        if mesh_instance.mesh == null:
+            continue
+        var original_name := mesh_instance.name
+        mesh_instance.reparent(skeleton, true)
+        mesh_instance.skeleton = NodePath("..")
+        mesh_instance.name = "%s_%s" % [asset_label, original_name]
+        mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+        attached += 1
+    instance.queue_free()
+    return attached
+
+func _skeletons_match(first: Skeleton3D, second: Skeleton3D) -> bool:
+    if first.get_bone_count() != second.get_bone_count():
+        return false
+    for bone_index in range(first.get_bone_count()):
+        if first.get_bone_name(bone_index).to_lower() != second.get_bone_name(bone_index).to_lower():
+            return false
+    return true
+
+func _collect_mesh_instances(node: Node, output: Array[MeshInstance3D]) -> void:
+    for child in node.get_children():
+        if child is MeshInstance3D:
+            output.append(child as MeshInstance3D)
+        _collect_mesh_instances(child, output)
 
 func _apply_character_materials(root: Node) -> void:
     var armor := StandardMaterial3D.new()
@@ -57,20 +132,27 @@ func _apply_character_materials(root: Node) -> void:
         if child is MeshInstance3D:
             var mesh_instance := child as MeshInstance3D
             var mesh_name := mesh_instance.name.to_lower()
-            if mesh_name.contains("eye"):
-                mesh_instance.material_override = eyes
-            elif mesh_name.contains("eyebrow") or mesh_name.contains("hair"):
-                mesh_instance.material_override = hair
-            elif mesh_name.contains("head"):
-                mesh_instance.material_override = skin
-            else:
-                mesh_instance.material_override = armor
-                if mesh_name.contains("superhero_male") or primary_mesh == null:
-                    primary_mesh = mesh_instance
-                    primary_material = armor
+            var has_source_material := false
+            if mesh_instance.mesh != null:
+                for surface_index in range(mesh_instance.mesh.get_surface_count()):
+                    if mesh_instance.get_active_material(surface_index) != null:
+                        has_source_material = true
+                        break
+            if not has_source_material:
+                if mesh_name.contains("eye"):
+                    mesh_instance.material_override = eyes
+                elif mesh_name.contains("eyebrow") or mesh_name.contains("hair"):
+                    mesh_instance.material_override = hair
+                elif mesh_name.contains("head"):
+                    mesh_instance.material_override = skin
+                else:
+                    mesh_instance.material_override = armor
+            if primary_mesh == null or mesh_name.contains("body") or mesh_name.contains("base_body"):
+                primary_mesh = mesh_instance
+            mesh_instance.material_overlay = hit_flash_material
             mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
         _apply_character_materials(child)
-
+    primary_material = hit_flash_material
 func _build_armor_set() -> void:
     var steel := StandardMaterial3D.new()
     steel.albedo_color = tint_color.lightened(0.10)
@@ -106,6 +188,7 @@ func _add_bone_piece(bone_name: String, mesh: Mesh, local_position: Vector3, loc
     piece.rotation_degrees = local_rotation_degrees
     piece.scale = local_scale
     piece.material_override = material
+    piece.material_overlay = hit_flash_material
     piece.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
     attachment.add_child(piece)
 
@@ -228,11 +311,12 @@ func _make_death_fall_animation() -> Animation:
     return animation
 
 func _add_bone_rotation_track(animation: Animation, bone_name: String, times: Array, angles: Array, axis: Vector3 = Vector3(1.0, 0.0, 0.0)) -> void:
-    var bone_index := skeleton.find_bone(bone_name)
+    var bone_index := _find_target_bone(bone_name)
     if bone_index < 0:
         return
+    var actual_bone_name := skeleton.get_bone_name(bone_index)
     var track_index := animation.add_track(Animation.TYPE_ROTATION_3D)
-    var target_path := "%s:%s" % [String(get_path_to(skeleton)), bone_name]
+    var target_path := "%s:%s" % [String(get_path_to(skeleton)), actual_bone_name]
     animation.track_set_path(track_index, NodePath(target_path))
     for key_index in range(times.size()):
         var rotation := Quaternion(axis.normalized(), deg_to_rad(float(angles[key_index])))
@@ -292,14 +376,17 @@ func _find_animation_player(root: Node) -> AnimationPlayer:
     return null
 
 func attach_to_bone(bone_name: String) -> Node3D:
-    if skeleton == null or skeleton.find_bone(bone_name) < 0:
+    if skeleton == null:
         return self
+    var bone_index := _find_target_bone(bone_name)
+    if bone_index < 0:
+        return self
+    var actual_bone_name := skeleton.get_bone_name(bone_index)
     var attachment := BoneAttachment3D.new()
-    attachment.name = "Attachment_" + bone_name
-    attachment.bone_name = bone_name
+    attachment.name = "Attachment_" + actual_bone_name
+    attachment.bone_name = actual_bone_name
     skeleton.add_child(attachment)
     return attachment
-
 func play_action(action: String, blend: float = 0.14) -> void:
     if animation_player == null or loaded_animation_count == 0:
         return
