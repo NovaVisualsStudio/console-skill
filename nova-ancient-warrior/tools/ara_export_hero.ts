@@ -5,14 +5,35 @@ import { buildHuman } from '../src/core/human';
 import { DEFAULT_PARAMS, PRESETS } from '../src/core/params';
 import { exportCharacter } from '../src/export';
 
-const preset = PRESETS['The Yoruba Warrior'];
-if (!preset) throw new Error('Ara 3D Gen preset "The Yoruba Warrior" is missing');
+const preset = PRESETS['The Soldier'];
+if (!preset) throw new Error('Ara 3D Gen preset "The Soldier" is missing');
 
 const params = {
   ...DEFAULT_PARAMS,
   ...preset,
   name: 'NOVA Ancient Warrior',
   seed: 20261109,
+  age: 0.58,
+  muscle: 0.9,
+  weight: 0.52,
+  height: 0.56,
+  african: 0.35,
+  asian: 0.08,
+  caucasian: 0.57,
+  eyes: 'blackbrown',
+  eyebrows: 'eyebrow003',
+  facialHair: 'short_beard',
+  beardColor: '#201711',
+  outfit: 'none',
+  top: 'long_tunic',
+  bottom: 'trousers',
+  shoes: 'sandals',
+  tattoos: [],
+  accessories: ['crossed_straps', 'amulets', 'belt'],
+  garmentStyles: {
+    long_tunic: { pattern: 'solid', color: '#38291e', color2: '#b48b4c' },
+    trousers: { pattern: 'solid', color: '#29272b', color2: '#b48b4c' },
+  },
   detail: 'high' as const,
   rig: 'game' as const,
   restPose: 'A' as const,
