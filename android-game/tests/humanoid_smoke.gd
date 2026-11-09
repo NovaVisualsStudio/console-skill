@@ -126,6 +126,18 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    # Exercise the optional-run fallback even when the imported pack lacks a run clip.
+    var selected_walk_clip := String(rig._animation_selection_cache.get("walk", ""))
+    rig._animation_selection_cache["run"] = ""
+    rig.play_locomotion("run", 1.0)
+    await process_frame
+    if selected_walk_clip.is_empty() or rig.animation_player.current_animation != selected_walk_clip:
+        push_error("Humanoid locomotion test: run did not safely fall back to the cached walk clip.")
+        rig.free()
+        quit(1)
+        return
+    rig._animation_selection_cache.erase("run")
+    rig.play_locomotion("run", 1.0)
     if not rig._animation_selection_cache.has("run") or not rig._animation_selection_cache.has("walk"):
         push_error("Humanoid performance test: locomotion selection was not cached.")
         rig.free()
