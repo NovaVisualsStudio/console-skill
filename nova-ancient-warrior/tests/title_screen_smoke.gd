@@ -72,6 +72,24 @@ func _run_title_screen_smoke() -> void:
 	if not controls_panel.visible or controls_notice.text.is_empty():
 		_fail(menu, "Player controls tutorial did not open")
 		return
+	var controls_close := menu.get_node("ControlsPanel/ControlsStack/ControlsCloseButton") as Button
+	controls_close.pressed.emit()
+	if controls_panel.visible:
+		_fail(menu, "Player controls tutorial did not close")
+		return
+	var original_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("ar")
+	menu.call("_apply_language")
+	if not controls_notice.text.contains("أندرويد") or controls_notice.text_direction != Control.TEXT_DIRECTION_RTL:
+		_fail(menu, "Player controls tutorial did not localize to Arabic RTL")
+		return
+	TranslationServer.set_locale("en")
+	menu.call("_apply_language")
+	if not controls_notice.text.contains("ANDROID") or controls_notice.text_direction != Control.TEXT_DIRECTION_LTR:
+		_fail(menu, "Player controls tutorial did not restore English LTR")
+		return
+	TranslationServer.set_locale(original_locale)
+	menu.call("_apply_language")
 
 	var manager := get_root().get_node_or_null("SaveManager")
 	if manager == null:
