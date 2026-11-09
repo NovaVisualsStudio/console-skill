@@ -80,6 +80,15 @@ func play_parry() -> void:
 	else:
 		_play_action("sword_block")
 
+func play_dodge(direction: Vector3) -> void:
+	if _model is WarriorVisual:
+		return
+	var local_direction := global_transform.basis.inverse() * direction
+	if absf(local_direction.x) > absf(local_direction.z):
+		_play_action("dodge_left" if local_direction.x < 0.0 else "dodge_right", 2.2)
+	else:
+		_play_action("roll_forward", 3.0)
+
 
 func phase_change(phase: int) -> void:
 	if _model is WarriorVisual:
@@ -121,7 +130,7 @@ func _play_loop(fragment: String) -> void:
 	_animation_player.play(animation_name, 0.12)
 
 
-func _play_action(fragment: String) -> void:
+func _play_action(fragment: String, speed_scale: float = 1.0) -> void:
 	var animation_name := _find_animation(fragment)
 	if animation_name.is_empty() or _animation_player == null:
 		return
@@ -130,7 +139,7 @@ func _play_action(fragment: String) -> void:
 		animation.loop_mode = Animation.LOOP_NONE
 	_one_shot = true
 	_active_animation = animation_name
-	_animation_player.play(animation_name, 0.06)
+	_animation_player.play(animation_name, 0.06, speed_scale)
 
 
 func _on_animation_finished(animation_name: StringName) -> void:
