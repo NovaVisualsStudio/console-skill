@@ -5,6 +5,10 @@ on:
     branches: [main, nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean, nova-open-source-research, nova-six-toolchain-integration, nova-full-campaign-polish]
   pull_request:
 
+concurrency:
+  group: nova-python-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
