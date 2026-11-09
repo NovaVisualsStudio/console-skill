@@ -12,6 +12,10 @@ on:
       - "nova-ancient-warrior/**"
       - ".github/workflows/godot-android-apk.yml"
 
+concurrency:
+  group: nova-android-build-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
