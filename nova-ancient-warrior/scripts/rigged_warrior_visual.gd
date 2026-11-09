@@ -36,7 +36,7 @@ func set_locomotion(speed_ratio: float, _delta: float) -> void:
 	if _model is WarriorVisual:
 		_model.call("set_locomotion", speed_ratio, _delta)
 		return
-	if _one_shot or _blocking:
+	if _one_shot or _blocking or _jumping:
 		return
 	if speed_ratio > 0.78:
 		_play_loop("run")
