@@ -129,6 +129,15 @@ static func wave_enemy_count(wave: int) -> int:
 	return 4 + chapter_offset + (1 if position_in_chapter == 1 else 0)
 
 
+static func wave_enemy_spawn_position(wave: int, enemy_index: int) -> Vector3:
+	var count := wave_enemy_count(wave)
+	var safe_index := clampi(enemy_index, 0, count - 1)
+	var angle := TAU * float(safe_index) / float(count) + 0.4
+	var chapter_offset := chapter_for_wave(wave) - 1
+	var radius := 7.8 if is_boss_wave(wave) else 6.2 + float(chapter_offset) * 0.7
+	return Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
+
+
 static func wave_enemy_health(wave: int) -> int:
 	var safe_wave := clampi(wave, 1, CAMPAIGN_WAVES)
 	var chapter_offset := chapter_for_wave(safe_wave) - 1
