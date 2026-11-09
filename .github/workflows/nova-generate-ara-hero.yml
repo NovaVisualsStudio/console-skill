@@ -8,6 +8,7 @@ on:
       - "nova-ancient-warrior/tools/ara_export_hero.ts"
       - "nova-ancient-warrior/scripts/rigged_warrior_visual.gd"
       - "nova-ancient-warrior/tests/rigged_warrior_smoke.gd"
+      - ".github/workflows/nova-generate-ara-hero.yml"
   workflow_dispatch:
 
 concurrency:
