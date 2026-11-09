@@ -1155,6 +1155,7 @@ func _apply_gameplay_language() -> void:
 		dialogue_panel.layout_direction = Control.LAYOUT_DIRECTION_RTL if arabic else Control.LAYOUT_DIRECTION_LTR
 	if is_instance_valid(upgrade_panel):
 		_refresh_upgrade_panel()
+	_refresh_quality_button()
 	_update_hud()
 
 
