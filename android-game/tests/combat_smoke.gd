@@ -141,6 +141,24 @@ func _run_tests() -> void:
         push_error("Boss slam hit-area exceeded its maximum radius.")
         await _finish(1, test_root)
         return
+    boss._begin_telegraph()
+    if boss.current_attack_pattern != NovaEnemy.AttackPattern.THRUST:
+        push_error("Boss phase-two cycle did not include the charged thrust pattern.")
+        await _finish(1, test_root)
+        return
+    if not boss._is_player_in_attack_area(Vector3(0.0, 0.0, -7.0)) or boss._is_player_in_attack_area(Vector3(7.0, 0.0, 0.0)):
+        push_error("Boss thrust must hit a distant frontal lane but reject a lateral target.")
+        await _finish(1, test_root)
+        return
+    boss._begin_telegraph()
+    if boss.current_attack_pattern != NovaEnemy.AttackPattern.RING_BURST:
+        push_error("Boss phase-two cycle did not include the ring-burst pattern.")
+        await _finish(1, test_root)
+        return
+    if not boss._is_player_in_attack_area(Vector3(0.0, 0.0, -6.0)) or boss._is_player_in_attack_area(Vector3(0.0, 0.0, -1.0)):
+        push_error("Boss ring burst must damage the outer ring while preserving a close safe zone.")
+        await _finish(1, test_root)
+        return
     boss.telegraph_mesh.scale = Vector3.ONE
     boss.telegraph_mesh.visible = false
     boss.current_state = NovaEnemy.BrainState.CHASE
@@ -235,6 +253,44 @@ func _run_tests() -> void:
         return
     player.lock_target = null
     await create_timer(0.46).timeout
+
+    # A wall must block melee damage even when the target is inside the nominal range.
+    var occluded_target := ENEMY_SCRIPT.new() as NovaEnemy
+    occluded_target.player = player
+    occluded_target.position = Vector3(0.0, 0.0, -2.0)
+    test_root.add_child(occluded_target)
+    await process_frame
+    var blocker := StaticBody3D.new()
+    blocker.position = Vector3(0.0, 1.0, -1.0)
+    var blocker_shape := CollisionShape3D.new()
+    var blocker_box := BoxShape3D.new()
+    blocker_box.size = Vector3(2.0, 2.2, 0.35)
+    blocker_shape.shape = blocker_box
+    blocker.add_child(blocker_shape)
+    test_root.add_child(blocker)
+    await physics_frame
+    var occluded_health := occluded_target.health
+    if not player.perform_light_attack():
+        push_error("Occlusion test could not start a light attack.")
+        await _finish(1, test_root)
+        return
+    await create_timer(0.34).timeout
+    if occluded_target.health != occluded_health:
+        push_error("Weapon hit detection damaged an enemy through a solid wall.")
+        await _finish(1, test_root)
+        return
+    blocker.queue_free()
+    await physics_frame
+    await _wait_attack_ready(player)
+    if not player.perform_light_attack():
+        push_error("Clear-line test could not start a light attack.")
+        await _finish(1, test_root)
+        return
+    await _wait_for_enemy_health(occluded_target, occluded_health - 32)
+    if occluded_target.health != occluded_health - 32:
+        push_error("Weapon hit detection failed after the line of sight was cleared.")
+        await _finish(1, test_root)
+        return
 
     var attacker := ENEMY_SCRIPT.new() as NovaEnemy
     attacker.player = player
