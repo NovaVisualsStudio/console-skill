@@ -135,9 +135,18 @@ func _apply_character_materials(root: Node) -> void:
             var has_source_material := false
             if mesh_instance.mesh != null:
                 for surface_index in range(mesh_instance.mesh.get_surface_count()):
-                    if mesh_instance.get_active_material(surface_index) != null:
+                    var source_material := mesh_instance.get_active_material(surface_index)
+                    if source_material != null:
                         has_source_material = true
-                        break
+                        if source_material is StandardMaterial3D:
+                            var refined := (source_material as StandardMaterial3D).duplicate() as StandardMaterial3D
+                            if mesh_name.contains("hair"):
+                                refined.roughness = clampf(refined.roughness, 0.62, 0.88)
+                                refined.metallic = 0.0
+                            elif mesh_name.contains("head") or mesh_name.contains("body") or mesh_name.contains("skin"):
+                                refined.roughness = clampf(refined.roughness, 0.48, 0.74)
+                                refined.metallic = 0.0
+                            mesh_instance.set_surface_override_material(surface_index, refined)
             if not has_source_material:
                 if mesh_name.contains("eye"):
                     mesh_instance.material_override = eyes
