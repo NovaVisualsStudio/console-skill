@@ -5,7 +5,8 @@ const LEVELS := [
 	{
 		"id": "sunken_ruins",
 		"title": "THE SUNKEN RUINS",
-		"chapter_title": "CHAPTER I — THE SUNKEN RUINS",
+		"chapter_title": "CHAPTER I - THE SUNKEN RUINS",
+		"chapter_title_ar": "الفصل الأول: الأطلال الغارقة",
 		"floor": Color(0.22, 0.19, 0.17),
 		"sky_top": Color(0.035, 0.055, 0.11),
 		"sky_horizon": Color(0.34, 0.19, 0.13),
@@ -22,7 +23,8 @@ const LEVELS := [
 	{
 		"id": "ember_causeway",
 		"title": "THE EMBER CAUSEWAY",
-		"chapter_title": "CHAPTER II — THE EMBER CAUSEWAY",
+		"chapter_title": "CHAPTER II - THE EMBER CAUSEWAY",
+		"chapter_title_ar": "الفصل الثاني: جسر الجمر",
 		"floor": Color(0.12, 0.105, 0.105),
 		"sky_top": Color(0.045, 0.018, 0.028),
 		"sky_horizon": Color(0.42, 0.095, 0.045),
@@ -39,7 +41,8 @@ const LEVELS := [
 	{
 		"id": "obsidian_throne",
 		"title": "THE OBSIDIAN THRONE",
-		"chapter_title": "CHAPTER III — THE OBSIDIAN THRONE",
+		"chapter_title": "CHAPTER III - THE OBSIDIAN THRONE",
+		"chapter_title_ar": "الفصل الثالث: العرش الأسود",
 		"floor": Color(0.105, 0.12, 0.16),
 		"sky_top": Color(0.025, 0.035, 0.09),
 		"sky_horizon": Color(0.18, 0.16, 0.36),
