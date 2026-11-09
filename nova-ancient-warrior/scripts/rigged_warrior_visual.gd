@@ -64,7 +64,11 @@ func set_blocking(enabled: bool) -> void:
 	_blocking = enabled
 	if _model is WarriorVisual:
 		_model.call("set_blocking", enabled)
-	elif enabled:
+		return
+	# Airborne motion has priority over guard stance until landing completes.
+	if _jumping:
+		return
+	if enabled:
 		_play_loop("sword_block")
 	else:
 		_play_loop("idle")
