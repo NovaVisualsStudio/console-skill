@@ -5,6 +5,12 @@ const PLAYER_SCRIPT = preload("res://scripts/player.gd")
 const ENEMY_SCRIPT = preload("res://scripts/enemy.gd")
 const CAMERA_SCRIPT = preload("res://scripts/camera_rig.gd")
 const AUDIO_SCRIPT = preload("res://scripts/audio_fx.gd")
+const SAVE_PATH := "user://nova_progress.cfg"
+const CHAPTER_NAMES := ["THE ASHEN GATE", "THE SUNKEN SANCTUM", "THE CROWN OF ASH"]
+const BOSS_NAMES := ["ASHEN WARDEN", "DROWNED SENTINEL", "CROWNED TYRANT"]
+const CHAPTER_BACKGROUNDS := [Color(0.012, 0.018, 0.035), Color(0.008, 0.035, 0.052), Color(0.045, 0.012, 0.018)]
+const CHAPTER_FOG := [Color(0.075, 0.095, 0.15), Color(0.035, 0.12, 0.16), Color(0.18, 0.045, 0.035)]
+const CHAPTER_RINGS := [Color(0.19, 0.46, 0.63), Color(0.10, 0.54, 0.58), Color(0.78, 0.18, 0.08)]
 
 var player: NovaPlayer
 var boss: NovaEnemy
@@ -19,6 +25,9 @@ var boss_panel: PanelContainer
 var result_label: Label
 var intro_label: Label
 var retry_button: Button
+var continue_button: Button
+var chapter_index := 0
+var unlocked_chapter := 0
 var intro_timer := 3.1
 var defeated_count := 0
 var combat_started := false
@@ -26,6 +35,7 @@ var boss_defeated := false
 var lock_index := -1
 
 func _ready() -> void:
+    _load_campaign_progress()
     _ensure_input_actions()
     audio_fx = AUDIO_SCRIPT.new() as NovaAudioFX
     add_child(audio_fx)
@@ -69,29 +79,30 @@ func _build_world() -> void:
     var world := WorldEnvironment.new()
     var environment := Environment.new()
     environment.background_mode = Environment.BG_COLOR
-    environment.background_color = Color(0.012, 0.018, 0.035)
+    var stage := clampi(chapter_index, 0, CHAPTER_NAMES.size() - 1)
+    environment.background_color = CHAPTER_BACKGROUNDS[stage]
     environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
     environment.ambient_light_color = Color(0.30, 0.37, 0.52)
     environment.ambient_light_energy = 0.62
     environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
     environment.tonemap_exposure = 1.15
     environment.fog_enabled = true
-    environment.fog_light_color = Color(0.075, 0.095, 0.15)
+    environment.fog_light_color = CHAPTER_FOG[stage]
     environment.fog_density = 0.012
     world.environment = environment
     add_child(world)
 
     var moon := DirectionalLight3D.new()
     moon.rotation_degrees = Vector3(-38, -28, 0)
-    moon.light_color = Color(0.62, 0.72, 1.0)
+    moon.light_color = Color(0.62, 0.72, 1.0) if stage == 0 else (Color(0.42, 0.82, 0.92) if stage == 1 else Color(1.0, 0.42, 0.25))
     moon.light_energy = 1.05
     moon.shadow_enabled = true
     add_child(moon)
 
     _add_box("ArenaFloor", Vector3(0, -0.55, 0), Vector3(42, 1.1, 42),
-        Color(0.105, 0.12, 0.16), true, 0.92, 0.18)
+        Color(0.105, 0.12, 0.16) if stage == 0 else (Color(0.055, 0.13, 0.16) if stage == 1 else Color(0.16, 0.055, 0.05)), true, 0.92, 0.18)
     _add_box("NorthWall", Vector3(0, 3.0, -21), Vector3(42, 6, 1.2),
-        Color(0.13, 0.12, 0.14), true, 0.92, 0.08)
+        Color(0.13, 0.12, 0.14) if stage == 0 else (Color(0.07, 0.16, 0.18) if stage == 1 else Color(0.20, 0.075, 0.065)), true, 0.92, 0.08)
     _add_box("SouthWall", Vector3(0, 3.0, 21), Vector3(42, 6, 1.2),
         Color(0.13, 0.12, 0.14), true, 0.92, 0.08)
     _add_box("WestWall", Vector3(-21, 3.0, 0), Vector3(1.2, 6, 42),
@@ -99,12 +110,12 @@ func _build_world() -> void:
     _add_box("EastWall", Vector3(21, 3.0, 0), Vector3(1.2, 6, 42),
         Color(0.13, 0.12, 0.14), true, 0.92, 0.08)
 
-    _add_ritual_ring(7.6, Color(0.19, 0.46, 0.63))
-    _add_ritual_ring(10.2, Color(0.25, 0.20, 0.36))
+    _add_ritual_ring(7.6, CHAPTER_RINGS[stage])
+    _add_ritual_ring(10.2, CHAPTER_RINGS[stage].darkened(0.42))
     _add_cylinder("RitualDais", Vector3(0, 0.02, -8.5), 4.8, 0.22,
         Color(0.15, 0.16, 0.21), false, 0.72, 0.36)
     _add_box("PortalCore", Vector3(0, 5.2, -19.9), Vector3(7.2, 8.2, 0.55),
-        Color(0.025, 0.11, 0.18), false, 0.38, 0.72)
+        CHAPTER_FOG[stage].darkened(0.48), false, 0.38, 0.72)
     _add_box("PortalLeftPillar", Vector3(-4.1, 4.0, -19.5), Vector3(1.1, 8.0, 1.25),
         Color(0.30, 0.26, 0.22), true, 0.78, 0.35)
     _add_box("PortalRightPillar", Vector3(4.1, 4.0, -19.5), Vector3(1.1, 8.0, 1.25),
@@ -276,6 +287,7 @@ func _make_enemy(spawn: Vector3, boss_enemy: bool) -> void:
     enemy.position = spawn
     enemy.player = player
     enemy.is_boss = boss_enemy
+    enemy.difficulty_scale = 1.0 + float(chapter_index) * 0.24
     enemy.defeated.connect(_on_enemy_defeated)
     enemy.attack_telegraph.connect(_on_enemy_telegraph)
     if boss_enemy:
@@ -287,7 +299,7 @@ func _make_enemy(spawn: Vector3, boss_enemy: bool) -> void:
 
 func _start_cinematic_intro() -> void:
     camera_rig.start_intro(intro_timer, boss)
-    intro_label.text = "THE ASHEN GATE"
+    intro_label.text = CHAPTER_NAMES[chapter_index]
     var tween := create_tween()
     tween.tween_interval(1.25)
     tween.tween_property(intro_label, "modulate:a", 0.0, 1.35)
@@ -302,7 +314,7 @@ func _begin_combat() -> void:
             enemy.activate()
     intro_label.visible = true
     intro_label.modulate.a = 1.0
-    intro_label.text = "THE WARDEN AWAKENS"
+    intro_label.text = "CHAPTER %d - THE WARDEN AWAKENS" % (chapter_index + 1)
     var tween := create_tween()
     tween.tween_interval(0.75)
     tween.tween_property(intro_label, "modulate:a", 0.0, 0.7)
@@ -343,7 +355,7 @@ func _build_hud() -> void:
     var boss_stats := VBoxContainer.new()
     boss_panel.add_child(boss_stats)
     var boss_name := Label.new()
-    boss_name.text = "ASHEN WARDEN"
+    boss_name.text = BOSS_NAMES[chapter_index]
     boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     boss_name.add_theme_font_size_override("font_size", 15)
     boss_stats.add_child(boss_name)
@@ -404,6 +416,15 @@ func _build_hud() -> void:
     retry_button.visible = false
     retry_button.pressed.connect(_on_retry_pressed)
     layer.add_child(retry_button)
+
+    continue_button = Button.new()
+    continue_button.text = "NEXT CHAPTER"
+    continue_button.set_anchors_preset(Control.PRESET_CENTER)
+    continue_button.position = Vector2(-95, 42)
+    continue_button.custom_minimum_size = Vector2(190, 52)
+    continue_button.visible = false
+    continue_button.pressed.connect(_on_continue_pressed)
+    layer.add_child(continue_button)
 
 func _add_control_button(layer: CanvasLayer, button_text: String, offset: Vector2, action: String) -> void:
     var button := Button.new()
@@ -565,7 +586,12 @@ func _on_enemy_defeated(is_boss_enemy: bool) -> void:
     if is_boss_enemy:
         boss_defeated = true
         result_label.visible = true
-        result_label.text = "ASHEN WARDEN DEFEATED"
+        var final_chapter := chapter_index >= CHAPTER_NAMES.size() - 1
+        result_label.text = "THE ANCIENT WARRIOR RISES" if final_chapter else "CHAPTER %d COMPLETE" % (chapter_index + 1)
+        continue_button.text = "REPLAY CAMPAIGN" if final_chapter else "NEXT CHAPTER"
+        continue_button.visible = true
+        retry_button.visible = false
+        _save_campaign_progress(chapter_index if final_chapter else chapter_index + 1, final_chapter)
         camera_rig.shake(0.72, 0.65)
     elif defeated_count >= 2 and not boss_defeated:
         result_label.visible = true
@@ -579,9 +605,35 @@ func _on_player_defeated() -> void:
     result_label.visible = true
     result_label.text = "THE WARRIOR HAS FALLEN"
     retry_button.visible = true
+    continue_button.visible = false
     for enemy in active_enemies:
         if is_instance_valid(enemy):
             enemy.deactivate()
 
 func _on_retry_pressed() -> void:
     get_tree().reload_current_scene()
+
+func _on_continue_pressed() -> void:
+    if chapter_index >= CHAPTER_NAMES.size() - 1:
+        _save_campaign_progress(0, false)
+    get_tree().reload_current_scene()
+
+func _load_campaign_progress() -> void:
+    var config := ConfigFile.new()
+    if config.load(SAVE_PATH) != OK:
+        chapter_index = 0
+        unlocked_chapter = 0
+        return
+    chapter_index = clampi(int(config.get_value("progress", "current_chapter", 0)), 0, CHAPTER_NAMES.size() - 1)
+    unlocked_chapter = clampi(int(config.get_value("progress", "unlocked_chapter", 0)), 0, CHAPTER_NAMES.size() - 1)
+
+func _save_campaign_progress(next_chapter: int, campaign_complete: bool) -> void:
+    var config := ConfigFile.new()
+    config.load(SAVE_PATH)
+    unlocked_chapter = maxi(unlocked_chapter, next_chapter)
+    config.set_value("progress", "current_chapter", next_chapter)
+    config.set_value("progress", "unlocked_chapter", unlocked_chapter)
+    config.set_value("progress", "campaign_complete", campaign_complete)
+    var save_error := config.save(SAVE_PATH)
+    if save_error != OK:
+        push_warning("Could not save NOVA campaign progress: %s" % error_string(save_error))
