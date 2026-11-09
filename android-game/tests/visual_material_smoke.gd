@@ -14,8 +14,16 @@ func _find_mesh_instance(node: Node) -> MeshInstance3D:
             return found
     return null
 
+func _get_texture_tier() -> String:
+    var tier := OS.get_environment("NOVA_TEXTURE_TIER").to_lower()
+    if tier.is_empty():
+        tier = String(ProjectSettings.get_setting("nova/graphics/texture_tier", "2k")).to_lower()
+    return tier if tier in ["2k", "4k"] else "2k"
+
 func _validate_import_settings(asset_id: String, map_name: String) -> bool:
-    var import_path := "res://assets/textures/" + asset_id + "_" + map_name + "_1k.jpg.import"
+    var texture_tier := _get_texture_tier()
+    var expected_size := 4096 if texture_tier == "4k" else 2048
+    var import_path := "res://assets/textures/" + asset_id + "_" + map_name + "_" + texture_tier + ".jpg.import"
     var config := ConfigFile.new()
     if config.load(import_path) != OK:
         push_error("PBR import test: missing or invalid import sidecar: " + import_path)
@@ -29,8 +37,8 @@ func _validate_import_settings(asset_id: String, map_name: String) -> bool:
     if not bool(config.get_value("params", "mipmaps/generate", false)):
         push_error("PBR import test: mipmaps are disabled: " + import_path)
         return false
-    if int(config.get_value("params", "process/size_limit", 0)) != 1024:
-        push_error("PBR import test: texture import size limit is not 1K: " + import_path)
+    if int(config.get_value("params", "process/size_limit", 0)) != expected_size:
+        push_error("PBR import test: texture import size limit does not match selected tier: " + import_path)
         return false
     if map_name == "nor_gl":
         if int(config.get_value("params", "compress/normal_map", -1)) != 1:
@@ -58,19 +66,19 @@ func _validate_pbr(mesh_instance: MeshInstance3D, expected_asset: String, label:
     var albedo_path := material.albedo_texture.resource_path.to_lower()
     var normal_path := material.normal_texture.resource_path.to_lower()
     var roughness_path := material.roughness_texture.resource_path.to_lower()
-    if not albedo_path.contains(expected_asset + "_diff_1k.jpg"):
+    if not albedo_path.contains(expected_asset + "_diff_" + _get_texture_tier() + ".jpg"):
         push_error("PBR visual test: incorrect diffuse asset on " + label + ": " + albedo_path)
         return false
-    if not normal_path.contains(expected_asset + "_nor_gl_1k.jpg"):
+    if not normal_path.contains(expected_asset + "_nor_gl_" + _get_texture_tier() + ".jpg"):
         push_error("PBR visual test: incorrect OpenGL normal asset on " + label + ": " + normal_path)
         return false
-    if not roughness_path.contains(expected_asset + "_rough_1k.jpg"):
+    if not roughness_path.contains(expected_asset + "_rough_" + _get_texture_tier() + ".jpg"):
         push_error("PBR visual test: incorrect roughness asset on " + label + ": " + roughness_path)
         return false
     for texture in [material.albedo_texture, material.normal_texture, material.roughness_texture]:
         var dimensions: Vector2i = texture.get_size()
-        if maxi(dimensions.x, dimensions.y) > 1024:
-            push_error("PBR visual test: texture exceeds the 1K mobile budget on " + label + ".")
+        if maxi(dimensions.x, dimensions.y) > (4096 if _get_texture_tier() == "4k" else 2048):
+            push_error("PBR visual test: texture exceeds the selected texture tier on " + label + ".")
             return false
     return true
 
@@ -133,7 +141,7 @@ func _run() -> void:
         push_error("PBR visual test: in-game Poly Haven credit is missing.")
         _finish(1, arena)
         return
-    print("PBR VISUAL TEST PASS: six mobile-compressed 1K maps are verified on floor, walls, columns and dais; four shadowless torch lights meet the 7m range budget; CC0 credit is visible.")
+    print("PBR VISUAL TEST PASS: six mobile-compressed %s maps are verified on floor, walls, columns and dais; four shadowless torch lights meet the 7m range budget; CC0 credit is visible." % _get_texture_tier().to_upper())
     _finish(0, arena)
 
 func _finish(exit_code: int, arena: Node) -> void:
