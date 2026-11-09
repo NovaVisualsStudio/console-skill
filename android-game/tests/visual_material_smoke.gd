@@ -136,6 +136,14 @@ func _run() -> void:
             if not _validate_import_settings(asset_id, map_name):
                 _finish(1, arena)
                 return
+    for asset_id in ["metal_plate", "leather_red_02"]:
+        for map_name in ["diff", "nor_gl", "rough"]:
+            if not _validate_import_settings(asset_id, map_name):
+                _finish(1, arena)
+                return
+    if not _validate_import_settings("metal_plate", "metal"):
+        _finish(1, arena)
+        return
     var credit := arena.find_child("PolyHavenCredits", true, false) as Label
     if credit == null or not credit.text.contains("POLY HAVEN"):
         push_error("PBR visual test: in-game Poly Haven credit is missing.")
