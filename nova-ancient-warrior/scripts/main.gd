@@ -305,7 +305,7 @@ func _toggle_lock_on() -> void:
 			nearest_distance = distance
 			locked_target = enemy
 	if _is_lock_target_valid():
-		status_label.text = ("تم تثبيت الهدف: %s" % _localized_boss_name(current_wave)) if _is_arabic() else "TARGET LOCKED: %s" % locked_target.name.to_upper()
+		status_label.text = "تم تثبيت الهدف" if _is_arabic() else "TARGET LOCKED: %s" % locked_target.name.to_upper()
 	else:
 		status_label.text = "لا يوجد هدف في المدى" if _is_arabic() else "NO TARGET IN RANGE"
 	_update_hud()
