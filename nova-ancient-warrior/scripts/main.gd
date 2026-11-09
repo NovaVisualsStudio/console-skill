@@ -707,6 +707,12 @@ func _advance_dialogue() -> void:
 		dialogue_lines.clear()
 		dialogue_index = -1
 		return
+	_render_current_dialogue_line()
+
+
+func _render_current_dialogue_line() -> void:
+	if dialogue_index < 0 or dialogue_index >= dialogue_lines.size():
+		return
 	var line: Dictionary = dialogue_lines[dialogue_index]
 	var use_arabic := _is_arabic()
 	var speaker := str(line.get("speaker", ""))
@@ -727,6 +733,7 @@ func _advance_dialogue() -> void:
 		dialogue_text_label.text_direction = Control.TEXT_DIRECTION_LTR
 	dialogue_text_label.text = str(line.get("text_ar", line.get("text", ""))) if use_arabic else str(line.get("text", ""))
 	dialogue_next_button.text = "التالي" if use_arabic else "CONTINUE"
+	dialogue_next_button.text_direction = Control.TEXT_DIRECTION_RTL if use_arabic else Control.TEXT_DIRECTION_LTR
 
 
 func _animate_mission_relics(delta: float) -> void:
@@ -1114,6 +1121,7 @@ func _build_hud() -> void:
 	pause_menu.resume_requested.connect(_on_resume_requested)
 	pause_menu.audio_settings_changed.connect(_on_audio_settings_changed)
 	pause_menu.language_changed.connect(_on_language_changed)
+	pause_menu.language_changed.connect(_on_language_changed)
 	layer.add_child(pause_menu)
 
 
@@ -1198,6 +1206,14 @@ func _on_language_changed(_language: String) -> void:
 	_apply_gameplay_language()
 	if is_instance_valid(status_label) and not dialogue_active:
 		status_label.text = LevelCatalog.wave_title(current_wave)
+
+
+func _on_language_changed(_language: String) -> void:
+	_apply_gameplay_language()
+	if is_instance_valid(status_label):
+		status_label.text = "متوقف مؤقتاً" if _is_arabic() else "PAUSED"
+	if dialogue_active and dialogue_index >= 0 and dialogue_index < dialogue_lines.size():
+		_render_current_dialogue_line()
 
 
 func _on_audio_settings_changed(music_volume: float, sfx_volume: float) -> void:
