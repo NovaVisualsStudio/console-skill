@@ -4,6 +4,7 @@ extends Control
 const RiggedWarriorVisual = preload("res://scripts/rigged_warrior_visual.gd")
 
 var _continue_button: Button
+var _progress_label: Label
 var _settings_panel: PanelContainer
 var _credits_panel: PanelContainer
 var _music_slider: HSlider
@@ -128,6 +129,13 @@ func _build_ui() -> void:
 	tagline.add_theme_font_size_override("font_size", 13)
 	tagline.add_theme_color_override("font_color", Color(0.58, 0.69, 0.83))
 	add_child(tagline)
+
+	_progress_label = Label.new()
+	_progress_label.name = "CampaignProgress"
+	_progress_label.position = Vector2(80.0, 244.0)
+	_progress_label.add_theme_font_size_override("font_size", 12)
+	_progress_label.add_theme_color_override("font_color", Color(0.76, 0.72, 0.61))
+	add_child(_progress_label)
 
 	var menu := VBoxContainer.new()
 	menu.name = "MainMenuButtons"
@@ -290,9 +298,12 @@ func _save_profile() -> Dictionary:
 func _refresh_campaign_state() -> void:
 	var profile := _save_profile()
 	var complete := bool(profile.get("campaign_complete", false))
-	var can_continue := int(profile.get("highest_wave", 1)) > 1 or complete
+	var highest_wave := clampi(int(profile.get("highest_wave", 1)), 1, 9)
+	var chapter := int((highest_wave - 1) / 3) + 1
+	var can_continue := highest_wave > 1 or complete
 	_continue_button.disabled = not can_continue
 	_continue_button.text = "REPLAY FINAL CHAPTER" if complete else "CONTINUE"
+	_progress_label.text = "CAMPAIGN COMPLETE  |  BEST SCORE %d" % int(profile.get("best_score", 0)) if complete else "BEST PROGRESS  |  CHAPTER %d  |  WAVE %d/9" % [chapter, highest_wave]
 
 
 func _start_new_campaign() -> void:
