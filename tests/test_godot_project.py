@@ -91,6 +91,15 @@ class GodotProjectIntegrity(unittest.TestCase):
                 self.assertFalse(filename.lower().endswith((".iso", ".elf", ".irx", ".exe", ".apk")))
         self.assertTrue(os.path.isfile(os.path.join(ROOT, "README.md")))
 
+    def test_three_chapter_campaign_persists_progress(self):
+        main_script = self.read("scripts/main.gd")
+        campaign_test = self.read("tests/campaign_smoke.gd")
+        self.assertIn("THE SUNKEN SANCTUM", main_script)
+        self.assertIn("THE CROWN OF ASH", main_script)
+        self.assertIn("user://nova_progress.cfg", main_script)
+        self.assertIn("_save_campaign_progress", main_script)
+        self.assertIn("campaign_complete", campaign_test)
+
     def test_cc0_humanoid_assets_are_documented(self):
         manifest = self.read("assets/ASSET_MANIFEST.md")
         humanoid = self.read("scripts/humanoid_rig.gd")
