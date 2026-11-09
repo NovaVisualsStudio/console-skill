@@ -768,6 +768,12 @@ func _handle_wave_cleared() -> void:
 		_save_call("record_boss_victory", [cleared_wave])
 		if is_instance_valid(music_director):
 			music_director.call("set_intensity", 0.24)
+	if cleared_wave % 3 == 2 and mission_relic_count < 3:
+		boss_gate_pending = true
+		wave_transitioning = false
+		status_label.text = "BOSS GATE SEALED  |  RECOVER THE THREE SEAL FRAGMENTS"
+		_update_mission_objective_ui()
+		return
 	if cleared_wave >= CombatRules.CAMPAIGN_WAVES:
 		game_over = true
 		_save_run(true)
