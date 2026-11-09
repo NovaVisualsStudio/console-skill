@@ -10,7 +10,7 @@ signal attack_landed(damage: int)
 const HUMANOID_SCRIPT = preload("res://scripts/humanoid_rig.gd")
 
 enum BrainState { CHASE, TELEGRAPH, STRIKE, RECOVERY, STAGGER, DEAD }
-enum AttackPattern { MELEE, SWEEP, SLAM }
+enum AttackPattern { MELEE, SWEEP, SLAM, THRUST, RING_BURST }
 
 var player: Node3D
 var is_boss := false
@@ -35,6 +35,7 @@ var body_material: StandardMaterial3D
 var _strike_done := false
 var current_attack_pattern: AttackPattern = AttackPattern.MELEE
 var attack_pattern_index := 0
+var flank_side := 0.0
 var last_attack_hit := false
 
 func _ready() -> void:
@@ -139,6 +140,7 @@ func activate() -> void:
     if current_state != BrainState.DEAD:
         active = true
         current_state = BrainState.CHASE
+        attack_cooldown = 0.42 + (0.58 if flank_side > 0.0 else 0.0) if not is_boss else 0.72
 
 func deactivate() -> void:
     active = false
@@ -162,6 +164,9 @@ func _physics_process(delta: float) -> void:
                 _move_toward_player(offset, delta)
             elif attack_cooldown <= 0.0:
                 _begin_telegraph()
+            elif not is_boss and distance < attack_range * 1.65:
+                humanoid.play_action("walk")
+                _orbit_player(offset, delta)
             else:
                 humanoid.play_action("idle")
                 _stop_horizontal(delta)
@@ -205,9 +210,36 @@ func _move_toward_player(offset: Vector3, delta: float) -> void:
     if offset.length_squared() <= 0.001:
         return
     var direction := offset.normalized()
+    if not is_boss and absf(flank_side) > 0.1 and offset.length() < attack_range * 2.6:
+        var tangent := Vector3(-direction.z, 0.0, direction.x) * flank_side
+        direction = (direction + tangent * 0.22).normalized()
+    direction = (direction + _get_separation_vector() * 0.38).normalized()
     velocity.x = direction.x * move_speed
     velocity.z = direction.z * move_speed
-    rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), delta * 5.5)
+    rotation.y = lerp_angle(rotation.y, atan2(-offset.normalized().x, -offset.normalized().z), delta * 5.5)
+
+func _orbit_player(offset: Vector3, delta: float) -> void:
+    if offset.length_squared() <= 0.001:
+        _stop_horizontal(delta)
+        return
+    var radial := offset.normalized()
+    var tangent := Vector3(-radial.z, 0.0, radial.x) * (1.0 if flank_side >= 0.0 else -1.0)
+    var orbit_velocity := tangent * move_speed * 0.58 + radial * move_speed * 0.10
+    velocity.x = orbit_velocity.x
+    velocity.z = orbit_velocity.z
+    rotation.y = lerp_angle(rotation.y, atan2(-radial.x, -radial.z), delta * 6.0)
+
+func _get_separation_vector() -> Vector3:
+    var separation := Vector3.ZERO
+    for other in get_tree().get_nodes_in_group("enemies"):
+        if other == self or not is_instance_valid(other):
+            continue
+        var away: Vector3 = global_position - other.global_position
+        away.y = 0.0
+        var distance := away.length()
+        if distance > 0.01 and distance < 1.65:
+            separation += away.normalized() * ((1.65 - distance) / 1.65)
+    return separation
 
 func _stop_horizontal(delta: float) -> void:
     velocity.x = move_toward(velocity.x, 0.0, move_speed * 7.0 * delta)
@@ -218,7 +250,7 @@ func _begin_telegraph() -> void:
     _strike_done = false
     last_attack_hit = false
     if is_boss:
-        var pattern_count := 3 if phase >= 2 else 2
+        var pattern_count := 5 if phase >= 2 else 2
         var pattern_index := attack_pattern_index % pattern_count
         if pattern_index == 0:
             current_attack_pattern = AttackPattern.MELEE
@@ -255,6 +287,23 @@ func _begin_telegraph() -> void:
                 if is_instance_valid(telegraph_material):
                     telegraph_material.albedo_color = Color(0.78, 0.24, 1.0, 0.82)
                     telegraph_material.emission = Color(0.46, 0.06, 1.0)
+            AttackPattern.THRUST:
+                state_timer = telegraph_duration * 1.08
+                if is_instance_valid(telegraph_mesh):
+                    telegraph_mesh.scale = Vector3(0.52, 1.0, attack_range * 2.28 / 2.18)
+                    telegraph_mesh.rotation.y = rotation.y
+                if is_instance_valid(telegraph_material):
+                    telegraph_material.albedo_color = Color(0.08, 0.78, 1.0, 0.86)
+                    telegraph_material.emission = Color(0.015, 0.38, 1.0)
+            AttackPattern.RING_BURST:
+                state_timer = telegraph_duration * 1.52
+                if is_instance_valid(telegraph_mesh):
+                    var radius_scale := attack_range * 2.52 / 2.18
+                    telegraph_mesh.scale = Vector3(radius_scale, 1.0, radius_scale)
+                    telegraph_mesh.rotation = Vector3.ZERO
+                if is_instance_valid(telegraph_material):
+                    telegraph_material.albedo_color = Color(0.30, 1.0, 0.42, 0.86)
+                    telegraph_material.emission = Color(0.04, 0.82, 0.16)
         if phase >= 2:
             state_timer *= 0.82
     else:
@@ -278,6 +327,10 @@ func _is_player_in_attack_area(offset: Vector3) -> bool:
             return distance <= attack_range * 1.72 and forward.dot(offset.normalized()) > -0.32
         AttackPattern.SLAM:
             return distance <= attack_range * 2.05
+        AttackPattern.THRUST:
+            return distance <= attack_range * 2.28 and forward.dot(offset.normalized()) > 0.76
+        AttackPattern.RING_BURST:
+            return distance >= attack_range * 0.62 and distance <= attack_range * 2.52
     return false
 
 func _execute_strike() -> void:
