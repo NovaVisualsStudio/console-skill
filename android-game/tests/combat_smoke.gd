@@ -225,5 +225,22 @@ func _run_tests() -> void:
         await _finish(1, test_root)
         return
 
-    print("COMBAT TESTS PASS: light combo x3, heavy hit, boss phase transition, perfect parry, guard reduction, dodge invulnerability, enemy telegraph and strike.")
+    var death_target := ENEMY_SCRIPT.new() as NovaEnemy
+    death_target.player = player
+    death_target.position = Vector3(4.0, 0.0, -2.0)
+    test_root.add_child(death_target)
+    await process_frame
+    death_target.take_damage(999, player.global_position, true)
+    await process_frame
+    if death_target.current_state != NovaEnemy.BrainState.DEAD or not String(death_target.humanoid.animation_player.current_animation).to_lower().contains("death"):
+        push_error("Enemy death should enter DEAD state and play its skeletal death animation.")
+        await _finish(1, test_root)
+        return
+    await create_timer(0.2).timeout
+    if not is_instance_valid(death_target):
+        push_error("Enemy was freed before its death animation had time to play.")
+        await _finish(1, test_root)
+        return
+
+    print("COMBAT TESTS PASS: light combo x3, heavy hit, boss phase transition, perfect parry, guard reduction, dodge invulnerability, enemy telegraph, strike and animated death.")
     await _finish(0, test_root)
