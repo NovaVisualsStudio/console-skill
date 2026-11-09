@@ -24,7 +24,8 @@ static func rune_positions(stage_index: int) -> Array[Vector3]:
 		0:
 			return [Vector3(-7.5, 0.0, -13.0), Vector3(7.5, 0.0, -13.0), Vector3(0.0, 0.0, -9.5)]
 	1:
-		return [Vector3(-12.0, 0.0, -12.0), Vector3(12.0, 0.0, -12.0), Vector3(0.0, 0.0, -5.5)]
+		# The central rune rests on the raised safe causeway (top surface y = 0.06).
+		return [Vector3(-12.0, 0.0, -12.0), Vector3(12.0, 0.0, -12.0), Vector3(0.0, 0.06, -5.5)]
 	_:
 		return [Vector3(-11.0, 0.0, -11.0), Vector3(11.0, 0.0, -11.0), Vector3(0.0, 0.0, 9.0)]
 
@@ -106,9 +107,10 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 	var sequence_hint := Label3D.new()
 	sequence_hint.name = "PuzzleSequenceHint"
 	var sequence := sequence_for_stage(safe_index)
-	sequence_hint.text = "ANCIENT ORDER   %s  →  %s  →  %s" % [
+	var sequence_text := "%s  →  %s  →  %s" % [
 		_roman(sequence[0]), _roman(sequence[1]), _roman(sequence[2])
 	]
+	sequence_hint.text = ("ترتيب الرموز القديمة   " + sequence_text) if TranslationServer.get_locale().begins_with("ar") else ("ANCIENT ORDER   " + sequence_text)
 	sequence_hint.font_size = 32
 	sequence_hint.pixel_size = 0.012
 	sequence_hint.position = Vector3(0.0, 2.3, 1.2)
