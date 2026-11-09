@@ -72,6 +72,15 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
+    var pelvis_index := rig.skeleton.find_bone("pelvis")
+    var death_pose_before := rig.skeleton.get_bone_pose_rotation(pelvis_index)
+    await create_timer(0.55).timeout
+    var death_pose_after := rig.skeleton.get_bone_pose_rotation(pelvis_index)
+    if death_pose_before.is_equal_approx(death_pose_after):
+        push_error("Humanoid animation test: death clip name changed but did not animate the skeleton pose.")
+        rig.free()
+        quit(1)
+        return
     print("HUMANOID TEST PASS: %d bones, %d retargeted clips, %d skinned outfit meshes, idle=%s, attack=%s, death=%s." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count, rig.attached_clothing_mesh_count, idle_name, attack_name, death_name])
     rig.free()
     await process_frame
