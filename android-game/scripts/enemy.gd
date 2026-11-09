@@ -14,6 +14,7 @@ enum AttackPattern { MELEE, SWEEP, SLAM }
 
 var player: Node3D
 var is_boss := false
+var difficulty_scale := 1.0
 var active := false
 var health := 80
 var max_health := 80
@@ -45,6 +46,11 @@ func _ready() -> void:
         attack_range = 3.65
         attack_damage = 28
         telegraph_duration = 0.95
+    health = maxi(1, roundi(float(health) * difficulty_scale))
+    max_health = health
+    move_speed *= 1.0 + (difficulty_scale - 1.0) * 0.22
+    attack_damage = maxi(1, roundi(float(attack_damage) * difficulty_scale))
+    telegraph_duration = maxf(0.48, telegraph_duration - (difficulty_scale - 1.0) * 0.16)
     _build_enemy()
     health_changed.emit(health, max_health)
 
