@@ -16,6 +16,7 @@ func _run_title_screen_smoke() -> void:
 		"HeroPreview/SubViewport",
 		"MainMenuButtons/NewCampaignButton",
 		"MainMenuButtons/ContinueButton",
+		"CampaignProgress",
 		"MainMenuButtons/SettingsButton",
 		"MainMenuButtons/CreditsButton",
 		"SettingsPanel/SettingsStack/MusicVolumeSlider",
