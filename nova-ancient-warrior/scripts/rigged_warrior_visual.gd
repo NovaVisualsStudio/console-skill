@@ -84,7 +84,7 @@ func play_parry() -> void:
 func play_dodge(direction: Vector3) -> void:
 	if _model is WarriorVisual:
 		return
-	var local_direction := global_transform.basis.inverse() * direction
+	var local_direction := direction
 	if absf(local_direction.x) > absf(local_direction.z):
 		_play_action("dodge_left" if local_direction.x < 0.0 else "dodge_right", 2.2)
 	else:
