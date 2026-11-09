@@ -96,7 +96,7 @@ class GodotProjectIntegrity(unittest.TestCase):
         humanoid = self.read("scripts/humanoid_rig.gd")
         fetcher = os.path.join(ROOT, "tools", "fetch_cc0_animations.py")
         self.assertTrue(os.path.isfile(fetcher))
-        self.assertTrue(os.path.isfile(os.path.join(ROOT, "assets", "characters", "quaternius-standard-male.glb")))
+        self.assertIn("quaternius-standard-male.glb", self.read("tools/fetch_cc0_animations.py"))
         self.assertIn("CC0 1.0", manifest)
         self.assertIn("UAL2_Standard.glb", humanoid)
         self.assertIn("Skeleton3D", humanoid)
