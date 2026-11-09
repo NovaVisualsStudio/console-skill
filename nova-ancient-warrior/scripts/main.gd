@@ -101,6 +101,11 @@ func _get_touch_ui_exclusions() -> Array[Rect2]:
 	for control in [quality_button, upgrade_panel, restart_button]:
 		if is_instance_valid(control) and control.visible:
 			exclusions.append(control.get_global_rect())
+	if is_instance_valid(pause_menu):
+		for control_name in ["PauseButton", "PausePanel"]:
+			var pause_control := pause_menu.get_node_or_null(control_name) as Control
+			if is_instance_valid(pause_control) and pause_control.visible:
+				exclusions.append(pause_control.get_global_rect())
 	return exclusions
 
 
