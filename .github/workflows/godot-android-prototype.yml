@@ -92,10 +92,10 @@ jobs:
       - name: Gate 3 - rigged humanoid and retargeted animation test
         run: godot --headless --verbose --path android-game --script res://tests/humanoid_smoke.gd
 
-      - name: Gate 5 - three-chapter campaign and save progression test
+      - name: Gate 4 - three-chapter campaign and save progression test
         run: godot --headless --path android-game --script res://tests/campaign_smoke.gd
 
-      - name: Gate 4 - deterministic combat behaviour tests
+      - name: Gate 5 - deterministic combat behaviour tests
         run: godot --headless --path android-game --script res://tests/combat_smoke.gd
 
       - name: Gate 6 - cinematic arena integration test
