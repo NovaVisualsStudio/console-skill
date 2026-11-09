@@ -109,62 +109,62 @@ func _run() -> void:
     var floor_mesh := _find_mesh_instance(floor_root) if floor_root != null else null
     var north_wall_mesh := _find_mesh_instance(north_wall_root) if north_wall_root != null else null
     if not _validate_pbr(floor_mesh, "rock_tile_floor", "arena floor"):
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     if not _validate_pbr(north_wall_mesh, "stone_wall", "north wall"):
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     var pillar_mesh := arena.find_child("AncientPillar", true, false) as MeshInstance3D
     var dais_mesh := arena.find_child("RitualDais", true, false) as MeshInstance3D
     if not _validate_pbr(pillar_mesh, "stone_wall", "column shaft"):
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     if not _validate_pbr(dais_mesh, "rock_tile_floor", "ritual dais"):
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     var torch_light_count := _count_torch_lights(arena)
     if torch_light_count != 4:
         push_error("PBR visual test: expected four low-cost torch lights, found %d." % torch_light_count)
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     if not _validate_torch_lights(arena):
         push_error("PBR visual test: a torch light has shadows enabled or exceeds the mobile range budget.")
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     for asset_id in ["rock_tile_floor", "stone_wall"]:
         for map_name in ["diff", "nor_gl", "rough"]:
             if not _validate_import_settings(asset_id, map_name):
-                _finish(1, arena)
+                await _finish(1, arena)
                 return
     for asset_id in ["metal_plate", "leather_red_02"]:
         for map_name in ["diff", "nor_gl", "rough"]:
             if not _validate_import_settings(asset_id, map_name):
-                _finish(1, arena)
+                await _finish(1, arena)
                 return
     if not _validate_import_settings("metal_plate", "metal"):
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     var world_environment := arena.find_child("WorldEnvironment", true, false) as WorldEnvironment
     if world_environment == null or world_environment.environment == null:
         push_error("Cinematic lighting test: WorldEnvironment is missing.")
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     var scene_environment := world_environment.environment
     if not scene_environment.glow_enabled or scene_environment.glow_intensity < 0.15:
         push_error("Cinematic lighting test: restrained bloom/glow is not configured.")
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     if arena.find_child("CinematicFaceFill", true, false) == null or arena.find_child("CinematicArmorRim", true, false) == null:
         push_error("Cinematic lighting test: face fill or armor rim light is missing.")
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     var credit := arena.find_child("PolyHavenCredits", true, false) as Label
     if credit == null or not credit.text.contains("POLY HAVEN"):
         push_error("PBR visual test: in-game Poly Haven credit is missing.")
-        _finish(1, arena)
+        await _finish(1, arena)
         return
     print("PBR VISUAL TEST PASS: six arena maps and seven character armor/leather maps at %s are verified; four shadowless torch lights meet the 7m range budget; CC0 credit is visible." % _get_texture_tier().to_upper())
-    _finish(0, arena)
+    await _finish(0, arena)
 
 func _finish(exit_code: int, arena: Node) -> void:
     if is_instance_valid(arena):
