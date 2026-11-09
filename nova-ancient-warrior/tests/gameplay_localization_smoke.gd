@@ -33,13 +33,35 @@ func _run_gameplay_localization_smoke() -> void:
 		_fail("Combat hint did not localize to Arabic")
 		return
 
-	save_manager.call("set_language", "en")
-	game.call("_apply_gameplay_language")
+	var dialogue_lines: Array[Dictionary] = [
+		{"speaker": "NOVA", "text": "The language changed while the story was open.", "text_ar": "تغيرت اللغة أثناء عرض القصة."}
+	]
+	game.call("_start_dialogue", dialogue_lines)
+	var dialogue_text := game.find_child("DialogueText", true, false) as Label
+	var dialogue_speaker := game.find_child("DialogueSpeaker", true, false) as Label
+	if dialogue_text == null or dialogue_text.text != "تغيرت اللغة أثناء عرض القصة.":
+		_fail("Dialogue did not start in Arabic")
+		return
+	var pause_menu := game.find_child("PauseMenu", true, false)
+	if pause_menu == null:
+		_fail("Pause menu is missing from gameplay")
+		return
+	pause_menu.call("_toggle_language")
+	if TranslationServer.get_locale().begins_with("ar"):
+		_fail("Pause menu language toggle did not switch to English")
+		return
 	if (game.find_child("Touch_attack", true, false) as Button).text != "ATTACK":
-		_fail("Attack touch control did not restore English")
+		_fail("Pause menu language change did not refresh touch controls")
 		return
 	if "MOVE" not in (game.find_child("CombatHint", true, false) as Label).text:
-		_fail("Combat hint did not restore English")
+		_fail("Pause menu language change did not refresh combat hint")
+		return
+	if dialogue_text.text != "The language changed while the story was open." or dialogue_speaker.text != "NOVA":
+		_fail("Open dialogue did not refresh into English when language changed")
+		return
+	pause_menu.call("_toggle_language")
+	if not TranslationServer.get_locale().begins_with("ar") or dialogue_text.text != "تغيرت اللغة أثناء عرض القصة.":
+		_fail("Pause menu language change did not restore Arabic dialogue")
 		return
 
 	game.queue_free()
