@@ -190,6 +190,8 @@ jobs:
             "$GITHUB_WORKSPACE/artifacts/nova-ancient-warrior-debug.apk"
           apk="artifacts/nova-ancient-warrior-debug.apk"
           test -s "$apk"
+          apk_bytes="$(stat -c%s "$apk")"
+          echo "Verified Android debug APK size: $apk_bytes bytes"
           unzip -t "$apk"
           "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$apk"
           badging="$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk")"
