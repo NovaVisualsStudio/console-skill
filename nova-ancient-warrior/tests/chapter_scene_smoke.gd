@@ -54,7 +54,7 @@ func _run_chapter_scene_smoke() -> void:
 		var cache_world := cache.global_position
 		var expected_cache_bottom := cache_world.y + 0.11
 		for body in layout.find_children("*", "StaticBody3D", true, false):
-			if body.name != CACHE_PLATFORM_NAMES[index]:
+			if not body.name.begins_with(CACHE_PLATFORM_NAMES[index] + "_"):
 				continue
 			var collision := body.get_node_or_null("Collision") as CollisionShape3D
 			if collision == null or not collision.shape is BoxShape3D:
