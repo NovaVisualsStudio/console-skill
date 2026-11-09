@@ -64,7 +64,7 @@ class Repo(unittest.TestCase):
             if not top.startswith(".git"):
                 root.add(top)
         self.assertEqual(sorted(root),
-                         sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "ps2-game", "tests"] + SKILLS))
+                         sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "docs", "ps2-game", "tests"] + SKILLS))
 
     def test_frontmatter_name_description_hint(self):
         for s in SKILLS:
@@ -183,6 +183,17 @@ class Repo(unittest.TestCase):
             self.assertIn("`/%s`" % s, readme)
         for must in ("hkmodd/ps2-recomp-Agent-SKILL", "ran-j/PS2Recomp", "own", "Sony"):
             self.assertIn(must, readme)
+
+
+    def test_ps2_game_triangle_packet_declares_three_vertex_pairs(self):
+        # A packed GIF tag with two registers (RGBAQ, XYZ2) needs one
+        # register pair per vertex. A triangle therefore declares 3 loops.
+        source_path = os.path.join(ROOT, "ps2-game", "main.c")
+        with open(source_path, encoding="utf-8") as fh:
+            source = fh.read()
+        self.assertIn("GIF_SET_TAG(3, 1, 0, 0, 0, 2)", source)
+        self.assertNotIn("GIF_SET_TAG(6, 1, 0, 0, 0, 2)", source)
+        self.assertEqual(source.count("GIF_SET_XYZ("), 3)
 
     def test_license_credits_the_base_skill(self):
         with open(os.path.join(ROOT, "LICENSE"), encoding="utf-8") as fh:
