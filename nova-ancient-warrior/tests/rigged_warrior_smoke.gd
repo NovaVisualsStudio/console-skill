@@ -96,6 +96,11 @@ func _run_rigged_hero_smoke() -> void:
 	if "jumpair" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
 		_fail(visual, "Locomotion updates must not override airborne animation")
 		return
+	visual.call("set_blocking", true)
+	if "jumpair" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
+		_fail(visual, "Guard input must not replace airborne animation")
+		return
+	visual.call("set_blocking", false)
 	visual.call("play_jump_land")
 	if "jumpland" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
 		_fail(visual, "Landing must select the jump-land clip")
