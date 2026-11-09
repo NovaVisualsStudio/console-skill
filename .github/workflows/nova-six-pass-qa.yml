@@ -78,11 +78,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
+          import_log="$RUNNER_TEMP/godot-clean-import.log"
+          if ! "$GODOT_BIN" --verbose --headless --editor --path nova-ancient-warrior --quit >"$import_log" 2>&1; then
+            cat "$import_log"
+            exit 1
+          fi
+          cat "$import_log"
           hero_scene="$(find nova-ancient-warrior/.godot/imported -type f -name 'nova_hero.glb-*.scn' -print -quit)"
-          test -n "$hero_scene"
+          if [[ -z "$hero_scene" ]]; then
+            echo "Godot did not produce the expected imported hero scene."
+            echo "Import metadata:"
+            cat nova-ancient-warrior/assets/characters/nova_hero.glb.import 2>/dev/null || true
+            echo "Imported resource directory:"
+            find nova-ancient-warrior/.godot/imported -maxdepth 1 -type f -printf '%f %s bytes\\n' 2>/dev/null | head -80 || true
+            exit 1
+          fi
           hero_scene_bytes="$(stat -c%s "$hero_scene")"
-          echo "Imported hero scene size: $hero_scene_bytes bytes"
+          echo "Imported hero scene: $hero_scene ($hero_scene_bytes bytes)"
           if (( hero_scene_bytes > 100000000 )); then
             echo "Hero import exceeds the 100 MB hard safety ceiling."
             exit 1
