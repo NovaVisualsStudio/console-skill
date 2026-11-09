@@ -140,7 +140,7 @@ jobs:
         run: |
           set -euo pipefail
           combat_log="$RUNNER_TEMP/combat-window.log"
-          if ! timeout --signal=TERM --kill-after=10s 90s "$GODOT_BIN" --headless --path nova-ancient-warrior --script res://tests/combat_window_smoke.gd >"$combat_log" 2>&1; then
+          if ! timeout --signal=TERM --kill-after=10s 90s "$GODOT_BIN" --verbose --headless --path nova-ancient-warrior --script res://tests/combat_window_smoke.gd >"$combat_log" 2>&1; then
             cat "$combat_log"
             echo "Combat window regression failed or exceeded its 90-second timeout."
             exit 1
