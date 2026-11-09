@@ -774,7 +774,7 @@ func _update_mission_objective_ui() -> void:
 		mission_objective_label.visible = false
 		return
 	mission_objective_label.visible = mission_relic_count < 3 or boss_gate_pending
-	var order_text := "%d → %d → %d" % [mission_sequence[0], mission_sequence[1], mission_sequence[2]] if mission_sequence.size() >= 3 else "—"
+	var order_text := "%d → %d → %d" % [mission_sequence[0], mission_sequence[1], mission_sequence[2]] if mission_sequence.size() >= 3 else "-"
 	var use_arabic := TranslationServer.get_locale().begins_with("ar")
 	mission_objective_label.text_direction = Control.TEXT_DIRECTION_RTL if use_arabic else Control.TEXT_DIRECTION_LTR
 	if is_instance_valid(interact_button):
