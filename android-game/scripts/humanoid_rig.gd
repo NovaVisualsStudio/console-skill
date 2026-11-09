@@ -45,7 +45,11 @@ func _apply_character_materials(root: Node) -> void:
     armor.metallic_specular = 0.62
     var skin := StandardMaterial3D.new()
     skin.albedo_color = Color(0.48, 0.30, 0.21)
+    skin.metallic = 0.0
     skin.roughness = 0.78
+    var hair := StandardMaterial3D.new()
+    hair.albedo_color = Color(0.045, 0.027, 0.018)
+    hair.roughness = 0.92
     var eyes := StandardMaterial3D.new()
     eyes.albedo_color = Color(0.035, 0.025, 0.02)
     eyes.roughness = 0.24
@@ -55,7 +59,9 @@ func _apply_character_materials(root: Node) -> void:
             var mesh_name := mesh_instance.name.to_lower()
             if mesh_name.contains("eye"):
                 mesh_instance.material_override = eyes
-            elif mesh_name.contains("eyebrow"):
+            elif mesh_name.contains("eyebrow") or mesh_name.contains("hair"):
+                mesh_instance.material_override = hair
+            elif mesh_name.contains("head"):
                 mesh_instance.material_override = skin
             else:
                 mesh_instance.material_override = armor
