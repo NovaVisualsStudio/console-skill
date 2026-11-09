@@ -84,12 +84,23 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn("combat_started", cinematic)
         self.assertIn("audio_fx", self.read("scripts/main.gd"))
 
-    def test_no_external_or_proprietary_game_assets_are_bundled(self):
+    def test_no_proprietary_game_assets_are_bundled(self):
         for current, directories, filenames in os.walk(ROOT):
             directories[:] = [name for name in directories if name not in {".godot", "build"}]
             for filename in filenames:
                 self.assertFalse(filename.lower().endswith((".iso", ".elf", ".irx", ".exe", ".apk")))
         self.assertTrue(os.path.isfile(os.path.join(ROOT, "README.md")))
+
+    def test_cc0_humanoid_assets_are_documented(self):
+        manifest = self.read("assets/ASSET_MANIFEST.md")
+        humanoid = self.read("scripts/humanoid_rig.gd")
+        fetcher = os.path.join(ROOT, "tools", "fetch_cc0_animations.py")
+        self.assertTrue(os.path.isfile(fetcher))
+        self.assertTrue(os.path.isfile(os.path.join(ROOT, "assets", "characters", "quaternius-standard-male.glb")))
+        self.assertIn("CC0 1.0", manifest)
+        self.assertIn("UAL2_Standard.glb", humanoid)
+        self.assertIn("Skeleton3D", humanoid)
+        self.assertIn("_retarget_animation", humanoid)
 
 if __name__ == "__main__":
     unittest.main()
