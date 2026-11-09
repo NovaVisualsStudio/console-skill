@@ -44,7 +44,15 @@ func _run() -> void:
         rig.free()
         quit(1)
         return
-    print("HUMANOID TEST PASS: %d bones, %d retargeted CC0 clips, idle=%s, attack=%s." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count, idle_name, attack_name])
+    rig.play_action("death", 0.0)
+    await process_frame
+    var death_name := String(rig.animation_player.current_animation)
+    if not death_name.to_lower().contains("death"):
+        push_error("Humanoid animation test: death reaction clip did not start.")
+        rig.free()
+        quit(1)
+        return
+    print("HUMANOID TEST PASS: %d bones, %d retargeted CC0 clips, idle=%s, attack=%s, death=%s." % [rig.skeleton.get_bone_count(), rig.loaded_animation_count, idle_name, attack_name, death_name])
     rig.free()
     await process_frame
     quit(0)
