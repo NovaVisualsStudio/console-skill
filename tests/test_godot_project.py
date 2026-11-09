@@ -125,6 +125,8 @@ class GodotProjectIntegrity(unittest.TestCase):
         self.assertIn('mipmaps/generate": "true"', fetcher)
         self.assertIn('compress/normal_map"] = "1"', fetcher)
         self.assertIn("PBR VISUAL TEST PASS", visual_test)
+        self.assertIn("str(node.name)", visual_test)
+        self.assertNotIn("node.name.to_string()", visual_test)
         self.assertIn("func _count_torch_lights", visual_test)
         self.assertIn("func _validate_torch_lights", visual_test)
         self.assertIn("expected four low-cost torch lights", visual_test)
