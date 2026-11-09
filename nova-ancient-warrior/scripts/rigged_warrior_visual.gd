@@ -50,7 +50,8 @@ func play_attack(combo_step: int) -> void:
 	if _model is WarriorVisual:
 		_model.call("play_attack", combo_step)
 		return
-	_play_action("sword_slash")
+	# The third light strike uses the authored three-cut combo; the first opens with a fast slash.
+	_play_action("sword_slash" if posmod(combo_step, 3) == 0 else "sword_combo")
 
 
 func play_heavy_attack() -> void:
