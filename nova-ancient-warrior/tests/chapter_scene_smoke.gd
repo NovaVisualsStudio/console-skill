@@ -7,8 +7,10 @@ const CHAPTER_SCENES := [
 ]
 const EXPECTED_NAMES := ["SunkenRuins", "EmberCauseway", "ObsidianThrone"]
 const ExplorationSecretDirector = preload("res://scripts/exploration_secret_director.gd")
+const ExplorationPuzzleDirector = preload("res://scripts/exploration_puzzle_director.gd")
 const CACHE_POSITIONS := [Vector3(-10.6, 0.17, -3.5), Vector3(8.2, 0.07, -7.0), Vector3(-13.0, 0.09, -8.0)]
 const CACHE_PLATFORM_NAMES := ["SunkenSidePlatform", "EmberFlankStep", "ObsidianSideWalk"]
+const PUZZLE_RAISED_PLATFORM_NAME := "EmberCauseway"
 
 
 func _initialize() -> void:
@@ -34,6 +36,18 @@ func _run_chapter_scene_smoke() -> void:
 		assert(dressing.get_child_count() >= 10, "Chapter needs distinct visual landmarks")
 		var cache := ExplorationSecretDirector.build_stage(scene, index)
 		assert(cache.position.is_equal_approx(CACHE_POSITIONS[index]), "Secret cache must use its chapter flank route")
+		var puzzle_runes := ExplorationPuzzleDirector.build_stage(scene, index)
+		var puzzle_positions := ExplorationPuzzleDirector.rune_positions(index)
+		assert(puzzle_runes.size() == 3, "Every chapter must provide three environmental puzzle runes")
+		for rune_index in range(puzzle_runes.size()):
+			assert(puzzle_runes[rune_index].position.is_equal_approx(puzzle_positions[rune_index]), "Puzzle rune must be placed on its authored route")
+		if index == 1:
+			var causeway := layout.get_node_or_null(PUZZLE_RAISED_PLATFORM_NAME) as StaticBody3D
+			assert(causeway != null, "Ember chapter must provide its safe raised causeway")
+			var causeway_collision := causeway.get_node_or_null("Collision") as CollisionShape3D
+			assert(causeway_collision != null and causeway_collision.shape is BoxShape3D, "Ember causeway must be collision-backed")
+			var causeway_top := causeway.position.y + (causeway_collision.shape as BoxShape3D).size.y * 0.5
+			assert(is_equal_approx(puzzle_runes[2].position.y, causeway_top), "Middle Ember rune must sit exactly on the causeway top")
 		var cache_has_platform := false
 		for body in layout.find_children("*", "StaticBody3D", true, false):
 			if body.name != CACHE_PLATFORM_NAMES[index]:
