@@ -24,11 +24,12 @@ concurrency:
 jobs:
   validate:
     timeout-minutes: 20
-    name: Validate Godot prototype (thirteen gates + six repeat stability passes)
+    name: Validate Godot prototype (thirteen gates + six repeat stability passes (2K mobile PBR))
     runs-on: ubuntu-latest
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      NOVA_TEXTURE_TIER: 2k
     steps:
       - name: Checkout source
         uses: actions/checkout@v7
