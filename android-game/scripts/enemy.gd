@@ -160,7 +160,7 @@ func _physics_process(delta: float) -> void:
     match current_state:
         BrainState.CHASE:
             if distance > attack_range:
-                humanoid.play_action("walk")
+                humanoid.play_action("run" if distance > attack_range * 2.2 else "walk")
                 _move_toward_player(offset, delta)
             elif attack_cooldown <= 0.0:
                 _begin_telegraph()
@@ -311,7 +311,7 @@ func _begin_telegraph() -> void:
         state_timer = telegraph_duration
     if is_instance_valid(telegraph_mesh):
         telegraph_mesh.visible = true
-    humanoid.play_action("heavy" if is_boss else "attack", 0.08)
+    humanoid.play_attack_variant(1, is_boss, 0.08)
     attack_telegraph.emit(is_boss)
 
 func _is_player_in_attack_area(offset: Vector3) -> bool:
