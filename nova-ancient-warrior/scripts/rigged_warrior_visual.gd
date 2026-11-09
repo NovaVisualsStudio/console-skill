@@ -80,6 +80,7 @@ func play_parry() -> void:
 	else:
 		_play_action("sword_block")
 
+
 func play_dodge(direction: Vector3) -> void:
 	if _model is WarriorVisual:
 		return
@@ -101,7 +102,7 @@ func hit_react() -> void:
 	if _model is WarriorVisual:
 		_model.call("hit_react")
 	else:
-		_play_action("hitreact")
+		_play_action("hit_front", 1.4)
 
 
 func _find_animation(fragment: String) -> String:
@@ -147,6 +148,6 @@ func _on_animation_finished(animation_name: StringName) -> void:
 		return
 	_one_shot = false
 	if _blocking:
-		_play_loop("block")
+		_play_loop("sword_block")
 	else:
 		_play_loop("idle")
