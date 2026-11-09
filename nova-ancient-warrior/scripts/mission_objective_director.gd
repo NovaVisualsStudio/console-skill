@@ -60,13 +60,35 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 		relic.set_meta("base_y", positions[index].y)
 		relic.set_meta("phase", float(index) * 2.1)
 		relic.set_meta("sequence_order", index + 1)
+		var relic_material := material.duplicate() as StandardMaterial3D
+		relic.set_meta("rune_material", relic_material)
+		var pedestal := MeshInstance3D.new()
+		pedestal.name = "SealPedestal"
+		var pedestal_mesh := CylinderMesh.new()
+		pedestal_mesh.top_radius = 0.48
+		pedestal_mesh.bottom_radius = 0.58
+		pedestal_mesh.height = 0.16
+		pedestal.mesh = pedestal_mesh
+		pedestal.position.y = 0.08
+		pedestal.material_override = relic_material
+		relic.add_child(pedestal)
+		var beacon := MeshInstance3D.new()
+		beacon.name = "SealBeacon"
+		var beacon_mesh := CylinderMesh.new()
+		beacon_mesh.top_radius = 0.035
+		beacon_mesh.bottom_radius = 0.09
+		beacon_mesh.height = 2.2
+		beacon.mesh = beacon_mesh
+		beacon.position.y = 1.25
+		beacon.material_override = relic_material
+		relic.add_child(beacon)
 		var crystal := MeshInstance3D.new()
 		var crystal_mesh := SphereMesh.new()
 		crystal_mesh.radius = 0.34
 		crystal_mesh.height = 0.88
 		crystal.mesh = crystal_mesh
 		crystal.scale = Vector3(0.72, 1.0, 0.72)
-		crystal.material_override = material
+		crystal.material_override = relic_material
 		relic.add_child(crystal)
 		var number_marker := Label3D.new()
 		number_marker.text = str(index + 1)
@@ -82,11 +104,24 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 		ring_mesh.outer_radius = 0.43
 		ring.mesh = ring_mesh
 		ring.rotation.x = deg_to_rad(90.0)
-		ring.material_override = material
+		ring.material_override = relic_material
 		relic.add_child(ring)
 		root.add_child(relic)
 		result.append(relic)
+	set_expected_order(result, relic_sequence(stage_index)[0])
 	return result
+
+
+static func set_expected_order(relics: Array[Node3D], expected_order: int) -> void:
+	for relic in relics:
+		if not is_instance_valid(relic) or bool(relic.get_meta("collected", false)):
+			continue
+		var rune_material := relic.get_meta("rune_material") as StandardMaterial3D
+		if rune_material == null:
+			continue
+		var is_expected := int(relic.get_meta("sequence_order", 0)) == expected_order
+		rune_material.emission_energy_multiplier = 2.2 if is_expected else 0.55
+		rune_material.albedo_color = Color(1.0, 1.0, 1.0) if is_expected else Color(0.62, 0.62, 0.62)
 
 
 static func collect(relic: Node3D) -> bool:
