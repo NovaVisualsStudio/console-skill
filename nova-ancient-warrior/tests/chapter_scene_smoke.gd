@@ -20,6 +20,7 @@ func _initialize() -> void:
 func _run_chapter_scene_smoke() -> void:
 	var observed_layout_sizes: Array[int] = []
 	for index in range(CHAPTER_SCENES.size()):
+		print("Chapter smoke: entering chapter %d (%s)" % [index + 1, EXPECTED_NAMES[index]])
 		var packed := load(CHAPTER_SCENES[index]) as PackedScene
 		assert(packed != null, "Every chapter must be a loadable PackedScene")
 		var scene := packed.instantiate() as Node3D
@@ -49,6 +50,9 @@ func _run_chapter_scene_smoke() -> void:
 			var causeway_top := causeway.position.y + (causeway_collision.shape as BoxShape3D).size.y * 0.5
 			assert(is_equal_approx(puzzle_runes[2].position.y, causeway_top), "Middle Ember rune must sit exactly on the causeway top")
 		var cache_has_platform := false
+		var platform_diagnostics: Array[String] = []
+		var cache_world := cache.global_position
+		var expected_cache_bottom := cache_world.y + 0.11
 		for body in layout.find_children("*", "StaticBody3D", true, false):
 			if body.name != CACHE_PLATFORM_NAMES[index]:
 				continue
@@ -56,13 +60,22 @@ func _run_chapter_scene_smoke() -> void:
 			if collision == null or not collision.shape is BoxShape3D:
 				continue
 			var platform_size := (collision.shape as BoxShape3D).size
-			var within_x := absf(cache.position.x - body.position.x) <= platform_size.x * 0.5
-			var within_z := absf(cache.position.z - body.position.z) <= platform_size.z * 0.5
-			var aligned_height := is_equal_approx(cache.position.y + 0.11, body.position.y + platform_size.y * 0.5)
-			if within_x and within_z and aligned_height:
+			var platform_world := collision.global_position
+			var within_x := absf(cache_world.x - platform_world.x) <= platform_size.x * 0.5 + 0.02
+			var within_z := absf(cache_world.z - platform_world.z) <= platform_size.z * 0.5 + 0.02
+			var platform_top := platform_world.y + platform_size.y * 0.5
+			var height_delta := absf(expected_cache_bottom - platform_top)
+			platform_diagnostics.append("%s center=%s size=%s top=%.4f cache_bottom=%.4f delta=%.4f" % [
+				body.name, str(platform_world), str(platform_size), platform_top, expected_cache_bottom, height_delta
+			])
+			if within_x and within_z and height_delta <= 0.02:
 				cache_has_platform = true
 				break
-		assert(cache_has_platform, "Secret cache must sit flush on a collision-backed chapter traversal platform")
+		if not cache_has_platform:
+			_fail(scene, "Chapter %d secret cache does not sit on %s. Cache world=%s; candidates=%s" % [
+				index + 1, CACHE_PLATFORM_NAMES[index], str(cache_world), "; ".join(platform_diagnostics)
+			])
+			return
 		observed_layout_sizes.append(dressing.get_child_count())
 		scene.queue_free()
 		await process_frame
