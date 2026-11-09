@@ -88,6 +88,17 @@ func _load_and_retarget_animations() -> void:
     animation_player.playback_default_blend_time = 0.14
     add_child(animation_player)
 
+    print("NOVA UAL2 source animation names: ", source_player.get_animation_list().slice(0, 12))
+    print("NOVA UAL2 source skeleton bones: ", _source_skeleton.get_bone_count())
+    for bone_index in range(mini(12, _source_skeleton.get_bone_count())):
+        print("NOVA UAL2 source bone ", bone_index, ": ", _source_skeleton.get_bone_name(bone_index))
+    print("NOVA target skeleton bones: ", skeleton.get_bone_count())
+    for bone_index in range(mini(12, skeleton.get_bone_count())):
+        print("NOVA target bone ", bone_index, ": ", skeleton.get_bone_name(bone_index))
+    var debug_animation := source_player.get_animation(source_player.get_animation_list()[0])
+    if debug_animation != null:
+        for track_index in range(mini(12, debug_animation.get_track_count())):
+            print("NOVA UAL2 source track ", track_index, ": ", debug_animation.track_get_path(track_index))
     var library := AnimationLibrary.new()
     for animation_name in source_player.get_animation_list():
         var source_animation := source_player.get_animation(animation_name)
