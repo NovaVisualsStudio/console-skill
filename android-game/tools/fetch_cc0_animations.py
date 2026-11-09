@@ -61,16 +61,21 @@ animation = fetch(ANIMATION_BASE, ANIMATION_PACK + "Unreal-Godot/UAL2_Standard.g
 validate_glb(animation, "Quaternius UAL2 Standard", 1_000_000)
 fetch(ANIMATION_BASE, ANIMATION_PACK + "License.txt", ANIMATION_DEST, "LICENSE-UAL2-CC0.txt")
 
-# Godot 4.7 does not import KHR_mesh_quantization without an extension plugin.
-# Dequantize the CC0 generated GLBs into standard glTF vertex formats before import.
-if shutil.which("gltf-transform") is None:
-    raise SystemExit("Missing gltf-transform. Install with: npm install --global @gltf-transform/cli@4.5.1")
-for asset_path in sorted(CHARACTER_DEST.glob("charactercreator-*.glb")):
-    converted_path = asset_path.with_name(asset_path.stem + ".dequantized.glb")
-    subprocess.run(["gltf-transform", "dequantize", str(asset_path), str(converted_path)], check=True)
+# Normalize every GLB for Godot: expand sparse accessors and remove quantized vertex attributes.
+normalizer = ROOT / "tools" / "gltf-normalizer" / "normalize.mjs"
+if not normalizer.is_file():
+    raise SystemExit("Missing the glTF sparse-accessor normalizer.")
+if shutil.which("node") is None or shutil.which("gltf-transform") is None:
+    raise SystemExit("Missing Node.js or gltf-transform validation CLI.")
+assets_to_normalize = [CHARACTER_DEST / "quaternius-standard-male.glb"]
+assets_to_normalize += sorted(CHARACTER_DEST.glob("charactercreator-*.glb"))
+assets_to_normalize += [ANIMATION_DEST / "UAL2_Standard.glb"]
+for asset_path in assets_to_normalize:
+    converted_path = asset_path.with_name(asset_path.stem + ".normalized.glb")
+    subprocess.run(["node", str(normalizer), str(asset_path), str(converted_path)], check=True)
     subprocess.run(["gltf-transform", "validate", str(converted_path)], check=True)
     os.replace(converted_path, asset_path)
     validate_glb(asset_path.read_bytes(), asset_path.name, 100_000)
-    print("Dequantized and validated:", asset_path.name)
+    print("Sparse-free, dequantized GLB validated:", asset_path.name)
 
 print("CC0 skinned humanoid and animation assets are ready for Godot import.")
