@@ -79,6 +79,12 @@ func _run_save_smoke() -> void:
 	if int(reader.profile.get("upgrade_blade", 0)) != 1 or int(reader.profile.get("total_souls", 0)) != 1:
 		_fail("New campaign must preserve permanent upgrades and banked souls")
 		return
+	if not reader.set_language("ar") or str(reader.profile.get("language", "")) != "ar":
+		_fail("Arabic language preference was not persisted")
+		return
+	if not reader.set_language("en") or str(reader.profile.get("language", "")) != "en":
+		_fail("English language preference was not restored")
+		return
 	if not reader.begin_run():
 		_fail("Could not begin a fresh run")
 		return
