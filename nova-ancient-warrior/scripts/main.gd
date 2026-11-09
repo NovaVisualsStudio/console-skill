@@ -1394,15 +1394,9 @@ func _update_enemies(delta: float) -> void:
 		var attack_timer := maxf(0.0, float(enemy.get_meta("attack_timer", 0.0)))
 		var attack_cooldown_value := maxf(0.0, float(enemy.get_meta("attack_cooldown", 0.0)) - delta)
 		if attack_state == "approach":
-			var desired_range := 1.85
-			if is_boss:
-				match boss_kind:
-					"ember_warlord":
-						desired_range = 5.0
-					"obsidian_sovereign":
-						desired_range = 4.8
-					_:
-						desired_range = 2.1
+			# The AI begins its windup at the exact radius used by the strike
+			# resolver and the visible ground telegraph, including boss phase changes.
+			var desired_range := CombatRules.boss_attack_range(boss_kind, phase) if is_boss else 1.85
 			var tactical_plan: Dictionary = EnemyTactics.plan_movement(
 				distance,
 				desired_range,
