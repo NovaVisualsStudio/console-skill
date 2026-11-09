@@ -263,9 +263,15 @@ func _add_box(node_name: String, position: Vector3, size: Vector3, color: Color,
 
 func _make_pbr_material(asset_id: String, tint: Color, tiling: float) -> StandardMaterial3D:
     var texture_root := "res://assets/textures/"
-    var diffuse := load(texture_root + asset_id + "_diff_1k.jpg") as Texture2D
-    var normal_map := load(texture_root + asset_id + "_nor_gl_1k.jpg") as Texture2D
-    var roughness_map := load(texture_root + asset_id + "_rough_1k.jpg") as Texture2D
+    var configured_tier := String(ProjectSettings.get_setting("nova/graphics/texture_tier", "2k")).to_lower()
+    var environment_tier := OS.get_environment("NOVA_TEXTURE_TIER").to_lower()
+    var texture_tier := environment_tier if not environment_tier.is_empty() else configured_tier
+    if texture_tier not in ["2k", "4k"]:
+        push_warning("NOVA texture tier is invalid; using 2k.")
+        texture_tier = "2k"
+    var diffuse := load(texture_root + asset_id + "_diff_" + texture_tier + ".jpg") as Texture2D
+    var normal_map := load(texture_root + asset_id + "_nor_gl_" + texture_tier + ".jpg") as Texture2D
+    var roughness_map := load(texture_root + asset_id + "_rough_" + texture_tier + ".jpg") as Texture2D
     if diffuse == null or normal_map == null or roughness_map == null:
         push_error("NOVA missing CC0 PBR maps for: " + asset_id)
         return null
