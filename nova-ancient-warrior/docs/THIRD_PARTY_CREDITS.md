@@ -11,6 +11,10 @@
 
   > The data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217.
 
+## CMU motion-data usage boundary
+
+The official [CMU Graphics Lab Motion Capture Database](http://mocap.cs.cmu.edu/) permits including its motion data in commercially sold products, but prohibits reselling the motion data directly, including converted forms. NOVA uses retargeted clips embedded in the game character; it does not offer the motion clips as a standalone library or asset pack. The requested CMU acknowledgement is included in the title-screen credits and pause menu.
+
 ## Validated NOVA hero asset
 
 The current hero asset is committed at `assets/characters/nova_hero.glb`.
