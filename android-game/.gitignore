@@ -4,3 +4,8 @@
 build/
 *.apk
 *.aab
+
+# Free CC0 3D binaries are fetched by tools/fetch_cc0_animations.py
+assets/characters/quaternius-standard-male.glb
+assets/animations/*.glb
+assets/animations/LICENSE-UAL2-CC0.txt
