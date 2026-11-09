@@ -675,6 +675,90 @@ func _advance_dialogue() -> void:
 	dialogue_next_button.text = "التالي" if use_arabic else "CONTINUE"
 
 
+func _animate_mission_relics(delta: float) -> void:
+	var clock := float(Time.get_ticks_msec()) / 1000.0
+	for relic in mission_relics:
+		if not is_instance_valid(relic) or bool(relic.get_meta("collected", false)):
+			continue
+		var phase := float(relic.get_meta("phase", 0.0))
+		relic.rotation.y += delta * 0.85
+		relic.position.y = float(relic.get_meta("base_y", 0.0)) + sin(clock * 1.7 + phase) * 0.13
+
+
+func _update_mission_relic_interaction() -> void:
+	if not is_instance_valid(interact_button):
+		return
+	var nearest_distance := 3.0
+	var nearby := false
+	if is_instance_valid(player):
+		for relic in mission_relics:
+			if not is_instance_valid(relic) or bool(relic.get_meta("collected", false)):
+				continue
+			var distance := player.global_position.distance_to(relic.global_position)
+			if distance <= nearest_distance:
+				nearby = true
+				nearest_distance = distance
+	interact_button.visible = nearby and not cinematic_active and not game_over
+	_update_mission_objective_ui()
+
+
+func _try_collect_mission_relic() -> void:
+	if not is_instance_valid(player) or cinematic_active or game_over:
+		return
+	var nearest: Node3D = null
+	var nearest_distance := 3.0
+	for relic in mission_relics:
+		if not is_instance_valid(relic) or bool(relic.get_meta("collected", false)):
+			continue
+		var distance := player.global_position.distance_to(relic.global_position)
+		if distance <= nearest_distance:
+			nearest = relic
+			nearest_distance = distance
+	if nearest == null or not MissionObjectiveDirector.collect(nearest):
+		return
+	mission_relic_count = mini(3, mission_relic_count + 1)
+	_play_sfx_or_tone("upgrade", 640.0 + float(mission_relic_count) * 100.0, 0.12, 0.18)
+	status_label.text = "SEAL FRAGMENT RECOVERED  |  %d/3" % mission_relic_count
+	_update_mission_objective_ui()
+	if mission_relic_count >= 3 and boss_gate_pending:
+		_release_boss_gate()
+
+
+func _update_mission_objective_ui() -> void:
+	if not is_instance_valid(mission_objective_label):
+		return
+	if mission_relics.is_empty():
+		mission_objective_label.visible = false
+		return
+	mission_objective_label.visible = mission_relic_count < 3 or boss_gate_pending
+	if boss_gate_pending:
+		mission_objective_label.text = "BOSS GATE SEALED  |  RECOVER THE THREE SEAL FRAGMENTS  |  %d/3" % mission_relic_count
+	elif mission_relic_count < 3:
+		mission_objective_label.text = "OPTIONAL CHAPTER SEALS  |  %d/3  |  APPROACH A RELIC AND INTERACT" % mission_relic_count
+	else:
+		mission_objective_label.visible = false
+
+
+func _release_boss_gate() -> void:
+	if not boss_gate_pending or mission_relic_count < 3 or wave_transitioning or game_over:
+		return
+	boss_gate_pending = false
+	wave_transitioning = true
+	status_label.text = "THREE SEALS RESTORED  |  THE BOSS GATE OPENS"
+	_update_mission_objective_ui()
+	get_tree().create_timer(0.9).timeout.connect(func():
+		if game_over or not is_inside_tree():
+			return
+		current_wave += 1
+		_save_checkpoint()
+		_spawn_wave()
+		wave_transitioning = false
+		status_label.text = LevelCatalog.wave_title(current_wave)
+		_update_hud()
+		_play_tone(620.0, 0.18, 0.2)
+	)
+
+
 func _handle_wave_cleared() -> void:
 	if wave_transitioning or game_over:
 		return
