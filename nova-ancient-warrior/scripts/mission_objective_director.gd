@@ -23,11 +23,15 @@ static func relic_positions(stage_index: int) -> Array[Vector3]:
 			return [Vector3(-9.2, 0.0, 11.5), Vector3(9.2, 0.0, 11.5), Vector3(0.0, 0.0, 14.0)]
 
 
-static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
+static func clear_stage(parent: Node3D) -> void:
 	var previous := parent.get_node_or_null(ROOT_NAME)
 	if previous != null:
 		parent.remove_child(previous)
 		previous.free()
+
+
+static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
+	clear_stage(parent)
 	var root := Node3D.new()
 	root.name = ROOT_NAME
 	parent.add_child(root)
