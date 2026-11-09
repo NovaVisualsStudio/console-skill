@@ -90,6 +90,11 @@ func _build_world() -> void:
     environment.ambient_light_energy = 0.62
     environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
     environment.tonemap_exposure = 1.15
+    environment.glow_enabled = true
+    environment.glow_intensity = 0.24
+    environment.glow_strength = 0.62
+    environment.glow_bloom = 0.035
+    environment.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
     environment.fog_enabled = true
     environment.fog_light_color = CHAPTER_FOG[stage]
     environment.fog_density = 0.012
@@ -101,7 +106,25 @@ func _build_world() -> void:
     moon.light_color = Color(0.62, 0.72, 1.0) if stage == 0 else (Color(0.42, 0.82, 0.92) if stage == 1 else Color(1.0, 0.42, 0.25))
     moon.light_energy = 1.05
     moon.shadow_enabled = true
+    moon.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+    moon.directional_shadow_max_distance = 42.0
     add_child(moon)
+
+    var face_fill := DirectionalLight3D.new()
+    face_fill.name = "CinematicFaceFill"
+    face_fill.rotation_degrees = Vector3(-18.0, 148.0, 0.0)
+    face_fill.light_color = Color(0.62, 0.74, 1.0) if stage != 2 else Color(1.0, 0.52, 0.34)
+    face_fill.light_energy = 0.34
+    face_fill.shadow_enabled = false
+    add_child(face_fill)
+
+    var armor_rim := DirectionalLight3D.new()
+    armor_rim.name = "CinematicArmorRim"
+    armor_rim.rotation_degrees = Vector3(-22.0, 24.0, 0.0)
+    armor_rim.light_color = CHAPTER_RINGS[stage].lightened(0.18)
+    armor_rim.light_energy = 0.52
+    armor_rim.shadow_enabled = false
+    add_child(armor_rim)
 
     var stage_floor_tint := Color(0.82, 0.86, 0.94) if stage == 0 else (Color(0.74, 0.92, 0.98) if stage == 1 else Color(0.96, 0.74, 0.66))
     var stage_wall_tint := Color(0.72, 0.72, 0.78) if stage == 0 else (Color(0.65, 0.82, 0.85) if stage == 1 else Color(0.88, 0.62, 0.54))
