@@ -203,6 +203,8 @@ func _physics_process(delta: float) -> void:
 		dodge_cooldown = 0.88
 		player_invulnerability_time = maxf(player_invulnerability_time, 0.42)
 		_play_sfx_or_tone("dodge", 360.0, 0.09, 0.17)
+		if is_instance_valid(hero_visual):
+			hero_visual.call("play_dodge", dodge_direction)
 
 	if dodge_remaining > 0.0:
 		player.velocity.x = dodge_direction.x * 9.4
