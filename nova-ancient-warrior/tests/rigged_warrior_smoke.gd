@@ -169,18 +169,33 @@ func _animation_moves_skeleton(player: AnimationPlayer, skeleton: Skeleton3D, fr
 	var animation := player.get_animation(clip_name)
 	if animation == null or animation.length <= 0.05:
 		return false
-	var before := []
-	for bone_index in range(skeleton.get_bone_count()):
-		before.append({"position": skeleton.get_bone_pose_position(bone_index), "rotation": skeleton.get_bone_pose_rotation(bone_index), "scale": skeleton.get_bone_pose_scale(bone_index)})
+
+	# Compare poses within the clip itself. Comparing against the previous action
+	# can miss a valid death clip when its first keyframe matches the preceding
+	# pose, and sampling only one arbitrary timestamp can land on a hold frame.
+	player.stop()
 	player.play(clip_name)
-	player.advance(minf(0.35, animation.length * 0.5))
+	player.seek(0.0, true)
 	skeleton.force_update_all_bone_transforms()
+	var initial_pose := []
 	for bone_index in range(skeleton.get_bone_count()):
-		var position_changed := skeleton.get_bone_pose_position(bone_index).distance_to(before[bone_index].position) > 0.0005
-		var rotation_changed := absf(skeleton.get_bone_pose_rotation(bone_index).dot(before[bone_index].rotation)) < 0.99999
-		var scale_changed := skeleton.get_bone_pose_scale(bone_index).distance_to(before[bone_index].scale) > 0.0005
-		if position_changed or rotation_changed or scale_changed:
-			return true
+		initial_pose.append({
+			"position": skeleton.get_bone_pose_position(bone_index),
+			"rotation": skeleton.get_bone_pose_rotation(bone_index),
+			"scale": skeleton.get_bone_pose_scale(bone_index)
+		})
+
+	var sample_count := maxi(12, ceili(animation.length * 10.0))
+	for sample_index in range(1, sample_count + 1):
+		var sample_time := animation.length * float(sample_index) / float(sample_count)
+		player.seek(sample_time, true)
+		skeleton.force_update_all_bone_transforms()
+		for bone_index in range(skeleton.get_bone_count()):
+			var position_changed := skeleton.get_bone_pose_position(bone_index).distance_to(initial_pose[bone_index].position) > 0.0005
+			var rotation_changed := absf(skeleton.get_bone_pose_rotation(bone_index).dot(initial_pose[bone_index].rotation)) < 0.99999
+			var scale_changed := skeleton.get_bone_pose_scale(bone_index).distance_to(initial_pose[bone_index].scale) > 0.0005
+			if position_changed or rotation_changed or scale_changed:
+				return true
 	return false
 
 
