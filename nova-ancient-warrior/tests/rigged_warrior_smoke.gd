@@ -158,6 +158,42 @@ func _run_rigged_hero_smoke() -> void:
 	quit(0)
 
 
+func _animation_moves_skeleton(player: AnimationPlayer, skeleton: Skeleton3D, fragment: String) -> bool:
+	var clip_name := ""
+	for actual_name in player.get_animation_list():
+		var normalized_name := str(actual_name).to_lower().replace(" ", "").replace("_", "").replace("(", "").replace(")", "")
+		if fragment.to_lower().replace(" ", "").replace("_", "") in normalized_name:
+			clip_name = str(actual_name)
+			break
+	if clip_name.is_empty():
+		return false
+	var animation := player.get_animation(clip_name)
+	if animation == null or animation.length <= 0.05:
+		return false
+	player.stop()
+	player.play(clip_name)
+	player.seek(0.0, true)
+	skeleton.force_update_all_bone_transforms()
+	var initial_pose := []
+	for bone_index in range(skeleton.get_bone_count()):
+		initial_pose.append({
+			"position": skeleton.get_bone_pose_position(bone_index),
+			"rotation": skeleton.get_bone_pose_rotation(bone_index),
+			"scale": skeleton.get_bone_pose_scale(bone_index)
+		})
+	var sample_count := maxi(12, ceili(animation.length * 10.0))
+	for sample_index in range(1, sample_count + 1):
+		player.seek(animation.length * float(sample_index) / float(sample_count), true)
+		skeleton.force_update_all_bone_transforms()
+		for bone_index in range(skeleton.get_bone_count()):
+			var position_changed := skeleton.get_bone_pose_position(bone_index).distance_to(initial_pose[bone_index].position) > 0.0005
+			var rotation_changed := absf(skeleton.get_bone_pose_rotation(bone_index).dot(initial_pose[bone_index].rotation)) < 0.99999
+			var scale_changed := skeleton.get_bone_pose_scale(bone_index).distance_to(initial_pose[bone_index].scale) > 0.0005
+			if position_changed or rotation_changed or scale_changed:
+				return true
+	return false
+
+
 func _fail(visual: Node, message: String) -> void:
 	push_error(message)
 	visual.free()
