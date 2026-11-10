@@ -162,6 +162,21 @@ func _finish(exit_code: int, game: Node, message: String = "") -> void:
 	if not message.is_empty():
 		push_error(message)
 	if is_instance_valid(game):
+		# Stop every short-lived SFX voice and detach its stream before freeing
+		# the scene; the audio server can otherwise retain an active WAV playback
+		# after this headless test exits.
+		var voices: Array = game.get("sound_players")
+		for voice_variant in voices:
+			var voice := voice_variant as AudioStreamPlayer
+			if is_instance_valid(voice):
+				voice.stop()
+				voice.stream = null
+		voices.clear()
+		# Give AudioServer one frame to retire stopped playback handles before
+		# dropping the scene's final references to the streams.
+		await process_frame
+		var streams: Dictionary = game.get("sfx_streams")
+		streams.clear()
 		game.free()
 	_active_game = null
 	if is_instance_valid(_watchdog_timer):
