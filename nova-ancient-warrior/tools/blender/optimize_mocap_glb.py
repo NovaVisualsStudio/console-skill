@@ -103,22 +103,19 @@ def repack(document, source_bin):
             view_index = accessor["bufferView"]
             used_views.add(view_index)
             view_accessor_users.setdefault(view_index, set()).add(index)
-        sparse = accessor.get("sparse", {})
+        # Sparse indices/values are independent bufferViews and must survive
+        # repacking even when they are not referenced by an accessor.bufferView.
+        sparse = accessor.get("sparse") or {}
         for key in ("indices", "values"):
             sparse_view = sparse.get(key, {}).get("bufferView")
             if isinstance(sparse_view, int):
+                used_views.add(sparse_view)
                 non_vertex_view_references.add(sparse_view)
     for image in document.get("images", []):
         image_view = image.get("bufferView")
         if isinstance(image_view, int):
+            used_views.add(image_view)
             non_vertex_view_references.add(image_view)
-        sparse = accessor.get("sparse", {})
-        for key in ("indices", "values"):
-            if isinstance(sparse.get(key, {}).get("bufferView"), int):
-                used_views.add(sparse[key]["bufferView"])
-    for image in document.get("images", []):
-        if isinstance(image.get("bufferView"), int):
-            used_views.add(image["bufferView"])
 
     output_bin, view_remap, new_views = bytearray(), {}, []
     for old_index in sorted(used_views):
@@ -142,7 +139,7 @@ def repack(document, source_bin):
         if len(users) == 1:
             accessor_index = next(iter(users))
             accessor = accessors[accessor_index]
-            if accessor_index in vertex_attribute_accessors and "sparse" not in accessor:
+            if accessor_index in vertex_attribute_accessors and old_index not in non_vertex_view_references and "sparse" not in accessor:
                 component_bytes = {5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4}.get(accessor.get("componentType"))
                 component_counts = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT2": 4, "MAT3": 9, "MAT4": 16}
                 component_count = component_counts.get(accessor.get("type"))
