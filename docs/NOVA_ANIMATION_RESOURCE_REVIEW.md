@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — character and animation resource review
+# Nova Ancient Warrior - character and animation resource review
 
 **Review date:** 2026-11-10  
 **Target:** Godot 4.7.2, Android Compatibility renderer, original Nova hero  
