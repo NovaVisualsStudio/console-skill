@@ -59,6 +59,13 @@ func play_heavy_attack() -> void:
 	_play_action("heavyattack")
 
 
+func play_dodge() -> void:
+	if _model is WarriorVisual:
+		_model.call("play_dodge")
+		return
+	_play_action("dodge")
+
+
 func set_blocking(enabled: bool) -> void:
 	_blocking = enabled
 	if _model is WarriorVisual:
