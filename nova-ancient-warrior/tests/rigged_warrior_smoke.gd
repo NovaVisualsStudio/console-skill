@@ -80,6 +80,18 @@ func _run_rigged_hero_smoke() -> void:
 	if "swordthrust" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
 		_fail(visual, "Heavy attack must select the sword thrust clip")
 		return
+	# Validate actual animated bone poses, not merely clip names or resource presence.
+	if not _animation_moves_skeleton(animation_player, skeleton, "sword_slash"):
+		_fail(visual, "Sword slash clip does not change any humanoid bone pose")
+		return
+	var death_clip := ""
+	for actual_name in names:
+		if "death" in str(actual_name).to_lower():
+			death_clip = str(actual_name)
+			break
+	if death_clip.is_empty() or not _animation_moves_skeleton(animation_player, skeleton, death_clip):
+		_fail(visual, "Death clip does not produce a measurable humanoid bone pose change")
+		return
 	visual.call("set_blocking", true)
 	if "swordblock" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
 		_fail(visual, "Guard must select the sword block clip")
@@ -144,6 +156,32 @@ func _run_rigged_hero_smoke() -> void:
 	print("Rigged Nova hero smoke test passed: %d bones, %d animation clips, %d mesh nodes, %d textured PBR materials" % [skeleton.get_bone_count(), names.size(), mesh_nodes.size(), textured_materials])
 	visual.free()
 	quit(0)
+
+
+func _animation_moves_skeleton(player: AnimationPlayer, skeleton: Skeleton3D, fragment: String) -> bool:
+	var clip_name := ""
+	for actual_name in player.get_animation_list():
+		if fragment.to_lower().replace(" ", "").replace("_", "") in str(actual_name).to_lower().replace(" ", "").replace("_", "").replace("(", "").replace(")", ""):
+			clip_name = str(actual_name)
+			break
+	if clip_name.is_empty():
+		return false
+	var animation := player.get_animation(clip_name)
+	if animation == null or animation.length <= 0.05:
+		return false
+	var before := []
+	for bone_index in range(skeleton.get_bone_count()):
+		before.append({"position": skeleton.get_bone_pose_position(bone_index), "rotation": skeleton.get_bone_pose_rotation(bone_index), "scale": skeleton.get_bone_pose_scale(bone_index)})
+	player.play(clip_name)
+	player.advance(minf(0.35, animation.length * 0.5))
+	skeleton.force_update_all_bone_transforms()
+	for bone_index in range(skeleton.get_bone_count()):
+		var position_changed := skeleton.get_bone_pose_position(bone_index).distance_to(before[bone_index].position) > 0.0005
+		var rotation_changed := absf(skeleton.get_bone_pose_rotation(bone_index).dot(before[bone_index].rotation)) < 0.99999
+		var scale_changed := skeleton.get_bone_pose_scale(bone_index).distance_to(before[bone_index].scale) > 0.0005
+		if position_changed or rotation_changed or scale_changed:
+			return true
+	return false
 
 
 func _fail(visual: Node, message: String) -> void:
