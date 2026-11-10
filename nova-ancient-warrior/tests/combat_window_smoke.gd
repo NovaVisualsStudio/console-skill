@@ -172,6 +172,9 @@ func _finish(exit_code: int, game: Node, message: String = "") -> void:
 				voice.stop()
 				voice.stream = null
 		voices.clear()
+		# Give AudioServer one frame to retire stopped playback handles before
+		# dropping the scene's final references to the streams.
+		await process_frame
 		var streams: Dictionary = game.get("sfx_streams")
 		streams.clear()
 		game.free()
