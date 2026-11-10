@@ -38,9 +38,9 @@ func set_locomotion(speed_ratio: float, _delta: float) -> void:
 	if _one_shot or _blocking:
 		return
 	if speed_ratio > 0.78:
-		_play_loop("run")
+		_play_loop("run", lerpf(0.95, 1.18, clampf(speed_ratio, 0.0, 1.0)))
 	elif speed_ratio > 0.08:
-		_play_loop("walk")
+		_play_loop("walk", lerpf(0.68, 1.0, clampf(speed_ratio, 0.0, 1.0)))
 	else:
 		_play_loop("idle")
 
@@ -120,7 +120,7 @@ func _find_animation(fragment: String) -> String:
 	return ""
 
 
-func _play_loop(fragment: String) -> void:
+func _play_loop(fragment: String, speed_scale: float = 1.0) -> void:
 	var animation_name := _find_animation(fragment)
 	if animation_name.is_empty() or _animation_player == null:
 		return
@@ -130,7 +130,7 @@ func _play_loop(fragment: String) -> void:
 	if _active_animation == animation_name and _animation_player.is_playing():
 		return
 	_active_animation = animation_name
-	_animation_player.play(animation_name, 0.12)
+	_animation_player.play(animation_name, 0.12, speed_scale)
 
 
 func _play_action(fragment: String) -> void:
