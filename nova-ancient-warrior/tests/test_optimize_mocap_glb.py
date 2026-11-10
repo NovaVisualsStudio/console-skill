@@ -50,6 +50,16 @@ class OptimizeMocapGlbTests(unittest.TestCase):
         self.assertEqual(len(optimized), 88)
         self.assertEqual(document["meshes"][0]["primitives"][0]["attributes"], {"POSITION": 0, "NORMAL": 1})
         self.assertEqual(document["skins"][0]["inverseBindMatrices"], 2)
+        self.assertEqual(document["bufferViews"][0]["byteStride"], 12)
+        self.assertEqual(document["bufferViews"][1]["byteStride"], 12)
+        self.assertNotIn("byteStride", document["bufferViews"][2])
+
+    def test_shared_vertex_buffer_view_does_not_get_guessed_stride(self):
+        document, binary = self.make_fixture()
+        document["accessors"][1]["bufferView"] = 0
+        remove_morph_targets(document)
+        repack(document, binary)
+        self.assertNotIn("byteStride", document["bufferViews"][0])
 
     def test_glb_round_trip_preserves_skeleton_geometry(self):
         document, binary = self.make_fixture()
