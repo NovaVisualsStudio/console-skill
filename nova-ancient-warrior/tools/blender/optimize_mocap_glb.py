@@ -88,10 +88,20 @@ def repack(document, source_bin):
         for sampler in animation.get("samplers", []):
             used_accessors.update(sampler[k] for k in ("input", "output"))
     used_views = set()
+    vertex_attribute_accessors = set()
+    for mesh in document.get("meshes", []):
+        for primitive in mesh.get("primitives", []):
+            for accessor_index in primitive.get("attributes", {}).values():
+                if isinstance(accessor_index, int):
+                    vertex_attribute_accessors.add(accessor_index)
+
+    view_accessor_users = {}
     for index in used_accessors:
         accessor = accessors[index]
         if isinstance(accessor.get("bufferView"), int):
-            used_views.add(accessor["bufferView"])
+            view_index = accessor["bufferView"]
+            used_views.add(view_index)
+            view_accessor_users.setdefault(view_index, set()).add(index)
         sparse = accessor.get("sparse", {})
         for key in ("indices", "values"):
             if isinstance(sparse.get(key, {}).get("bufferView"), int):
@@ -114,6 +124,22 @@ def repack(document, source_bin):
         new_view = dict(view)
         new_view["buffer"] = 0
         new_view["byteOffset"] = len(output_bin)
+
+        # Godot's glTF importer expects an explicit stride for vertex data.
+        # Add it only when this bufferView belongs to exactly one tightly-packed
+        # vertex accessor; never guess for interleaved/shared bufferViews.
+        users = view_accessor_users.get(old_index, set())
+        if len(users) == 1:
+            accessor_index = next(iter(users))
+            accessor = accessors[accessor_index]
+            if accessor_index in vertex_attribute_accessors and "sparse" not in accessor:
+                component_bytes = {5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4}.get(accessor.get("componentType"))
+                component_counts = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT2": 4, "MAT3": 9, "MAT4": 16}
+                component_count = component_counts.get(accessor.get("type"))
+                if component_bytes is not None and component_count is not None:
+                    packed_stride = component_bytes * component_count
+                    if 4 <= packed_stride <= 252 and packed_stride % 4 == 0:
+                        new_view["byteStride"] = packed_stride
         view_remap[old_index] = len(new_views)
         new_views.append(new_view)
         output_bin.extend(source_bin[start:start + length])
