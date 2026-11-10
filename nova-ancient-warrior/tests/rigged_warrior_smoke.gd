@@ -45,10 +45,33 @@ func _run_rigged_hero_smoke() -> void:
 		_fail(visual, "Rigged hero did not play its dodge clip")
 		return
 	visual.call("play_attack", 0)
+	if "lightattack" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Rigged hero did not select its light attack clip")
+		return
 	visual.call("play_heavy_attack")
+	if "heavyattack" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Rigged hero did not select its heavy attack clip")
+		return
 	visual.call("set_blocking", true)
+	if "block" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Rigged hero did not enter its guard loop")
+		return
+	visual.call("set_blocking", false)
+	if "idle" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Rigged hero did not leave guard cleanly")
+		return
+	visual.call("set_locomotion", 0.5, 0.016)
+	if "walk" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Guard release left the one-shot latch blocking locomotion")
+		return
 	visual.call("play_parry")
+	if "parry" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Rigged hero did not select its parry clip")
+		return
 	visual.call("hit_react")
+	if "hitreact" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Rigged hero did not select its hit reaction clip")
+		return
 	print("Rigged Nova hero smoke test passed: %d bones, %d animation clips" % [skeleton.get_bone_count(), names.size()])
 	visual.free()
 	quit(0)
