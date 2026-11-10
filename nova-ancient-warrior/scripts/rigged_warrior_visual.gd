@@ -10,6 +10,7 @@ var _animation_player: AnimationPlayer
 var _one_shot := false
 var _blocking := false
 var _jumping := false
+var _dead := false
 var _active_animation := ""
 
 
@@ -33,6 +34,8 @@ func _ready() -> void:
 
 
 func set_locomotion(speed_ratio: float, _delta: float) -> void:
+	if _dead:
+		return
 	if _model is WarriorVisual:
 		_model.call("set_locomotion", speed_ratio, _delta)
 		return
@@ -62,6 +65,8 @@ func play_heavy_attack() -> void:
 
 
 func set_blocking(enabled: bool) -> void:
+	if _dead:
+		return
 	_blocking = enabled
 	if _model is WarriorVisual:
 		_model.call("set_blocking", enabled)
@@ -118,6 +123,19 @@ func phase_change(phase: int) -> void:
 		_play_action("sword_block")
 
 
+func play_death() -> void:
+	if _dead:
+		return
+	_dead = true
+	_one_shot = true
+	_blocking = false
+	_jumping = false
+	if _model is WarriorVisual:
+		_model.call("play_death")
+		return
+	_play_action("death", 0.82)
+
+
 func hit_react() -> void:
 	if _model is WarriorVisual:
 		_model.call("hit_react")
@@ -167,7 +185,7 @@ func _play_action(fragment: String, speed_scale: float = 1.0) -> void:
 
 
 func _on_animation_finished(animation_name: StringName) -> void:
-	if str(animation_name) != _active_animation:
+	if _dead or str(animation_name) != _active_animation:
 		return
 	_one_shot = false
 	if _jumping:
