@@ -90,6 +90,20 @@ func _run_rigged_hero_smoke() -> void:
 			death_clip = str(actual_name)
 			break
 	if death_clip.is_empty() or not _animation_moves_skeleton(animation_player, skeleton, death_clip):
+		var diagnostic_bones: Array[String] = []
+		for bone_index in range(skeleton.get_bone_count()):
+			diagnostic_bones.append(str(skeleton.get_bone_name(bone_index)))
+		var diagnostic_animation := animation_player.get_animation(death_clip) if not death_clip.is_empty() else null
+		var diagnostic_tracks: Array[String] = []
+		if diagnostic_animation != null:
+			for track_index in range(diagnostic_animation.get_track_count()):
+				diagnostic_tracks.append("%s | %s | keys=%d" % [
+					str(diagnostic_animation.track_get_path(track_index)),
+					str(diagnostic_animation.track_get_type(track_index)),
+					diagnostic_animation.track_get_key_count(track_index)
+				])
+		print("DEATH_CLIP_DIAGNOSTIC bones=", diagnostic_bones)
+		print("DEATH_CLIP_DIAGNOSTIC tracks=", diagnostic_tracks)
 		_fail(visual, "Death clip does not produce a measurable humanoid bone pose change")
 		return
 	visual.call("set_blocking", true)
