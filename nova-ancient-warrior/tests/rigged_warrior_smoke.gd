@@ -40,6 +40,10 @@ func _run_rigged_hero_smoke() -> void:
 	if animation_player.get_animation(animation_player.current_animation).loop_mode != Animation.LOOP_LINEAR:
 		_fail(visual, "Locomotion clips must loop continuously")
 		return
+	visual.call("play_dodge")
+	if "dodge" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Rigged hero did not play its dodge clip")
+		return
 	visual.call("play_attack", 0)
 	visual.call("play_heavy_attack")
 	visual.call("set_blocking", true)
