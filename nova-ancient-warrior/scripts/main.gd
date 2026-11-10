@@ -1588,6 +1588,8 @@ func _damage_player(amount: int, source: Node3D = null) -> void:
 	_update_hud()
 	if health <= 0:
 		game_over = true
+		if is_instance_valid(hero_visual) and hero_visual.has_method("play_death"):
+			hero_visual.call("play_death")
 		_save_run(false)
 		status_label.text = "سقطت في المعركة | الأرواح محفوظة | طوّر محاربك" if _is_arabic() else "YOU FELL | SOULS SAVED | FORGE YOUR WARRIOR"
 		restart_button.text = "متابعة الحملة" if _is_arabic() else "CONTINUE CAMPAIGN"
