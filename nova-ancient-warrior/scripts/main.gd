@@ -1725,3 +1725,15 @@ func _play_tone(frequency: float, duration: float, amplitude: float) -> void:
 func _material(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
 	var seed_value := int(absf(color.r * 997.0 + color.g * 467.0 + color.b * 193.0 + metallic * 61.0)) + 701
 	return PBRMaterialLibrary.create_surface_material(color, metallic, roughness, seed_value, 2.6)
+
+
+func _exit_tree() -> void:
+	# Stop transient combat voices before their AudioStreamPlayers leave the tree.
+	# This prevents the audio server retaining active WAV playback on scene swaps.
+	for voice_variant in sound_players:
+		var voice := voice_variant as AudioStreamPlayer
+		if is_instance_valid(voice):
+			voice.stop()
+			voice.stream = null
+	sound_players.clear()
+	sfx_streams.clear()
