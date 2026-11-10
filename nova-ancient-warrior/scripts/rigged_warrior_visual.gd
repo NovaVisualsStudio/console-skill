@@ -68,6 +68,9 @@ func play_dodge() -> void:
 
 func set_blocking(enabled: bool) -> void:
 	_blocking = enabled
+	# Guard intentionally interrupts an active one-shot. Clear the one-shot
+	# latch so releasing guard cannot leave locomotion permanently disabled.
+	_one_shot = false
 	if _model is WarriorVisual:
 		_model.call("set_blocking", enabled)
 	elif enabled:
