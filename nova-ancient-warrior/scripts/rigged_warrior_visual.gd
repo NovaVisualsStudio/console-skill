@@ -49,7 +49,13 @@ func play_attack(combo_step: int) -> void:
 	if _model is WarriorVisual:
 		_model.call("play_attack", combo_step)
 		return
-	_play_action("lightattack")
+	var fragment := "lightattack"
+	match clampi(combo_step, 0, 2):
+		1:
+			fragment = "lightattack2"
+		2:
+			fragment = "lightattack3"
+	_play_action(fragment)
 
 
 func play_heavy_attack() -> void:
