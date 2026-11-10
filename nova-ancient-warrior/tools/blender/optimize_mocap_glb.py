@@ -96,12 +96,22 @@ def repack(document, source_bin):
                     vertex_attribute_accessors.add(accessor_index)
 
     view_accessor_users = {}
+    non_vertex_view_references = set()
     for index in used_accessors:
         accessor = accessors[index]
         if isinstance(accessor.get("bufferView"), int):
             view_index = accessor["bufferView"]
             used_views.add(view_index)
             view_accessor_users.setdefault(view_index, set()).add(index)
+        sparse = accessor.get("sparse", {})
+        for key in ("indices", "values"):
+            sparse_view = sparse.get(key, {}).get("bufferView")
+            if isinstance(sparse_view, int):
+                non_vertex_view_references.add(sparse_view)
+    for image in document.get("images", []):
+        image_view = image.get("bufferView")
+        if isinstance(image_view, int):
+            non_vertex_view_references.add(image_view)
         sparse = accessor.get("sparse", {})
         for key in ("indices", "values"):
             if isinstance(sparse.get(key, {}).get("bufferView"), int):
