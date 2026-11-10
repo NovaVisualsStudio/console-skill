@@ -141,6 +141,10 @@ func _run_rigged_hero_smoke() -> void:
 	if "walk" not in str(animation_player.current_animation).to_lower():
 		_fail(visual, "Locomotion must resume after releasing guard")
 		return
+	visual.call("play_death")
+	if not bool(visual.get("_dead")) or "death" not in str(animation_player.current_animation).to_lower():
+		_fail(visual, "Game-over must lock the rigged hero into its death animation")
+		return
 	print("Rigged Nova hero smoke test passed: %d bones, %d animation clips, %d mesh nodes, %d textured PBR materials" % [skeleton.get_bone_count(), names.size(), mesh_nodes.size(), textured_materials])
 	visual.free()
 	quit(0)
