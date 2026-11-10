@@ -15,6 +15,7 @@ var _left_leg: Node3D
 var _right_leg: Node3D
 var _sword_pivot: Node3D
 var _attack_tween: Tween
+var _dodge_tween: Tween
 var _base_torso_color := Color(0.46, 0.18, 0.11)
 var _base_armor_color := Color(0.55, 0.31, 0.13)
 
@@ -50,6 +51,17 @@ func play_attack(combo_step: int) -> void:
 	_attack_tween.tween_property(_right_arm, "rotation:z", 0.0, 0.17)
 	_attack_tween.parallel().tween_property(_sword_pivot, "rotation:z", -0.55, 0.17)
 	_attack_tween.parallel().tween_property(_right_arm, "rotation:x", 0.0, 0.17)
+
+
+func play_dodge() -> void:
+	if _dodge_tween != null and _dodge_tween.is_running():
+		_dodge_tween.kill()
+	_dodge_tween = create_tween()
+	_dodge_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_dodge_tween.tween_property(self, "rotation:z", -0.24, 0.08)
+	_dodge_tween.parallel().tween_property(self, "position:y", -0.12, 0.08)
+	_dodge_tween.tween_property(self, "rotation:z", 0.0, 0.18)
+	_dodge_tween.parallel().tween_property(self, "position:y", 0.0, 0.18)
 
 
 func telegraph(enabled: bool) -> void:
