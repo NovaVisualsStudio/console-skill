@@ -21,7 +21,7 @@ func _run_rigged_hero_smoke() -> void:
 	if animation_player == null:
 		_fail(visual, "Generated Nova hero has no AnimationPlayer")
 		return
-	var required := ["Idle", "Walk", "Run", "LightAttack", "HeavyAttack", "Dodge", "Block", "Parry", "HitReact", "Death"]
+	var required := ["Idle", "Walk", "Run", "LightAttack", "LightAttack2", "LightAttack3", "HeavyAttack", "Dodge", "Block", "Parry", "HitReact", "Death"]
 	var names := animation_player.get_animation_list()
 	for required_name in required:
 		var found := false
@@ -44,10 +44,12 @@ func _run_rigged_hero_smoke() -> void:
 	if "dodge" not in str(animation_player.current_animation).to_lower():
 		_fail(visual, "Rigged hero did not play its dodge clip")
 		return
-	visual.call("play_attack", 0)
-	if "lightattack" not in str(animation_player.current_animation).to_lower():
-		_fail(visual, "Rigged hero did not select its light attack clip")
-		return
+	for combo_index in range(3):
+		visual.call("play_attack", combo_index)
+		var expected_combo_clip := "lightattack" if combo_index == 0 else ("lightattack2" if combo_index == 1 else "lightattack3")
+		if expected_combo_clip not in str(animation_player.current_animation).to_lower():
+			_fail(visual, "Rigged hero did not select combo clip %d" % (combo_index + 1))
+			return
 	visual.call("play_heavy_attack")
 	if "heavyattack" not in str(animation_player.current_animation).to_lower():
 		_fail(visual, "Rigged hero did not select its heavy attack clip")
