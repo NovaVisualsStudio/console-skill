@@ -61,6 +61,29 @@ class OptimizeMocapGlbTests(unittest.TestCase):
         repack(document, binary)
         self.assertNotIn("byteStride", document["bufferViews"][0])
 
+    def test_sparse_accessor_buffer_views_are_preserved_and_remapped(self):
+        document, binary = self.make_fixture()
+        for marker_byte in (17, 34):
+            document["bufferViews"].append({
+                "buffer": 0,
+                "byteOffset": len(binary),
+                "byteLength": 4,
+            })
+            binary += bytes([marker_byte]) * 4
+        document["accessors"][0]["sparse"] = {
+            "count": 1,
+            "indices": {"bufferView": 6, "byteOffset": 0, "componentType": 5123},
+            "values": {"bufferView": 7, "byteOffset": 0},
+        }
+        remove_morph_targets(document)
+        optimized = repack(document, binary)
+        sparse = document["accessors"][0]["sparse"]
+        self.assertEqual(sparse["indices"]["bufferView"], 3)
+        self.assertEqual(sparse["values"]["bufferView"], 4)
+        self.assertEqual(len(document["bufferViews"]), 5)
+        self.assertEqual(len(optimized), 96)
+        self.assertEqual(optimized[-8:], bytes([17]) * 4 + bytes([34]) * 4)
+
     def test_glb_round_trip_preserves_skeleton_geometry(self):
         document, binary = self.make_fixture()
         remove_morph_targets(document)
