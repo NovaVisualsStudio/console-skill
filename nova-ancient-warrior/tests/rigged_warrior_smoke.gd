@@ -40,7 +40,22 @@ func _run_rigged_hero_smoke() -> void:
 	if animation_player.get_animation(animation_player.current_animation).loop_mode != Animation.LOOP_LINEAR:
 		_fail(visual, "Locomotion clips must loop continuously")
 		return
+	visual.call("set_locomotion", 0.2, 0.016)
+	visual.call("set_locomotion", 0.7, 0.016)
+	var expected_walk_speed := lerpf(0.68, 1.0, 0.7)
+	if not is_equal_approx(animation_player.speed_scale, expected_walk_speed):
+		_fail(visual, "Active walk clip did not update playback speed when movement speed changed")
+		return
+	visual.call("set_locomotion", 0.9, 0.016)
+	visual.call("set_locomotion", 0.95, 0.016)
+	var expected_run_speed := lerpf(0.95, 1.18, 0.95)
+	if not is_equal_approx(animation_player.speed_scale, expected_run_speed):
+		_fail(visual, "Active run clip did not update playback speed when movement speed changed")
+		return
 	visual.call("play_dodge")
+	if not is_equal_approx(animation_player.speed_scale, 1.0):
+		_fail(visual, "One-shot dodge animation inherited the locomotion playback speed")
+		return
 	if "dodge" not in str(animation_player.current_animation).to_lower():
 		_fail(visual, "Rigged hero did not play its dodge clip")
 		return
