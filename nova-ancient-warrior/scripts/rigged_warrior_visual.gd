@@ -128,9 +128,13 @@ func _play_loop(fragment: String, speed_scale: float = 1.0) -> void:
 	if animation != null:
 		animation.loop_mode = Animation.LOOP_LINEAR
 	if _active_animation == animation_name and _animation_player.is_playing():
+		# Locomotion is updated every frame; update the active loop's speed
+		# without restarting it and resetting its animation position.
+		_animation_player.speed_scale = speed_scale
 		return
 	_active_animation = animation_name
-	_animation_player.play(animation_name, 0.12, speed_scale)
+	_animation_player.speed_scale = speed_scale
+	_animation_player.play(animation_name, 0.12)
 
 
 func _play_action(fragment: String) -> void:
@@ -142,6 +146,8 @@ func _play_action(fragment: String) -> void:
 		animation.loop_mode = Animation.LOOP_NONE
 	_one_shot = true
 	_active_animation = animation_name
+	# One-shot combat clips use their authored timing, not the last locomotion rate.
+	_animation_player.speed_scale = 1.0
 	_animation_player.play(animation_name, 0.06)
 
 
