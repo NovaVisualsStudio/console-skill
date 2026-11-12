@@ -22,7 +22,7 @@ Nova Ancient Warrior is an original third-person 3D action game prototype built 
 
 ## Character and animation status
 
-Blender generates an original stylized low-poly armoured hero with a weighted humanoid skeleton, attached sword and shield, and ten animation clips: Idle, Walk, Run, LightAttack, HeavyAttack, Dodge, Block, Parry, HitReact and Death. Godot CI imports this generated GLB and runs character and animation smoke tests.
+Blender generates an original stylized low-poly armoured hero with a weighted humanoid skeleton, attached sword and shield, and twelve animation clips: Idle, Walk, Run, LightAttack, LightAttack2, LightAttack3, HeavyAttack, Dodge, Block, Parry, HitReact and Death. Godot CI imports this generated GLB and runs character and animation smoke tests.
 
 This is a functional prototype character, not a photorealistic human. It does not yet have production facial anatomy, facial blend shapes, realistic skin and cloth materials, detailed armour sculpting, or a professionally authored motion-capture animation library. The separate markerless motion-capture workflow is experimental research output and is not yet the final player animation source.
 
