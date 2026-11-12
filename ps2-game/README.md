@@ -1,27 +1,24 @@
-# Nova Dodge - PS2 homebrew test game
+# Nova Airstrike - PS2 homebrew arcade shooter
 
-An original PS2 homebrew game created to validate the PS2SDK build path. The output is a PlayStation 2 ELF executable, not an Android APK.
+An original PlayStation 2 homebrew shooter built with PS2SDK. This is a top-down arcade air-combat game, not a commercial game or an Android APK.
+
+## Gameplay
+
+- Fly a detailed, layered fighter aircraft.
+- Move with the D-pad or the left analog stick (including the emulator's virtual stick).
+- Fire repeated cannon shots with **TRIANGLE**, **CROSS**, **SQUARE**, **CIRCLE**, **R1**, or **R2**. Multiple mappings are supported for common on-screen emulator layouts.
+- Destroy incoming enemy aircraft to earn points.
+- Avoid enemy aircraft; the player has three lives.
+- START restarts after game over.
+- The scene includes a scrolling starfield, atmospheric bands, fighter silhouettes, cockpit highlights, exhaust and projectile effects.
 
 ## Try it on Android
 
-1. Install the official **Play!** PS2 emulator using the [official Android downloads page](https://purei.org/downloads.php).
-2. Download the latest successful [PS2 Homebrew First Build](https://github.com/NovaVisualsStudio/console-skill/actions/workflows/ps2-homebrew-first-build.yml) artifact named `nova-dodge-ps2-elf`.
+1. Install the official [Play! Android emulator](https://purei.org/downloads.php).
+2. Download the latest successful [PS2 Homebrew build artifact](https://github.com/NovaVisualsStudio/console-skill/actions/workflows/ps2-homebrew-first-build.yml), named `nova-dodge-ps2-elf`.
 3. Extract `nova_dodge.elf` from the ZIP.
-4. Try opening the ELF with the Android emulator build. If its interface does not offer ELF loading, consult the [Android test guide](../docs/ANDROID-PS2-TESTING.md); the documented [RetroArch Play! core](https://docs.libretro.com/library/play/) lists ELF as a supported content type.
-5. Report the result (boots, black screen, crash, or playable) with a screenshot/log. A successful ELF build alone does not prove runtime compatibility.
-
-Useful official links:
-- [Play! Android downloads](https://purei.org/downloads.php)
-- [Play! GitHub project](https://github.com/jpd002/Play-)
-- [Play! compatibility tracker](https://github.com/jpd002/Play-Compatibility)
-
-## Controls
-
-- D-pad: move the green player block.
-- Avoid the falling red blocks.
-- Three lives are shown at the top-right.
-- The progress bar grows as you survive.
-- START: restart after game over.
+4. Try opening the ELF with Play!. If Android's Play! interface does not offer ELF loading, consult [the Android PS2 testing guide](../docs/ANDROID-PS2-TESTING.md). The [RetroArch Play! core documentation](https://docs.libretro.com/library/play/) lists ELF as a supported content type, but core availability and runtime compatibility must be checked on the device.
+5. Test movement, firing, enemy hits, lives and restart. A successful build does not prove that the game runs correctly on every emulator/device.
 
 ## Build
 
@@ -33,4 +30,4 @@ make
 
 Output: `nova_dodge.elf`.
 
-The game uses the PS2SDK graphics, DMA, packet, and controller libraries. It does not include commercial game data, BIOS files, or third-party game assets.
+The game uses PS2SDK graphics, DMA, packet and controller libraries. It contains original code and primitive-drawn artwork; no commercial game data, BIOS files or third-party game assets are included.
