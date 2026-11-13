@@ -70,8 +70,7 @@ func _check_candidate(character_path: String, expect_face: bool) -> bool:
 		if animation == null:
 			continue
 		for track_index in range(animation.get_track_count()):
-			var track_path := str(animation.track_get_path(track_index))
-			if track_path.contains("blend_shapes"):
+			if animation.track_get_type(track_index) == Animation.TYPE_BLEND_SHAPE:
 				blend_shape_tracks += 1
 
 	if expect_face:
@@ -80,8 +79,8 @@ func _check_candidate(character_path: String, expect_face: bool) -> bool:
 			character.queue_free()
 			await process_frame
 			return false
-		if blend_shape_tracks < 1:
-			push_error("Face-preserved GLB has no imported facial blendshape animation tracks")
+		if blend_shape_tracks < 52:
+			push_error("Face-preserved GLB imported fewer than 52 facial blendshape animation tracks: %d" % blend_shape_tracks)
 			character.queue_free()
 			await process_frame
 			return false
