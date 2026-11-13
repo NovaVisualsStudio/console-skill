@@ -69,11 +69,129 @@ def remove_morph_targets(document):
 
 
 def count_morph_targets(document):
-    return sum(
-        len(primitive.get("targets", []))
-        for mesh in document.get("meshes", [])
-        for primitive in mesh.get("primitives", [])
-    )
+    total = 0
+    nodes = document.get("nodes", [])
+    for mesh_index, mesh in enumerate(document.get("meshes", [])):
+        counts = [len(mesh.get("weights", []))]
+        counts.extend(
+            len(primitive.get("targets", []))
+            for primitive in mesh.get("primitives", [])
+        )
+        counts.extend(
+            len(node.get("weights", []))
+            for node in nodes
+            if node.get("mesh") == mesh_index and isinstance(node.get("weights"), list)
+        )
+        extras = mesh.get("extras", {})
+        if isinstance(extras, dict) and isinstance(extras.get("targetNames"), list):
+            counts.append(len(extras["targetNames"]))
+        total += max(counts, default=0)
+    return total
+
+
+def pad_morph_targets(document, source_bin):
+    """Pad primitives to a mesh's shared morph-target count with zero-delta accessors."""
+    binary = bytearray(source_bin)
+    accessors = document.setdefault("accessors", [])
+    views = document.setdefault("bufferViews", [])
+    nodes = document.get("nodes", [])
+    component_bytes = {5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4}
+    type_components = {
+        "SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4,
+        "MAT2": 4, "MAT3": 9, "MAT4": 16,
+    }
+    padded_sets = 0
+
+    for mesh_index, mesh in enumerate(document.get("meshes", [])):
+        primitives = mesh.get("primitives", [])
+        extras = mesh.get("extras", {})
+        counts = [len(mesh.get("weights", []))]
+        counts.extend(len(primitive.get("targets", [])) for primitive in primitives)
+        counts.extend(
+            len(node.get("weights", []))
+            for node in nodes
+            if node.get("mesh") == mesh_index and isinstance(node.get("weights"), list)
+        )
+        if isinstance(extras, dict) and isinstance(extras.get("targetNames"), list):
+            counts.append(len(extras["targetNames"]))
+        target_count = max(counts, default=0)
+        if target_count == 0:
+            continue
+
+        target_semantics = {
+            semantic
+            for primitive in primitives
+            for target in primitive.get("targets", [])
+            for semantic in target
+        }
+        if not target_semantics:
+            raise ValueError("Mesh declares morph weights but has no target attribute semantics")
+
+        for primitive in primitives:
+            targets = primitive.setdefault("targets", [])
+            semantics = sorted(
+                semantic for semantic in target_semantics
+                if semantic in primitive.get("attributes", {})
+            )
+            if len(targets) < target_count and not semantics:
+                raise ValueError("Cannot pad morph targets: primitive lacks matching base attributes")
+            while len(targets) < target_count:
+                target = {}
+                for semantic in semantics:
+                    base_id = primitive["attributes"][semantic]
+                    base_accessor = accessors[base_id]
+                    component_type = int(base_accessor["componentType"])
+                    accessor_type = base_accessor["type"]
+                    count = int(base_accessor["count"])
+                    if component_type not in component_bytes or accessor_type not in type_components or count < 1:
+                        raise ValueError("Unsupported base accessor for zero morph-target padding")
+                    byte_length = count * component_bytes[component_type] * type_components[accessor_type]
+                    while len(binary) % 4:
+                        binary.append(0)
+                    view_id = len(views)
+                    views.append({
+                        "buffer": 0,
+                        "byteOffset": len(binary),
+                        "byteLength": byte_length,
+                    })
+                    accessor = {
+                        "bufferView": view_id,
+                        "componentType": component_type,
+                        "count": count,
+                        "type": accessor_type,
+                    }
+                    if "normalized" in base_accessor:
+                        accessor["normalized"] = base_accessor["normalized"]
+                    target[semantic] = len(accessors)
+                    accessors.append(accessor)
+                    binary.extend(bytes(byte_length))
+                targets.append(target)
+                padded_sets += 1
+
+        mesh_weights = mesh.get("weights")
+        if not isinstance(mesh_weights, list):
+            mesh["weights"] = [0.0] * target_count
+        elif len(mesh_weights) < target_count:
+            mesh["weights"] = mesh_weights + [0.0] * (target_count - len(mesh_weights))
+        for node in nodes:
+            if node.get("mesh") == mesh_index and isinstance(node.get("weights"), list):
+                if len(node["weights"]) < target_count:
+                    node["weights"] += [0.0] * (target_count - len(node["weights"]))
+
+        for animation in document.get("animations", []):
+            for channel in animation.get("channels", []):
+                target = channel.get("target", {})
+                node_id = target.get("node")
+                if target.get("path") != "weights" or not isinstance(node_id, int):
+                    continue
+                if node_id >= len(nodes) or nodes[node_id].get("mesh") != mesh_index:
+                    continue
+                sampler = animation.get("samplers", [])[channel["sampler"]]
+                output_accessor = accessors[sampler["output"]]
+                if int(output_accessor["count"]) % target_count:
+                    raise ValueError("Weight animation output count is not divisible by mesh morph-target count")
+
+    return bytes(binary), padded_sets
 
 
 def count_weight_channels(document):
@@ -205,8 +323,10 @@ def main():
     document, binary = read_glb(args.input)
     input_morph_targets = count_morph_targets(document)
     input_weight_channels = count_weight_channels(document)
+    padded_target_sets = 0
     if args.keep_morph_targets:
         removed_targets, removed_channels = 0, 0
+        binary, padded_target_sets = pad_morph_targets(document, binary)
     else:
         removed_targets, removed_channels = remove_morph_targets(document)
     binary = repack(document, binary)
@@ -235,6 +355,7 @@ def main():
         "morph_target_count": output_morph_targets,
         "weight_channel_count": output_weight_channels,
         "morph_targets_preserved": args.keep_morph_targets,
+        "padded_primitive_target_sets": padded_target_sets,
         "bone_count": bone_count,
         "animation_count": len(document.get("animations", [])),
         "animation_channels": len(channels),

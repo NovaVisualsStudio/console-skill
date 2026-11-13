@@ -15,31 +15,55 @@ SPEC.loader.exec_module(optimizer)
 
 
 def make_fixture(path):
-    binary = b"".join(struct.pack("<f", float(i)) for i in range(7))
+    binary = bytearray()
+    views = []
+    accessors = []
+
+    def add_accessor(data, component_type, count, accessor_type):
+        while len(binary) % 4:
+            binary.append(0)
+        view_id = len(views)
+        views.append({"buffer": 0, "byteOffset": len(binary), "byteLength": len(data)})
+        accessor_id = len(accessors)
+        accessors.append({
+            "bufferView": view_id,
+            "componentType": component_type,
+            "count": count,
+            "type": accessor_type,
+        })
+        binary.extend(data)
+        return accessor_id
+
+    position_a = add_accessor(bytes(12), 5126, 1, "VEC3")
+    indices_a = add_accessor(bytes(2), 5123, 1, "SCALAR")
+    position_b = add_accessor(bytes(12), 5126, 1, "VEC3")
+    indices_b = add_accessor(bytes(2), 5123, 1, "SCALAR")
+    target_position = add_accessor(bytes(12), 5126, 1, "VEC3")
+    inverse_bind = add_accessor(bytes(64), 5126, 1, "MAT4")
+    animation_input = add_accessor(struct.pack("<f", 0.0), 5126, 1, "SCALAR")
+    animation_output = add_accessor(struct.pack("<f", 0.0), 5126, 1, "SCALAR")
+
     document = {
         "asset": {"version": "2.0", "generator": "nova-mocap-regression-test"},
         "buffers": [{"byteLength": len(binary)}],
-        "bufferViews": [
-            {"buffer": 0, "byteOffset": i * 4, "byteLength": 4}
-            for i in range(7)
-        ],
-        "accessors": [
-            {"bufferView": i, "componentType": 5126, "count": 1, "type": "SCALAR"}
-            for i in range(7)
-        ],
+        "bufferViews": views,
+        "accessors": accessors,
         "meshes": [{
             "weights": [0.0],
             "extras": {"targetNames": ["face_smile"]},
-            "primitives": [{
-                "attributes": {"POSITION": 0},
-                "indices": 1,
-                "targets": [{"POSITION": 2, "NORMAL": 3}],
-            }],
+            "primitives": [
+                {"attributes": {"POSITION": position_a}, "indices": indices_a},
+                {
+                    "attributes": {"POSITION": position_b},
+                    "indices": indices_b,
+                    "targets": [{"POSITION": target_position}],
+                },
+            ],
         }],
         "nodes": [{"mesh": 0, "weights": [0.0]}],
-        "skins": [{"joints": [0], "inverseBindMatrices": 4}],
+        "skins": [{"joints": [0], "inverseBindMatrices": inverse_bind}],
         "animations": [{
-            "samplers": [{"input": 5, "output": 6}],
+            "samplers": [{"input": animation_input, "output": animation_output}],
             "channels": [{
                 "sampler": 0,
                 "target": {"node": 0, "path": "weights"},
@@ -48,11 +72,11 @@ def make_fixture(path):
         "scene": 0,
         "scenes": [{"nodes": [0]}],
     }
-    optimizer.write_glb(document, binary, path)
+    optimizer.write_glb(document, bytes(binary), path)
 
 
 class MocapOptimizerMorphTests(unittest.TestCase):
-    def test_face_preserved_mode_keeps_targets_weights_and_remapped_accessors(self):
+    def test_face_preserved_mode_pads_targetless_primitives_and_keeps_weight_tracks(self):
         with tempfile.TemporaryDirectory() as tmp:
             source = Path(tmp) / "source.glb"
             output = Path(tmp) / "face-preserved.glb"
@@ -60,9 +84,15 @@ class MocapOptimizerMorphTests(unittest.TestCase):
             document, binary = optimizer.read_glb(source)
             input_targets = optimizer.count_morph_targets(document)
             input_weight_channels = optimizer.count_weight_channels(document)
+            binary, padded_sets = optimizer.pad_morph_targets(document, binary)
+            self.assertEqual(padded_sets, 1)
+            self.assertEqual(
+                [len(p.get("targets", [])) for p in document["meshes"][0]["primitives"]],
+                [1, 1],
+            )
             binary = optimizer.repack(document, binary)
             optimizer.write_glb(document, binary, output)
-            result, _ = optimizer.read_glb(output)
+            result, result_binary = optimizer.read_glb(output)
 
             self.assertEqual(input_targets, 1)
             self.assertEqual(input_weight_channels, 1)
@@ -70,11 +100,17 @@ class MocapOptimizerMorphTests(unittest.TestCase):
             self.assertEqual(optimizer.count_weight_channels(result), input_weight_channels)
             primitive = result["meshes"][0]["primitives"][0]
             self.assertEqual(len(primitive["targets"]), 1)
-            for accessor_id in primitive["targets"][0].values():
-                self.assertGreaterEqual(accessor_id, 0)
-                self.assertLess(accessor_id, len(result["accessors"]))
-            weight_channel = result["animations"][0]["channels"][0]
-            self.assertEqual(weight_channel["target"]["path"], "weights")
+            accessor_id = primitive["targets"][0]["POSITION"]
+            accessor = result["accessors"][accessor_id]
+            view = result["bufferViews"][accessor["bufferView"]]
+            start = view.get("byteOffset", 0)
+            self.assertEqual(result_binary[start:start + view["byteLength"]], bytes(view["byteLength"]))
+            for target_primitive in result["meshes"][0]["primitives"]:
+                for target in target_primitive["targets"]:
+                    for target_accessor in target.values():
+                        self.assertGreaterEqual(target_accessor, 0)
+                        self.assertLess(target_accessor, len(result["accessors"]))
+            self.assertEqual(result["animations"][0]["channels"][0]["target"]["path"], "weights")
             self.assertIn("weights", result["meshes"][0])
             self.assertIn("weights", result["nodes"][0])
 
