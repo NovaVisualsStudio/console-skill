@@ -6,6 +6,7 @@ on:
       - ".github/workflows/nova-mocap-character.yml"
       - "nova-ancient-warrior/tools/blender/**"
       - "nova-ancient-warrior/tests/test_mocap_optimizer.py"
+      - "nova-ancient-warrior/tests/character_asset_smoke.gd"
       - "nova-ancient-warrior/mocap/**"
   workflow_dispatch:
     inputs:
