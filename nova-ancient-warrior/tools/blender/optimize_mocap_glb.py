@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Remove unused facial morph-target data from a GLB while preserving skin and bone animation."""
+"""Optimize a GLB for Android, optionally preserving facial morph targets for review."""
 import argparse
 import json
 import struct
@@ -68,6 +68,22 @@ def remove_morph_targets(document):
     return removed_targets, removed_channels
 
 
+def count_morph_targets(document):
+    return sum(
+        len(primitive.get("targets", []))
+        for mesh in document.get("meshes", [])
+        for primitive in mesh.get("primitives", [])
+    )
+
+
+def count_weight_channels(document):
+    return sum(
+        channel.get("target", {}).get("path") == "weights"
+        for animation in document.get("animations", [])
+        for channel in animation.get("channels", [])
+    )
+
+
 def repack(document, source_bin):
     accessors, views = document.get("accessors", []), document.get("bufferViews", [])
     used_accessors = set()
@@ -79,6 +95,8 @@ def repack(document, source_bin):
     for mesh in document.get("meshes", []):
         for primitive in mesh.get("primitives", []):
             add_mapping(primitive.get("attributes"))
+            for target in primitive.get("targets", []):
+                add_mapping(target)
             if isinstance(primitive.get("indices"), int):
                 used_accessors.add(primitive["indices"])
     for skin in document.get("skins", []):
@@ -137,6 +155,11 @@ def repack(document, source_bin):
     for mesh in document.get("meshes", []):
         for primitive in mesh.get("primitives", []):
             primitive["attributes"] = {k: accessor_remap[v] for k, v in primitive.get("attributes", {}).items()}
+            if "targets" in primitive:
+                primitive["targets"] = [
+                    {k: accessor_remap[v] for k, v in target.items()}
+                    for target in primitive["targets"]
+                ]
             if isinstance(primitive.get("indices"), int):
                 primitive["indices"] = accessor_remap[primitive["indices"]]
     for skin in document.get("skins", []):
@@ -173,23 +196,45 @@ def main():
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--max-mb", type=float, default=12.0)
+    parser.add_argument(
+        "--keep-morph-targets",
+        action="store_true",
+        help="Preserve facial morph targets and weight animation channels for a review-only GLB.",
+    )
     args = parser.parse_args()
     document, binary = read_glb(args.input)
-    removed_targets, removed_channels = remove_morph_targets(document)
+    input_morph_targets = count_morph_targets(document)
+    input_weight_channels = count_weight_channels(document)
+    if args.keep_morph_targets:
+        removed_targets, removed_channels = 0, 0
+    else:
+        removed_targets, removed_channels = remove_morph_targets(document)
     binary = repack(document, binary)
     write_glb(document, binary, args.output)
     if args.output.stat().st_size > args.max_mb * 1024 * 1024:
         raise SystemExit("Optimized GLB exceeds configured Android size budget")
     bone_count = len(document.get("skins", [{}])[0].get("joints", []))
     channels = [c for a in document.get("animations", []) for c in a.get("channels", [])]
-    if bone_count < 20 or not channels or any(c.get("target", {}).get("path") == "weights" for c in channels):
+    output_morph_targets = count_morph_targets(document)
+    output_weight_channels = count_weight_channels(document)
+    if bone_count < 20 or not channels:
         raise SystemExit("Optimized GLB failed skeleton/animation validation")
+    if args.keep_morph_targets and (
+        output_morph_targets != input_morph_targets
+        or output_weight_channels != input_weight_channels
+    ):
+        raise SystemExit("Face-preserved GLB lost morph targets or weight animation channels")
+    if not args.keep_morph_targets and output_weight_channels:
+        raise SystemExit("Android-optimized GLB unexpectedly retains weight animation channels")
     print(json.dumps({
         "input_bytes": args.input.stat().st_size,
         "output_bytes": args.output.stat().st_size,
         "saved_bytes": args.input.stat().st_size - args.output.stat().st_size,
         "removed_morph_targets": removed_targets,
         "removed_weight_channels": removed_channels,
+        "morph_target_count": output_morph_targets,
+        "weight_channel_count": output_weight_channels,
+        "morph_targets_preserved": args.keep_morph_targets,
         "bone_count": bone_count,
         "animation_count": len(document.get("animations", [])),
         "animation_channels": len(channels),
