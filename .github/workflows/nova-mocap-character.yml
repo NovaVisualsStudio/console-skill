@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/nova-mocap-character.yml"
       - "nova-ancient-warrior/tools/blender/**"
+      - "nova-ancient-warrior/tests/test_mocap_optimizer.py"
+      - "nova-ancient-warrior/tests/character_asset_smoke.gd"
       - "nova-ancient-warrior/mocap/**"
   workflow_dispatch:
     inputs:
@@ -36,12 +38,15 @@ jobs:
     timeout-minutes: 35
     steps:
       - name: Check out Nova game
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
+
+      - name: Test GLB facial morph preservation and Android stripping
+        run: python -m unittest discover -s nova-ancient-warrior/tests -p 'test_mocap_optimizer.py' -v
 
       - name: Install video runtime libraries
         run: |
@@ -102,6 +107,11 @@ jobs:
             "$OUTPUT_GLB" \
             "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate.glb" \
             --max-mb 12 | tee "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate.optimize.json"
+          python "$GITHUB_WORKSPACE/nova-ancient-warrior/tools/blender/optimize_mocap_glb.py" \
+            "$OUTPUT_GLB" \
+            "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate_face_preserved.glb" \
+            --keep-morph-targets \
+            --max-mb 64 | tee "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate_face_preserved.optimize.json"
           cp "$(dirname "$OUTPUT_GLB")/run.json" "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate.run.json"
 
       - name: Download Godot 4.7.2
@@ -119,12 +129,14 @@ jobs:
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/character_asset_smoke.gd
 
       - name: Publish retargeted character and report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nova-warrior-mocap-character
           path: |
             nova-ancient-warrior/assets/characters/nova_mocap_candidate.glb
-            nova-ancient-warrior/assets/characters/nova_mocap_candidate.run.json
             nova-ancient-warrior/assets/characters/nova_mocap_candidate.optimize.json
+            nova-ancient-warrior/assets/characters/nova_mocap_candidate_face_preserved.glb
+            nova-ancient-warrior/assets/characters/nova_mocap_candidate_face_preserved.optimize.json
+            nova-ancient-warrior/assets/characters/nova_mocap_candidate.run.json
           if-no-files-found: error
           retention-days: 14

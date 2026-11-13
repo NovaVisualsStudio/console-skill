@@ -50,3 +50,14 @@ func _process(_delta: float) -> void:
 		buffer[i] = Vector2(sample, sample * 0.985)
 		_sample_cursor += 1
 	_playback.push_buffer(buffer)
+
+func stop_and_release() -> void:
+	if is_instance_valid(_player):
+		_player.stop()
+		_player.stream = null
+	# Drop the script-held reference; AudioServer retires its playback asynchronously.
+	_playback = null
+
+
+func _exit_tree() -> void:
+	stop_and_release()

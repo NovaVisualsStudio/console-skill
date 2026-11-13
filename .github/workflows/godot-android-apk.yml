@@ -2,7 +2,7 @@ name: Nova Ancient Warrior Android debug APK
 
 on:
   push:
-    branches: [nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean, nova-open-source-research, nova-six-toolchain-integration]
+    branches: [nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean, nova-open-source-research, nova-six-toolchain-integration, nova-full-campaign-polish]
     paths:
       - "nova-ancient-warrior/**"
       - ".github/workflows/godot-android-apk.yml"
@@ -52,6 +52,18 @@ jobs:
           set -euo pipefail
           python3 -m py_compile nova-ancient-warrior/tools/generate_game_audio.py
           python3 nova-ancient-warrior/tools/generate_game_audio.py --output nova-ancient-warrior/audio/generated
+
+      - name: Generate original skinned Nova hero and animation library
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y blender python3-numpy
+          blender --background --python-expr "import bpy, numpy; print('BLENDER_NUMPY_OK', bpy.app.version_string, numpy.__version__)"
+          python3 -m py_compile nova-ancient-warrior/tools/blender/generate_nova_hero.py
+          blender --background --python nova-ancient-warrior/tools/blender/generate_nova_hero.py -- --output nova-ancient-warrior/assets/characters/nova_hero.glb
+          test -s nova-ancient-warrior/assets/characters/nova_hero.glb
+          ls -lh nova-ancient-warrior/assets/characters/nova_hero.glb
 
       - name: Download Godot 4.7.2 editor and export templates
         shell: bash
@@ -112,9 +124,9 @@ jobs:
           export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
           "$GODOT_BIN" --headless --editor --path nova-ancient-warrior --quit
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
-            --script res://tests/audio_assets_smoke.gd
+            --script res://tests/rigged_warrior_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
-            --check-only --script res://scripts/main.gd
+            --script res://tests/audio_assets_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/combat_rules_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
@@ -128,17 +140,22 @@ jobs:
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/stage_builder_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/campaign_layout_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/mobile_render_profile_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/stage_hazard_rules_smoke.gd
           smoke_log="$(mktemp)"
-          if ! "$GODOT_BIN" --headless --path nova-ancient-warrior \
-              --quit-after 120 >"$smoke_log" 2>&1; then
+          if ! NOVA_SMOKE_GRACEFUL_SHUTDOWN=1 "$GODOT_BIN" --headless --verbose --path nova-ancient-warrior \
+              --quit-after 600 >"$smoke_log" 2>&1; then
             cat "$smoke_log"
             exit 1
           fi
           cat "$smoke_log"
-          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script" "$smoke_log"; then
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load script|Leaked instance:|ObjectDB instance was leaked|RID allocations of type" "$smoke_log"; then
             exit 1
           fi
+          grep -q "MAIN_SCENE_GRACEFUL_SHUTDOWN_OK" "$smoke_log"
           mkdir -p artifacts
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --export-debug "Android Debug" \

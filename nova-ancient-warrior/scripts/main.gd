@@ -12,6 +12,9 @@ const MusicDirector = preload("res://scripts/music_director.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
 const LevelCatalog = preload("res://scripts/level_catalog.gd")
 const StageBuilder = preload("res://scripts/stage_builder.gd")
+const CampaignLayout = preload("res://scripts/campaign_layout.gd")
+const MobileRenderProfile = preload("res://scripts/mobile_render_profile.gd")
+const RiggedWarriorVisual = preload("res://scripts/rigged_warrior_visual.gd")
 const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 
 var player: CharacterBody3D
@@ -44,6 +47,8 @@ var footstep_timer := 0.0
 var souls_earned := 0
 var cinematic_active := false
 var music_director: Node
+var _shutdown_in_progress := false
+var _quit_request_pending := false
 var arena_environment: Environment
 var arena_floor_material: StandardMaterial3D
 var arena_sun: DirectionalLight3D
@@ -73,6 +78,45 @@ func _ready() -> void:
 	_build_enemies()
 	_build_audio()
 	_update_hud()
+	if OS.get_environment("NOVA_SMOKE_GRACEFUL_SHUTDOWN") == "1":
+		_run_graceful_shutdown_smoke.call_deferred()
+
+
+func _run_graceful_shutdown_smoke() -> void:
+	await get_tree().create_timer(0.8).timeout
+	await stop_audio_and_wait()
+	print("MAIN_SCENE_GRACEFUL_SHUTDOWN_OK")
+	get_tree().quit()
+
+
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_WM_CLOSE_REQUEST and what != NOTIFICATION_WM_GO_BACK_REQUEST:
+		return
+	# Godot 4.7.2 Android may deliver more than one Back notification per press.
+	if _quit_request_pending:
+		return
+	_quit_request_pending = true
+	get_tree().set_auto_accept_quit(false)
+	_finish_quit_request.call_deferred()
+
+
+func _finish_quit_request() -> void:
+	await stop_audio_and_wait()
+	get_tree().quit()
+
+
+func stop_audio_and_wait() -> void:
+	if _shutdown_in_progress:
+		return
+	_shutdown_in_progress = true
+	if is_instance_valid(music_director):
+		music_director.call("stop_and_release")
+	for voice in sound_players:
+		if is_instance_valid(voice):
+			voice.stop()
+			voice.stream = null
+	# AudioServer retires stopped playbacks asynchronously; allow one short mix window.
+	await get_tree().create_timer(0.15).timeout
 
 
 func _process(delta: float) -> void:
@@ -134,6 +178,8 @@ func _physics_process(delta: float) -> void:
 		dodge_remaining = 0.28
 		dodge_cooldown = 0.88
 		player_invulnerability_time = maxf(player_invulnerability_time, 0.42)
+		if is_instance_valid(hero_visual):
+			hero_visual.call("play_dodge")
 		_play_sfx_or_tone("dodge", 360.0, 0.09, 0.17)
 
 	if dodge_remaining > 0.0:
@@ -306,6 +352,7 @@ func _build_world() -> void:
 	sun.light_energy = 1.25
 	sun.shadow_enabled = true
 	add_child(sun)
+	MobileRenderProfile.apply(OS.get_name() == "Android", env, sun)
 
 	var floor_body := StaticBody3D.new()
 	floor_body.name = "ArenaFloor"
@@ -348,12 +395,13 @@ func _build_world() -> void:
 		brazier.position = Vector3(cos(angle) * 9.0, 0.45, sin(angle) * 9.0)
 		brazier.material_override = _material(Color(0.16, 0.14, 0.13), 0.0, 0.85)
 		add_child(brazier)
-		var fire_light := OmniLight3D.new()
-		fire_light.position = brazier.position + Vector3(0.0, 0.8, 0.0)
-		fire_light.light_color = Color(1.0, 0.29, 0.075)
-		fire_light.light_energy = 1.2
-		fire_light.omni_range = 5.5
-		add_child(fire_light)
+		if OS.get_name() != "Android" or i % 2 == 0:
+			var fire_light := OmniLight3D.new()
+			fire_light.position = brazier.position + Vector3(0.0, 0.8, 0.0)
+			fire_light.light_color = Color(1.0, 0.29, 0.075)
+			fire_light.light_energy = 1.2
+			fire_light.omni_range = 5.5
+			add_child(fire_light)
 
 	for i in range(34):
 		var rock := MeshInstance3D.new()
@@ -389,7 +437,10 @@ func _build_player() -> void:
 	collision.shape = capsule
 	collision.position.y = 0.9
 	player.add_child(collision)
-	hero_visual = WarriorVisual.new()
+	if ResourceLoader.exists("res://assets/characters/nova_hero.glb"):
+		hero_visual = RiggedWarriorVisual.new()
+	else:
+		hero_visual = WarriorVisual.new()
 	hero_visual.name = "WarriorVisual"
 	hero_visual.set("blade_upgrade", int(_save_profile().get("upgrade_blade", 0)))
 	player.add_child(hero_visual)
@@ -428,6 +479,7 @@ func _apply_level_theme(wave: int) -> void:
 	var next_stage_index := LevelCatalog.stage_index(wave)
 	if next_stage_index != built_stage_index:
 		StageBuilder.build_stage(self, next_stage_index)
+		CampaignLayout.build_stage(self, next_stage_index)
 		built_stage_index = next_stage_index
 		hazard_elapsed = 0.0
 		hazard_damage_cooldown = 0.0
