@@ -8,8 +8,8 @@ Nova Ancient Warrior is an original third-person 3D action game prototype built 
 - Chapter II: The Ember Causeway, ending with The Ember Warlord.
 - Chapter III: The Obsidian Throne, ending with The Obsidian Sovereign.
 - Nine encounters total, with boss encounters at waves 3, 6 and 9.
-- Each chapter has a distinct procedural visual theme and hazards with warning windows and safe routes.
-- Important limitation: all three chapters currently reuse one arena scene with different chapter dressing. They are not yet three separately authored exploration levels with traversal, puzzles and authored collision layouts.
+- Each chapter has a distinct procedural visual theme, a generated collision-backed arena layout with chapter-specific landmarks and structures, and hazards with warning windows and safe routes.
+- Important limitation: the three chapters still share the same core combat-arena scene and use generated layouts and dressing. They are not yet separate authored exploration levels with bespoke traversal routes, multi-step environmental puzzles and chapter-specific story beats.
 
 ## Implemented gameplay
 
