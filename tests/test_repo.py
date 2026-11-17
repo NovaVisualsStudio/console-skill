@@ -23,6 +23,21 @@ GAME_EXT = (".iso", ".bin", ".img", ".mdf", ".mds", ".nrg", ".chd", ".cso", ".zs
             ".irx", ".tm2", ".vag", ".ps2", ".mcd", ".psu", ".pdf", ".pnach")
 MAX_FILE = 512 * 1024
 
+# The integration PR adds these governance documents at the root. They are
+# optional on main until that PR lands, but must not make the exact root check
+# fail or cause the .github directory to be hidden by a broad .git prefix test.
+ROOT_REQUIRED = {
+    ".agents", ".claude-plugin", ".github", "LICENSE", "README.md",
+    "docs", "nova-ancient-warrior", "ps2-game", "tests",
+} | set(SKILLS)
+ROOT_OPTIONAL = {
+    "AGENTS.md", "AI_DEVELOPMENT_WORKFLOW.md", "CLAUDE.md", "ZERO_COST_POLICY.md",
+}
+
+
+def root_inventory_matches(root):
+    return ROOT_REQUIRED.issubset(root) and root.issubset(ROOT_REQUIRED | ROOT_OPTIONAL)
+
 
 def frontmatter(path):
     with open(path, encoding="utf-8") as fh:
@@ -63,11 +78,18 @@ class Repo(unittest.TestCase):
             top = relpath.split("/", 1)[0]
             if top != ".git":
                 root.add(top)
-        expected_root = [
-            ".agents", ".claude-plugin", ".github", "LICENSE", "README.md",
-            "docs", "nova-ancient-warrior", "ps2-game", "tests",
-        ] + SKILLS
-        self.assertEqual(sorted(root), sorted(expected_root))
+        self.assertTrue(
+            root_inventory_matches(root),
+            "Unexpected root entries: %r; missing required entries: %r"
+            % (sorted(root - (ROOT_REQUIRED | ROOT_OPTIONAL)),
+               sorted(ROOT_REQUIRED - root)),
+        )
+
+    def test_root_inventory_policy_allows_only_known_governance_docs(self):
+        self.assertTrue(root_inventory_matches(ROOT_REQUIRED))
+        self.assertTrue(root_inventory_matches(ROOT_REQUIRED | ROOT_OPTIONAL))
+        self.assertFalse(root_inventory_matches(ROOT_REQUIRED | {"unexpected.md"}))
+        self.assertFalse(root_inventory_matches(ROOT_REQUIRED - {"README.md"}))
 
     def test_frontmatter_name_description_hint(self):
         for s in SKILLS:
