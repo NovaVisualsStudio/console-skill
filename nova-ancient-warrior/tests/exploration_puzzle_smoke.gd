@@ -31,6 +31,10 @@ func _run_puzzle_smoke() -> void:
 		if hint == null or (not hint.text.contains("ANCIENT ORDER") and not hint.text.contains("ترتيب الرموز")):
 			_fail(root, "Chapter %d must visibly communicate the rune order" % chapter)
 			return
+		var invalid_progress := ExplorationPuzzleDirector.evaluate_rune(sequence[0], -1, sequence)
+		if bool(invalid_progress.get("accepted", true)) or int(invalid_progress.get("progress", -1)) != 0 or bool(invalid_progress.get("solved", true)) or int(invalid_progress.get("expected", 0)) != sequence[0]:
+			_fail(root, "Negative puzzle progress must be rejected and safely reset to the first expected rune")
+			return
 		var wrong_rune := (sequence[0] % 3) + 1
 		var rejected := ExplorationPuzzleDirector.evaluate_rune(wrong_rune, 0, sequence)
 		if bool(rejected.get("accepted", true)) or int(rejected.get("progress", -1)) != 0:

@@ -130,8 +130,15 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 
 
 static func evaluate_rune(rune_index: int, current_progress: int, sequence: Array[int]) -> Dictionary:
-	if current_progress < 0 or current_progress >= sequence.size():
-		return {"accepted": false, "progress": clampi(current_progress, 0, sequence.size()), "solved": true, "expected": 0}
+	if current_progress < 0:
+		return {
+			"accepted": false,
+			"progress": 0,
+			"solved": false,
+			"expected": sequence[0] if not sequence.is_empty() else 0
+		}
+	if current_progress >= sequence.size():
+		return {"accepted": false, "progress": sequence.size(), "solved": true, "expected": 0}
 	var expected := sequence[current_progress]
 	if rune_index != expected:
 		return {"accepted": false, "progress": current_progress, "solved": false, "expected": expected}
