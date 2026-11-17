@@ -9,7 +9,7 @@ Nova Ancient Warrior is an original third-person 3D action game prototype built 
 - Chapter III: The Obsidian Throne, ending with The Obsidian Sovereign.
 - Nine encounters total, with boss encounters at waves 3, 6 and 9.
 - Each chapter has a distinct procedural visual theme and hazards with warning windows and safe routes.
-- Important limitation: all three chapters currently reuse one arena scene with different chapter dressing. They are not yet three separately authored exploration levels with traversal, puzzles and authored collision layouts.
+- Current structure: each chapter has its own PackedScene entry point and chapter-specific procedural collision layout, landmarks and flank geometry, generated through shared builders. These are still arena-scale combat spaces, not yet fully authored exploration levels with connected traversal routes, multi-stage environmental puzzles and mission-scale progression.
 
 ## Implemented gameplay
 
@@ -17,7 +17,9 @@ Nova Ancient Warrior is an original third-person 3D action game prototype built 
 - Enemy approach, telegraph, strike and recovery states, with three enemy stat archetypes and three boss attack profiles.
 - Versioned offline save data, wave resume, checkpoints, campaign progression and permanent Soul Forge upgrades.
 - Touch controls for movement, attack, heavy attack, jump, lock-on, dodge and block.
-- Title screen with a live 3D hero preview, new campaign, save-aware continue/replay, settings, tutorial and credits.\n- Arabic/English language selection persists in the offline save profile; title screen, pause menu, HUD, touch captions, mission prompts, chapter cards, upgrades and dialogue support both languages.\n- Pause overlay with resume control, persistent music / sound-effect volume sliders and in-game language switching; pause input remains active while the game simulation is frozen.
+- Title screen with a live 3D hero preview, new campaign, save-aware continue/replay, settings, tutorial and credits.
+- Arabic/English language selection persists in the offline save profile; title screen, pause menu, HUD, touch captions, mission prompts, chapter cards, upgrades and dialogue support both languages.
+- Pause overlay with resume control, persistent music / sound-effect volume sliders and in-game language switching; pause input remains active while the game simulation is frozen.
 - Keyboard controls: WASD or arrows to move, J or Enter to attack, H for heavy attack, I to block, Tab to lock on, Shift or K to dodge, Space to jump, and R to restart.
 - Original ambient music baked to a looping WAV at build time, plus 13 generated WAV sound effects; runtime playback uses an imported stream rather than a per-frame audio generator.
 - Right-side touch dragging rotates the third-person camera; the separate lower-right action cluster remains reserved for combat controls.
