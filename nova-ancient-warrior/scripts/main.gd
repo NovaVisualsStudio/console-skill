@@ -1501,8 +1501,8 @@ func _avoid_enemy_obstacles(enemy: CharacterBody3D, preferred_direction: Vector3
 	if preferred_direction.length_squared() <= 0.0001 or not is_instance_valid(player):
 		return Vector3.ZERO
 	var origin := enemy.global_position + Vector3.UP * 0.9
-	var left_direction := preferred_direction.rotated(Vector3.UP, -0.72).normalized()
-	var right_direction := preferred_direction.rotated(Vector3.UP, 0.72).normalized()
+	var left_direction := preferred_direction.rotated(Vector3.UP, 0.72).normalized()
+	var right_direction := preferred_direction.rotated(Vector3.UP, -0.72).normalized()
 	var excluded: Array[RID] = [enemy.get_rid(), player.get_rid()]
 	var space_state := get_world_3d().direct_space_state
 	var left_query := PhysicsRayQueryParameters3D.create(origin, origin + left_direction * 2.1)
