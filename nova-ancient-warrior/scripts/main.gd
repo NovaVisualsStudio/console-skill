@@ -8,6 +8,7 @@ const ATTACK_RANGE := 2.35
 const ARENA_LIMIT := 16.0
 const CombatRules = preload("res://scripts/combat_rules.gd")
 const EnemyTactics = preload("res://scripts/enemy_tactics.gd")
+const EnemyBodyFactory = preload("res://scripts/enemy_body_factory.gd")
 const NarrativeDirector = preload("res://scripts/narrative_director.gd")
 const MissionObjectiveDirector = preload("res://scripts/mission_objective_director.gd")
 const ExplorationSecretDirector = preload("res://scripts/exploration_secret_director.gd")
@@ -474,6 +475,8 @@ func _build_world() -> void:
 func _build_player() -> void:
 	player = CharacterBody3D.new()
 	player.name = "AncientWarrior"
+	player.collision_layer = 1
+	player.collision_mask = 3
 	player.position = Vector3(0.0, 0.15, 3.5)
 	add_child(player)
 	blade_damage_bonus = int(_save_profile().get("upgrade_blade", 0)) * 4
@@ -581,7 +584,7 @@ func _spawn_wave() -> void:
 	var boss_kind := CombatRules.boss_kind_for_wave(current_wave)
 	var boss_to_intro: Node3D = null
 	for i in range(enemy_count):
-		var enemy := Node3D.new()
+		var enemy := EnemyBodyFactory.create_enemy_body()
 		var enemy_variant := i % 3
 		enemy.name = CombatRules.boss_display_name(current_wave).replace(" ", "_") if boss_wave else "AshEnemy_W%d_%d" % [current_wave, i + 1]
 		enemy.position = CombatRules.wave_enemy_spawn_position(current_wave, i)
@@ -1373,6 +1376,16 @@ func _update_enemies(delta: float) -> void:
 			if locked_target == enemy:
 				locked_target = null
 			continue
+		var enemy_body := enemy as CharacterBody3D
+		if enemy_body == null:
+			enemies.remove_at(index)
+			continue
+		enemy_body.velocity.x = 0.0
+		enemy_body.velocity.z = 0.0
+		if enemy_body.is_on_floor():
+			enemy_body.velocity.y = 0.0
+		else:
+			enemy_body.velocity.y -= GRAVITY * delta
 		var offset: Vector3 = player.global_position - enemy.global_position
 		offset.y = 0.0
 		var distance: float = offset.length()
@@ -1420,7 +1433,8 @@ func _update_enemies(delta: float) -> void:
 				var chase_speed := enemy_speed * float(tactical_plan.get("speed_scale", 1.0))
 				if is_boss and boss_kind == "ember_warlord":
 					chase_speed *= 1.18
-				enemy.global_position += movement_direction * chase_speed * delta
+				enemy_body.velocity.x = movement_direction.x * chase_speed
+				enemy_body.velocity.z = movement_direction.z * chase_speed
 				if visual != null:
 					visual.call("set_locomotion", 0.52 if tactical_action == EnemyTactics.ACTION_APPROACH else 0.38, delta)
 			elif tactical_action == EnemyTactics.ACTION_WINDUP:
@@ -1448,7 +1462,11 @@ func _update_enemies(delta: float) -> void:
 					match boss_kind:
 						"ember_warlord":
 							if distance <= hit_range:
-								enemy.global_position += offset.normalized() * minf(3.0, maxf(0.0, distance - 1.15))
+								var dash_distance := minf(3.0, maxf(0.0, distance - 1.15))
+								var dash_direction := offset.normalized()
+								var dash_speed := dash_distance / maxf(delta, 0.001)
+								enemy_body.velocity.x = dash_direction.x * dash_speed
+								enemy_body.velocity.z = dash_direction.z * dash_speed
 						"obsidian_sovereign":
 							damage += 8 if phase >= 2 else 0
 						_:
@@ -1471,6 +1489,7 @@ func _update_enemies(delta: float) -> void:
 			if attack_timer <= 0.0:
 				attack_state = "approach"
 				attack_cooldown_value = 0.28 if not is_boss else (0.75 if phase == 1 else 0.55)
+		enemy_body.move_and_slide()
 		enemy.set_meta("attack_state", attack_state)
 		enemy.set_meta("attack_timer", attack_timer)
 		enemy.set_meta("attack_cooldown", attack_cooldown_value)
