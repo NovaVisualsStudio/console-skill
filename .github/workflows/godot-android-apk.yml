@@ -196,6 +196,12 @@ jobs:
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/campaign_layout_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/exploration_puzzle_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/exploration_secret_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
+            --script res://tests/mission_objective_smoke.gd
+          "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/mobile_render_profile_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/stage_hazard_rules_smoke.gd
