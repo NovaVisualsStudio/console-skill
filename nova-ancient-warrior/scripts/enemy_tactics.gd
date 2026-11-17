@@ -70,3 +70,17 @@ static func movement_direction(
 	var lateral := Vector3(-forward.z, 0.0, forward.x)
 	var direction := forward + lateral * clampf(lateral_weight, -1.0, 1.0)
 	return direction.normalized()
+
+
+
+static func avoid_obstacle(preferred_direction: Vector3, left_blocked: bool, right_blocked: bool) -> Vector3:
+	var forward := preferred_direction
+	forward.y = 0.0
+	if forward.length_squared() <= 0.0001 or (left_blocked and right_blocked):
+		return Vector3.ZERO
+	forward = forward.normalized()
+	if left_blocked:
+		return forward.rotated(Vector3.UP, -0.72).normalized()
+	if right_blocked:
+		return forward.rotated(Vector3.UP, 0.72).normalized()
+	return forward

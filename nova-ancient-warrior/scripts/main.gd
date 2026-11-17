@@ -1430,6 +1430,7 @@ func _update_enemies(delta: float) -> void:
 					offset,
 					float(tactical_plan.get("lateral_weight", 0.0))
 				)
+				movement_direction = _avoid_enemy_obstacles(enemy_body, movement_direction)
 				var chase_speed := enemy_speed * float(tactical_plan.get("speed_scale", 1.0))
 				if is_boss and boss_kind == "ember_warlord":
 					chase_speed *= 1.18
@@ -1493,6 +1494,26 @@ func _update_enemies(delta: float) -> void:
 		enemy.set_meta("attack_state", attack_state)
 		enemy.set_meta("attack_timer", attack_timer)
 		enemy.set_meta("attack_cooldown", attack_cooldown_value)
+
+
+
+func _avoid_enemy_obstacles(enemy: CharacterBody3D, preferred_direction: Vector3) -> Vector3:
+	if preferred_direction.length_squared() <= 0.0001 or not is_instance_valid(player):
+		return Vector3.ZERO
+	var origin := enemy.global_position + Vector3.UP * 0.9
+	var left_direction := preferred_direction.rotated(Vector3.UP, 0.72).normalized()
+	var right_direction := preferred_direction.rotated(Vector3.UP, -0.72).normalized()
+	var excluded: Array[RID] = [enemy.get_rid(), player.get_rid()]
+	var space_state := get_world_3d().direct_space_state
+	var left_query := PhysicsRayQueryParameters3D.create(origin, origin + left_direction * 2.1)
+	left_query.collision_mask = 1
+	left_query.exclude = excluded
+	var right_query := PhysicsRayQueryParameters3D.create(origin, origin + right_direction * 2.1)
+	right_query.collision_mask = 1
+	right_query.exclude = excluded
+	var left_blocked := not space_state.intersect_ray(left_query).is_empty()
+	var right_blocked := not space_state.intersect_ray(right_query).is_empty()
+	return EnemyTactics.avoid_obstacle(preferred_direction, left_blocked, right_blocked)
 
 
 func _attack(heavy: bool = false) -> void:
