@@ -161,13 +161,18 @@ func _finish(exit_code: int, game: Node, message: String = "") -> void:
 	_finished = true
 	if not message.is_empty():
 		push_error(message)
+	# Let the in-flight attack-window coroutine and its SceneTreeTimer finish before
+	# destroying the scene. This avoids nondeterministic ObjectDB/resource leaks.
+	await create_timer(0.35).timeout
 	if is_instance_valid(game):
 		game.free()
 	_active_game = null
 	if is_instance_valid(_watchdog_timer):
 		_watchdog_timer.stop()
 		_watchdog_timer.queue_free()
+	_watchdog_timer = null
 	await process_frame
+	await physics_frame
 	await process_frame
 	# Defer quitting until the caller coroutine has returned and released its
 	# PackedScene, streams and temporary test references.
