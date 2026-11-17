@@ -35,6 +35,11 @@ func _run_puzzle_smoke() -> void:
 		if bool(invalid_progress.get("accepted", true)) or int(invalid_progress.get("progress", -1)) != 0 or bool(invalid_progress.get("solved", true)) or int(invalid_progress.get("expected", 0)) != sequence[0]:
 			_fail(root, "Negative puzzle progress must be rejected and safely reset to the first expected rune")
 			return
+		var empty_sequence: Array[int] = []
+		var empty_result := ExplorationPuzzleDirector.evaluate_rune(1, 0, empty_sequence)
+		if bool(empty_result.get("accepted", true)) or int(empty_result.get("progress", -1)) != 0 or not bool(empty_result.get("solved", false)) or int(empty_result.get("expected", -1)) != 0:
+			_fail(root, "An empty rune sequence must safely report a completed, non-interactive puzzle")
+			return
 		var wrong_rune := (sequence[0] % 3) + 1
 		var rejected := ExplorationPuzzleDirector.evaluate_rune(wrong_rune, 0, sequence)
 		if bool(rejected.get("accepted", true)) or int(rejected.get("progress", -1)) != 0:

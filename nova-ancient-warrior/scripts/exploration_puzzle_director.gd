@@ -130,6 +130,8 @@ static func build_stage(parent: Node3D, stage_index: int) -> Array[Node3D]:
 
 
 static func evaluate_rune(rune_index: int, current_progress: int, sequence: Array[int]) -> Dictionary:
+	if sequence.is_empty():
+		return {"accepted": false, "progress": 0, "solved": true, "expected": 0}
 	if current_progress < 0:
 		return {
 			"accepted": false,
