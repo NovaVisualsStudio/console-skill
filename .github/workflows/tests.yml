@@ -2,9 +2,12 @@ name: Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, nova-android-vertical-slice, nova-gameplay-hardening, nova-gameplay-hardened-clean, nova-open-source-research, nova-six-toolchain-integration, nova-full-campaign-polish]
   pull_request:
-    branches: [main]
+
+concurrency:
+  group: nova-python-tests-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -34,3 +37,14 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: "1"
         run: python -m unittest discover -s tests -v
+      - name: Run local-only DeepSeek review client tests when present
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f nova-ancient-warrior/tests/test_deepseek_review.py ]]; then
+            python -m unittest discover \
+              -s nova-ancient-warrior/tests \
+              -p 'test_deepseek_review.py' -v
+          else
+            echo "No local DeepSeek review client tests in this branch; skipped."
+          fi

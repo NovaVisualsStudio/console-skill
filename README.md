@@ -210,7 +210,7 @@ that is kept. This pack adds:
 ## Run Nova Dodge on Android (PS2 emulator)
 
 **Get the emulator from its official publisher:**
-- [Play! official Android downloads](https://purei.org/downloads.php) — choose the Android build / Google Play option.
+- [Play! official Android downloads](https://purei.org/downloads.php): choose the Android build / Google Play option.
 - [Play! source code and releases](https://github.com/jpd002/Play-).
 - [Play! compatibility tracker](https://github.com/jpd002/Play-Compatibility).
 

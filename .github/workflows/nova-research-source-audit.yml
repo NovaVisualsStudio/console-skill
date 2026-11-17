@@ -1,0 +1,45 @@
+name: Nova external research source audit
+
+on:
+  push:
+    branches: [nova-full-campaign-polish]
+    paths:
+      - "nova-ancient-warrior/tools/research/**"
+      - "docs/NOVA_RESEARCH_REPOSITORIES.md"
+      - "tests/test_nova_research_sources.py"
+      - ".github/workflows/nova-research-source-audit.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "23 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  audit-public-repositories:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out Nova
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Validate catalog tool and policy tests
+        run: |
+          python -m py_compile nova-ancient-warrior/tools/research/audit_github_sources.py
+          python -m unittest discover -s tests -p 'test_nova_research_sources.py' -v
+      - name: Audit GitHub repository metadata
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python nova-ancient-warrior/tools/research/audit_github_sources.py --output artifacts/research-source-audit.json
+      - name: Upload source audit report
+        if: always() && hashFiles('artifacts/research-source-audit.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: nova-research-source-audit
+          path: artifacts/research-source-audit.json
+          if-no-files-found: warn
+          retention-days: 30

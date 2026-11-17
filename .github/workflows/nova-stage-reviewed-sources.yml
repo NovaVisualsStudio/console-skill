@@ -1,0 +1,69 @@
+name: Nova stage reviewed MIT source candidates
+
+on:
+  push:
+    branches: [nova-full-campaign-polish]
+    paths:
+      - ".github/workflows/nova-stage-reviewed-sources.yml"
+      - "nova-ancient-warrior/tools/research/source_catalog.json"
+      - "nova-ancient-warrior/tools/research/fetch_reviewed_source.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage-review-only-sources:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out Nova
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Test the license-gated fetcher
+        run: |
+          python -m py_compile nova-ancient-warrior/tools/research/fetch_reviewed_source.py
+          python -m unittest discover -s tests -p 'test_nova_research_sources.py' -v
+
+      - name: Stage approved Adventure Mode movement and camera candidates
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python nova-ancient-warrior/tools/research/fetch_reviewed_source.py \
+            --source adventure-mode-godot \
+            --file "Modular Mobility/MovementPackage.gd" \
+            --file "Modular Mobility/mvpk_walk.gd" \
+            --file "Modular Mobility/mvpk_climb.gd" \
+            --file "Modular Mobility/mvpk_combat.gd" \
+            --file "scripts/camera_control.gd" \
+            --file "scripts/actor.gd" \
+            --file "scripts/armament.gd" \
+            --accept-mit \
+            --output-dir build/reviewed-source-cache
+
+      - name: Stage approved GOAT interaction and narrative candidates
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python nova-ancient-warrior/tools/research/fetch_reviewed_source.py \
+            --source goat-godot \
+            --file "addons/goat/globals/goat_inventory.gd" \
+            --file "addons/goat/globals/goat_interaction.gd" \
+            --file "addons/goat/globals/goat_voice.gd" \
+            --file "addons/goat/globals/goat_settings.gd" \
+            --file "addons/goat/globals/goat_state.gd" \
+            --accept-mit \
+            --output-dir build/reviewed-source-cache
+
+      - name: Upload pinned review cache
+        uses: actions/upload-artifact@v7
+        with:
+          name: nova-reviewed-mit-source-candidates
+          path: build/reviewed-source-cache/
+          if-no-files-found: error
+          retention-days: 30

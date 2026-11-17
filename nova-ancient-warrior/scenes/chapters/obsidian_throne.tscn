@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/chapter_environment.gd" id="1_chapter_environment"]
+
+[node name="ObsidianThrone" type="Node3D"]
+script = ExtResource("1_chapter_environment")
+chapter_index = 2
+graphics_quality = "mid"

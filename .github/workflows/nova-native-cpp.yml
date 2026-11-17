@@ -1,0 +1,99 @@
+name: Nova native C++ GDExtension
+on:
+  push:
+    branches:
+      - release/nova-ancient-warrior-integration-20261108
+    paths:
+      - "nova-ancient-warrior/native/**"
+      - ".github/workflows/nova-native-cpp.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-native:
+    name: Build ${{ matrix.platform }} ${{ matrix.arch }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            arch: x86_64
+            target: template_release
+          - platform: android
+            arch: arm64
+            target: template_release
+    steps:
+      - name: Checkout game source
+        uses: actions/checkout@v7
+      - name: Checkout pinned official godot-cpp bindings
+        uses: actions/checkout@v7
+        with:
+          repository: godotengine/godot-cpp
+          ref: b472519c42be09c1acec3fd63acd4010fc586ad4
+          path: nova-ancient-warrior/native/godot-cpp
+          persist-credentials: false
+      - name: Set up Python and SCons
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install SCons
+        run: python -m pip install --disable-pip-version-check "scons>=4.4,<5"
+      - name: Install Android NDK
+        if: matrix.platform == 'android'
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "ndk;28.1.13356709"
+      - name: Configure Android NDK
+        if: matrix.platform == 'android'
+        shell: bash
+        run: |
+          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/28.1.13356709" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.1.13356709" >> "$GITHUB_ENV"
+      - name: Build native library
+        working-directory: nova-ancient-warrior/native
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.platform }}" == "android" ]]; then
+            scons platform=android target=${{ matrix.target }} arch=${{ matrix.arch }} api_version=4.7
+          else
+            scons platform=linux target=${{ matrix.target }} arch=${{ matrix.arch }} api_version=4.7
+          fi
+          find bin -type f -maxdepth 3 -print
+          test -n "$(find bin -type f -name '*nova_combat_kernel*' -print -quit)"
+      - name: Load and smoke-test Linux GDExtension
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot" "$RUNNER_TEMP/native-smoke"
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          godot_bin="$(find "$RUNNER_TEMP/godot" -type f -name 'Godot_v4.7.2-stable_linux.x86_64' -print -quit)"
+          test -n "$godot_bin"
+          chmod +x "$godot_bin"
+          cp -a nova-ancient-warrior/. "$RUNNER_TEMP/native-smoke/"
+          mkdir -p "$RUNNER_TEMP/native-smoke/native/bin/linux"
+          cp nova-ancient-warrior/native/bin/linux/* "$RUNNER_TEMP/native-smoke/native/bin/linux/"
+          cp "$RUNNER_TEMP/native-smoke/native/nova_combat_kernel.gdextension.in" "$RUNNER_TEMP/native-smoke/native/nova_combat_kernel.gdextension"
+          "$godot_bin" --headless --editor --path "$RUNNER_TEMP/native-smoke" --quit
+          smoke_log="$RUNNER_TEMP/native-smoke.log"
+          if ! "$godot_bin" --verbose --headless --path "$RUNNER_TEMP/native-smoke" --script res://native/tests/native_kernel_smoke.gd >"$smoke_log" 2>&1; then
+            cat "$smoke_log"
+            exit 1
+          fi
+          cat "$smoke_log"
+          grep -q "Nova C++ combat kernel smoke test passed" "$smoke_log"
+          if grep -E "SCRIPT ERROR:|ERROR: Failed to load|GDExtension.*failed|ObjectDB instance was leaked|resources still in use" "$smoke_log"; then
+            exit 1
+          fi
+
+      - name: Upload native library
+        uses: actions/upload-artifact@v7
+        with:
+          name: nova-combat-kernel-${{ matrix.platform }}-${{ matrix.arch }}
+          path: nova-ancient-warrior/native/bin/**
+          if-no-files-found: error
+          retention-days: 14
