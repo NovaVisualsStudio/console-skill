@@ -50,16 +50,6 @@ func _run_save_smoke() -> void:
 	if int(reader.profile.get("total_souls", 0)) != 4:
 		_fail("Checkpoint retry double-counted or lost souls")
 		return
-	if not reader.record_run(3, 2000, 4, true):
-		_fail("Could not persist boss victory")
-		return
-	reader.load_profile()
-	if int(reader.profile.get("unlocked_chapter", 0)) != 2 or not bool(reader.profile.get("boss_defeated", false)):
-		_fail("Boss victory did not unlock chapter two")
-		return
-	if int(reader.profile.get("total_souls", 0)) != 4:
-		_fail("End-of-run reward double-counted checkpointed souls")
-		return
 	if int(reader.upgrade_cost("blade")) != 3 or not reader.purchase_upgrade("blade"):
 		_fail("Blade upgrade purchase failed despite enough souls")
 		return
@@ -70,12 +60,22 @@ func _run_save_smoke() -> void:
 	if int(reader.profile.get("pending_souls", -1)) != 4:
 		_fail("Spent currency incorrectly reduced the run's checkpoint ledger")
 		return
-	if not reader.record_checkpoint(4, 2100, 4):
+	if not reader.record_checkpoint(3, 1900, 4):
 		_fail("Could not persist a checkpoint after spending souls")
 		return
 	reader.load_profile()
 	if int(reader.profile.get("total_souls", 0)) != 1 or int(reader.profile.get("pending_souls", -1)) != 4:
 		_fail("Reloading after an upgrade minted already-checkpointed souls a second time")
+		return
+	if not reader.record_run(3, 2000, 4, true):
+		_fail("Could not persist boss victory")
+		return
+	reader.load_profile()
+	if int(reader.profile.get("unlocked_chapter", 0)) != 2 or not bool(reader.profile.get("boss_defeated", false)):
+		_fail("Boss victory did not unlock chapter two")
+		return
+	if int(reader.profile.get("total_souls", 0)) != 1 or int(reader.profile.get("pending_souls", -1)) != 0:
+		_fail("End-of-run reward duplicated checkpointed souls or failed to close the run ledger")
 		return
 	if reader.record_boss_victory(10) or reader.record_boss_victory(0) or reader.record_boss_victory(2):
 		_fail("Invalid or non-boss wave was accepted as a boss victory")
