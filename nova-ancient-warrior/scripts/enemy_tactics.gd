@@ -80,7 +80,7 @@ static func avoid_obstacle(preferred_direction: Vector3, left_blocked: bool, rig
 		return Vector3.ZERO
 	forward = forward.normalized()
 	if left_blocked:
-		return forward.rotated(Vector3.UP, 0.72).normalized()
-	if right_blocked:
 		return forward.rotated(Vector3.UP, -0.72).normalized()
+	if right_blocked:
+		return forward.rotated(Vector3.UP, 0.72).normalized()
 	return forward
