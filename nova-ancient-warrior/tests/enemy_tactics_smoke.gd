@@ -41,5 +41,15 @@ func _initialize() -> void:
 	assert(direction.length() > 0.99 and direction.length() < 1.01, "Tactical movement must be normalized")
 	assert(direction.x > 0.0, "Positive flank sign must produce a rightward orbit for a north-facing player")
 
-	print("Enemy tactics smoke test passed: approach, agile flanks, boss repositioning, telegraph and cooldown")
+	var clear_path := EnemyTactics.avoid_obstacle(Vector3.FORWARD, false, false)
+	assert(clear_path.is_equal_approx(Vector3.FORWARD), "Clear paths must preserve the preferred direction")
+	var left_blocked := EnemyTactics.avoid_obstacle(Vector3.FORWARD, true, false)
+	assert(left_blocked.x < -0.5 and left_blocked.z < -0.5, "A blocked left probe must steer around the obstacle to the right")
+	var right_blocked := EnemyTactics.avoid_obstacle(Vector3.FORWARD, false, true)
+	assert(right_blocked.x > 0.5 and right_blocked.z < -0.5, "A blocked right probe must steer around the obstacle to the left")
+	var boxed_in := EnemyTactics.avoid_obstacle(Vector3.FORWARD, true, true)
+	assert(boxed_in == Vector3.ZERO, "Enemies must stop when both steering corridors are blocked")
+	assert(EnemyTactics.avoid_obstacle(Vector3.ZERO, false, false) == Vector3.ZERO, "Zero input must remain safe")
+
+	print("Enemy tactics smoke test passed: approach, flanks, boss telegraphs, cooldown and obstacle steering")
 	quit(0)
