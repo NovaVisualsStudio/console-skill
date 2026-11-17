@@ -67,6 +67,22 @@ func _run_save_smoke() -> void:
 	if int(reader.profile.get("upgrade_blade", 0)) != 1 or int(reader.profile.get("total_souls", 0)) != 1:
 		_fail("Purchased upgrade or remaining soul balance was not saved")
 		return
+	if int(reader.profile.get("pending_souls", -1)) != 4:
+		_fail("Spent currency incorrectly reduced the run's checkpoint ledger")
+		return
+	if not reader.record_checkpoint(4, 2100, 4):
+		_fail("Could not persist a checkpoint after spending souls")
+		return
+	reader.load_profile()
+	if int(reader.profile.get("total_souls", 0)) != 1 or int(reader.profile.get("pending_souls", -1)) != 4:
+		_fail("Reloading after an upgrade minted already-checkpointed souls a second time")
+		return
+	if reader.record_boss_victory(10) or reader.record_boss_victory(0) or reader.record_boss_victory(2):
+		_fail("Invalid or non-boss wave was accepted as a boss victory")
+		return
+	if int(reader.profile.get("unlocked_chapter", 0)) != 2 or bool(reader.profile.get("campaign_complete", true)):
+		_fail("Invalid boss wave changed campaign progression")
+		return
 	if not reader.start_new_campaign():
 		_fail("Could not start a new campaign")
 		return
@@ -103,7 +119,7 @@ func _run_save_smoke() -> void:
 	DirAccess.remove_absolute(absolute_path)
 	writer.free()
 	reader.free()
-	print("Save manager smoke test passed: checkpoint delta, resume, chapter unlock, upgrade, audio, graphics tier and run reset")
+	print("Save manager smoke test passed: checkpoint delta, spend/reload ledger, boss validation, progression, upgrade, audio, graphics tier and run reset")
 	quit(0)
 
 
