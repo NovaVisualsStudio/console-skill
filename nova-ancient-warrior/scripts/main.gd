@@ -766,6 +766,7 @@ func _update_mission_relic_interaction() -> void:
 	var nearest_distance := 3.0
 	var nearby := false
 	var cache_is_nearest := false
+	var relic_is_nearest := false
 	var puzzle_is_nearest := false
 	if is_instance_valid(player):
 		if is_instance_valid(exploration_cache) and not bool(exploration_cache.get_meta("collected", false)):
@@ -782,6 +783,7 @@ func _update_mission_relic_interaction() -> void:
 			if distance <= nearest_distance:
 				nearby = true
 				cache_is_nearest = false
+				relic_is_nearest = true
 				puzzle_is_nearest = false
 				nearest_distance = distance
 		for rune in exploration_puzzle_nodes:
@@ -791,12 +793,15 @@ func _update_mission_relic_interaction() -> void:
 			if distance <= nearest_distance:
 				nearby = true
 				cache_is_nearest = false
+				relic_is_nearest = false
 				puzzle_is_nearest = true
 				nearest_distance = distance
 	interact_button.visible = nearby and not cinematic_active and not game_over
 	_update_mission_objective_ui()
 	if nearby and cache_is_nearest:
 		interact_button.text = "افتح الصندوق السري" if _is_arabic() else "OPEN SECRET CACHE"
+	elif nearby and relic_is_nearest:
+		interact_button.text = "استرجع جزء الختم" if _is_arabic() else "RECOVER SEAL FRAGMENT"
 	elif nearby and puzzle_is_nearest and exploration_puzzle_progress < exploration_puzzle_sequence.size():
 		var expected_rune := exploration_puzzle_sequence[exploration_puzzle_progress]
 		interact_button.text = ("فعّل الرمز %s" % _rune_roman(expected_rune)) if _is_arabic() else ("ATTUNE RUNE %s" % _rune_roman(expected_rune))
