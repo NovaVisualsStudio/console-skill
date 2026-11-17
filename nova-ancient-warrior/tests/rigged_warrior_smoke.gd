@@ -80,6 +80,29 @@ func _run_rigged_hero_smoke() -> void:
 	if "swordthrust" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
 		_fail(visual, "Heavy attack must select the sword thrust clip")
 		return
+	# Validate actual animated bone poses, not merely clip names or resource presence.
+	if not _animation_moves_skeleton(animation_player, skeleton, "sword_slash"):
+		_fail(visual, "Sword slash clip does not change any humanoid bone pose")
+		return
+	var death_clip := ""
+	for actual_name in names:
+		if "death" in str(actual_name).to_lower():
+			death_clip = str(actual_name)
+			break
+	if death_clip.is_empty():
+		_fail(visual, "Missing death animation clip in the optimized hero asset")
+		return
+	var death_animation := animation_player.get_animation(death_clip)
+	var has_hips_track := false
+	var has_spine_track := false
+	if death_animation != null:
+		for track_index in range(death_animation.get_track_count()):
+			var track_path := str(death_animation.track_get_path(track_index))
+			has_hips_track = has_hips_track or "Skeleton3D:Hips" in track_path
+			has_spine_track = has_spine_track or "Skeleton3D:Spine" in track_path
+	if not has_hips_track or not has_spine_track:
+		_fail(visual, "Death clip must contain humanoid hips and spine animation tracks")
+		return
 	visual.call("set_blocking", true)
 	if "swordblock" not in str(animation_player.current_animation).to_lower().replace(" ", "").replace("_", ""):
 		_fail(visual, "Guard must select the sword block clip")
@@ -144,6 +167,47 @@ func _run_rigged_hero_smoke() -> void:
 	print("Rigged Nova hero smoke test passed: %d bones, %d animation clips, %d mesh nodes, %d textured PBR materials" % [skeleton.get_bone_count(), names.size(), mesh_nodes.size(), textured_materials])
 	visual.free()
 	quit(0)
+
+
+func _animation_moves_skeleton(player: AnimationPlayer, skeleton: Skeleton3D, fragment: String) -> bool:
+	var clip_name := ""
+	for actual_name in player.get_animation_list():
+		if fragment.to_lower().replace(" ", "").replace("_", "") in str(actual_name).to_lower().replace(" ", "").replace("_", "").replace("(", "").replace(")", ""):
+			clip_name = str(actual_name)
+			break
+	if clip_name.is_empty():
+		return false
+	var animation := player.get_animation(clip_name)
+	if animation == null or animation.length <= 0.05:
+		return false
+
+	# Compare poses within the clip itself. Comparing against the previous action
+	# can miss a valid death clip when its first keyframe matches the preceding
+	# pose, and sampling only one arbitrary timestamp can land on a hold frame.
+	player.stop()
+	player.play(clip_name)
+	player.seek(0.0, true)
+	skeleton.force_update_all_bone_transforms()
+	var initial_pose := []
+	for bone_index in range(skeleton.get_bone_count()):
+		initial_pose.append({
+			"position": skeleton.get_bone_pose_position(bone_index),
+			"rotation": skeleton.get_bone_pose_rotation(bone_index),
+			"scale": skeleton.get_bone_pose_scale(bone_index)
+		})
+
+	var sample_count := maxi(12, ceili(animation.length * 10.0))
+	for sample_index in range(1, sample_count + 1):
+		var sample_time := animation.length * float(sample_index) / float(sample_count)
+		player.seek(sample_time, true)
+		skeleton.force_update_all_bone_transforms()
+		for bone_index in range(skeleton.get_bone_count()):
+			var position_changed := skeleton.get_bone_pose_position(bone_index).distance_to(initial_pose[bone_index].position) > 0.0005
+			var rotation_changed := absf(skeleton.get_bone_pose_rotation(bone_index).dot(initial_pose[bone_index].rotation)) < 0.99999
+			var scale_changed := skeleton.get_bone_pose_scale(bone_index).distance_to(initial_pose[bone_index].scale) > 0.0005
+			if position_changed or rotation_changed or scale_changed:
+				return true
+	return false
 
 
 func _fail(visual: Node, message: String) -> void:
