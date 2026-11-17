@@ -63,7 +63,9 @@ func load_profile() -> bool:
 		profile[key] = config.get_value("profile", key, defaults[key])
 	profile["best_score"] = maxi(0, int(profile["best_score"]))
 	profile["total_souls"] = maxi(0, int(profile["total_souls"]))
-	profile["pending_souls"] = clampi(int(profile["pending_souls"]), 0, int(profile["total_souls"]))
+	# pending_souls is the last committed run total, not an owned-currency
+	# balance. It must survive spending souls so a resumed run cannot mint them again.
+	profile["pending_souls"] = maxi(0, int(profile["pending_souls"]))
 	profile["highest_wave"] = clampi(int(profile["highest_wave"]), 1, MAX_WAVE)
 	profile["unlocked_chapter"] = clampi(int(profile["unlocked_chapter"]), 1, 3)
 	profile["boss_defeated"] = bool(profile["boss_defeated"])
@@ -105,13 +107,12 @@ func record_checkpoint(wave: int, run_score: int, run_souls: int = 0) -> bool:
 
 
 func record_boss_victory(wave: int) -> bool:
-	var safe_wave := clampi(wave, 1, MAX_WAVE)
-	if safe_wave % 3 != 0:
+	if wave < 1 or wave > MAX_WAVE or wave % 3 != 0:
 		return false
-	var chapter_cleared := int(safe_wave / 3)
+	var chapter_cleared := int(wave / 3)
 	profile["boss_defeated"] = true
 	profile["unlocked_chapter"] = maxi(int(profile.get("unlocked_chapter", 1)), mini(3, chapter_cleared + 1))
-	if safe_wave == MAX_WAVE:
+	if wave == MAX_WAVE:
 		profile["campaign_complete"] = true
 	return save_profile()
 
