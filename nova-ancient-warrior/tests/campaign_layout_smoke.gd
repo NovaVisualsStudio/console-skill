@@ -38,6 +38,13 @@ func _run_layout_smoke() -> void:
 			if route_body == null or not route_body.get_node_or_null("Collision") is CollisionShape3D:
 				_fail(root, "Chapter %d route segment %s must be collision-backed" % [chapter, route_name])
 				return
+		for route_name in ["ExplorationTrail_Entry", "ExplorationTrail_Mid", "ExplorationTrail_Boss", "ExplorationBranch_Entry", "ExplorationBranch_Mid", "ExplorationBranch_Boss"]:
+			var route_body := layout.get_node(route_name) as StaticBody3D
+			var route_shape := route_body.get_node("Collision").shape as BoxShape3D
+			var route_top := route_body.position.y + route_shape.size.y * 0.5
+			if absf(route_top) > 0.01:
+				_fail(root, "Chapter %d route %s must be flush with the main floor" % [chapter, route_name])
+				return
 		var entry := layout.get_node("ExplorationTrail_Entry") as StaticBody3D
 		var middle := layout.get_node("ExplorationTrail_Mid") as StaticBody3D
 		var boss := layout.get_node("ExplorationTrail_Boss") as StaticBody3D
