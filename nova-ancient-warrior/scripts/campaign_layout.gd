@@ -1,6 +1,6 @@
 extends RefCounted
-## Chapter-specific, collision-backed arena layouts for the Android campaign.
-## Keeps combat lanes clear while adding traversable landmarks and physical boundaries.
+## Chapter-specific collision-backed exploration routes and encounter districts.
+## Keeps combat lanes readable while connecting the entrance, mid-route, flank objectives and boss chamber.
 
 const PBRMaterials = preload("res://scripts/pbr_material_library.gd")
 const ROOT_NAME := "GeneratedCampaignLayout"
