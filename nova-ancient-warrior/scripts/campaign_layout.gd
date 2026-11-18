@@ -26,6 +26,7 @@ static func build_stage(parent: Node3D, stage_index: int, quality: String = "mid
 			_build_ember_layout(root)
 		_:
 			_build_obsidian_layout(root)
+	_build_exploration_routes(root, safe_index)
 
 
 static func _build_boundaries(root: Node3D, stage_index: int) -> void:
@@ -35,10 +36,10 @@ static func _build_boundaries(root: Node3D, stage_index: int) -> void:
 		Color(0.085, 0.10, 0.17)
 	]
 	var material := _material(colors[stage_index], 0.18, 0.88)
-	_solid_block(root, "NorthBoundary", Vector3(35.0, 4.0, 0.7), Vector3(0.0, 2.0, -17.5), material)
-	_solid_block(root, "SouthBoundary", Vector3(35.0, 4.0, 0.7), Vector3(0.0, 2.0, 17.5), material)
-	_solid_block(root, "WestBoundary", Vector3(0.7, 4.0, 35.0), Vector3(-17.5, 2.0, 0.0), material)
-	_solid_block(root, "EastBoundary", Vector3(0.7, 4.0, 35.0), Vector3(17.5, 2.0, 0.0), material)
+	_solid_block(root, "NorthBoundary", Vector3(48.0, 4.0, 0.7), Vector3(0.0, 2.0, -36.0), material)
+	_solid_block(root, "SouthBoundary", Vector3(48.0, 4.0, 0.7), Vector3(0.0, 2.0, 36.0), material)
+	_solid_block(root, "WestBoundary", Vector3(0.7, 4.0, 72.0), Vector3(-24.0, 2.0, 0.0), material)
+	_solid_block(root, "EastBoundary", Vector3(0.7, 4.0, 72.0), Vector3(24.0, 2.0, 0.0), material)
 
 
 static func _build_sunken_layout(root: Node3D) -> void:
@@ -115,6 +116,48 @@ static func _build_obsidian_layout(root: Node3D) -> void:
 		# Keep the opening combat spawn ring clear; guard stones sit beyond the approach lane.
 		_solid_block(root, "ObsidianGuardStone_%s" % side_label, Vector3(2.0, 0.9, 1.1), Vector3(side * 10.0, 0.45, 3.6), obsidian)
 	_add_arch(root, "ObsidianEntryArch", Vector3(0.48, 6.2, 0.55), obsidian, rune)
+
+
+static func _build_exploration_routes(root: Node3D, stage_index: int) -> void:
+	var path_colors := [
+		Color(0.40, 0.34, 0.27),
+		Color(0.18, 0.11, 0.085),
+		Color(0.12, 0.15, 0.24)
+	]
+	var accent_colors := [
+		Color(0.78, 0.55, 0.28),
+		Color(0.95, 0.20, 0.055),
+		Color(0.30, 0.48, 0.95)
+	]
+	var path_material := _material(path_colors[stage_index], 0.18, 0.82)
+	var accent_material := _material(accent_colors[stage_index], 0.48, 0.42, accent_colors[stage_index] * 0.35)
+	# Overlapping collision-backed trail sections connect the entrance, mid district and boss approach.
+	_solid_block(root, "ExplorationTrail_Entry", Vector3(8.0, 0.12, 24.0), Vector3(0.0, 0.06, 24.0), path_material)
+	_solid_block(root, "ExplorationTrail_Mid", Vector3(8.0, 0.12, 26.0), Vector3(0.0, 0.06, 1.0), path_material)
+	_solid_block(root, "ExplorationTrail_Boss", Vector3(10.0, 0.12, 26.0), Vector3(0.0, 0.06, -23.0), path_material)
+	# Broad cross-routes connect the main trail to both flank objectives in every district.
+	_solid_block(root, "ExplorationBranch_Entry", Vector3(42.0, 0.12, 4.0), Vector3(0.0, 0.06, 15.0), path_material)
+	_solid_block(root, "ExplorationBranch_Mid", Vector3(42.0, 0.12, 4.0), Vector3(0.0, 0.06, -1.0), path_material)
+	_solid_block(root, "ExplorationBranch_Boss", Vector3(42.0, 0.12, 4.0), Vector3(0.0, 0.06, -17.0), path_material)
+	_add_route_gate(root, "RouteGate_Entry", 13.0, path_material, accent_material)
+	_add_route_gate(root, "RouteGate_Mid", -3.0, path_material, accent_material)
+	_add_route_gate(root, "RouteGate_Boss", -19.0, path_material, accent_material)
+	match stage_index:
+		0:
+			_solid_block(root, "SunkenRouteObelisk", Vector3(1.0, 3.2, 1.0), Vector3(-21.0, 1.6, 15.0), accent_material)
+			_solid_block(root, "SunkenRouteMarker", Vector3(1.0, 2.4, 1.0), Vector3(21.0, 1.2, -17.0), accent_material)
+		1:
+			_solid_block(root, "EmberRouteObelisk", Vector3(1.2, 3.6, 1.2), Vector3(21.0, 1.8, 15.0), accent_material)
+			_solid_block(root, "EmberRouteMarker", Vector3(1.0, 2.8, 1.0), Vector3(-21.0, 1.4, -17.0), accent_material)
+		_:
+			_solid_block(root, "ObsidianRouteObelisk", Vector3(1.0, 4.0, 1.0), Vector3(-21.0, 2.0, 15.0), accent_material)
+			_solid_block(root, "ObsidianRouteMarker", Vector3(1.0, 3.2, 1.0), Vector3(21.0, 1.6, -17.0), accent_material)
+
+
+static func _add_route_gate(root: Node3D, prefix: String, z_position: float, stone: Material, accent: Material) -> void:
+	_solid_block(root, prefix + "_Left", Vector3(0.65, 4.6, 0.8), Vector3(-5.6, 2.3, z_position), stone)
+	_solid_block(root, prefix + "_Right", Vector3(0.65, 4.6, 0.8), Vector3(5.6, 2.3, z_position), stone)
+	_solid_block(root, prefix + "_Lintel", Vector3(11.8, 0.48, 1.0), Vector3(0.0, 4.72, z_position), accent)
 
 
 static func _add_arch(root: Node3D, prefix: String, beam_size: Vector3, stone: Material, accent: Material) -> void:
