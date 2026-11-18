@@ -5,7 +5,8 @@ const JUMP_SPEED := 7.0
 const GRAVITY := 18.0
 const ENEMY_SPEED := 1.65
 const ATTACK_RANGE := 2.35
-const ARENA_LIMIT := 16.0
+const WORLD_LIMIT_X := 22.0
+const WORLD_LIMIT_Z := 34.0
 const CombatRules = preload("res://scripts/combat_rules.gd")
 const EnemyTactics = preload("res://scripts/enemy_tactics.gd")
 const EnemyBodyFactory = preload("res://scripts/enemy_body_factory.gd")
@@ -265,8 +266,8 @@ func _physics_process(delta: float) -> void:
 		hero_visual.call("play_jump_land")
 	var safe_position: Vector3 = player.global_position
 	var previous_position: Vector3 = safe_position
-	safe_position.x = clampf(safe_position.x, -ARENA_LIMIT, ARENA_LIMIT)
-	safe_position.z = clampf(safe_position.z, -ARENA_LIMIT, ARENA_LIMIT)
+	safe_position.x = clampf(safe_position.x, -WORLD_LIMIT_X, WORLD_LIMIT_X)
+	safe_position.z = clampf(safe_position.z, -WORLD_LIMIT_Z, WORLD_LIMIT_Z)
 	if not is_equal_approx(safe_position.x, previous_position.x):
 		player.velocity.x = 0.0
 	if not is_equal_approx(safe_position.z, previous_position.z):
@@ -418,7 +419,7 @@ func _build_world() -> void:
 	floor_body.name = "ArenaFloor"
 	add_child(floor_body)
 	var floor_mesh := BoxMesh.new()
-	floor_mesh.size = Vector3(36.0, 0.6, 36.0)
+	floor_mesh.size = Vector3(48.0, 0.6, 72.0)
 	var floor_instance := MeshInstance3D.new()
 	floor_instance.mesh = floor_mesh
 	floor_instance.position.y = -0.3
@@ -929,18 +930,19 @@ func _update_mission_objective_ui() -> void:
 		return
 	mission_objective_label.visible = mission_relic_count < 3 or boss_gate_pending
 	var order_text := "%d → %d → %d" % [mission_sequence[0], mission_sequence[1], mission_sequence[2]] if mission_sequence.size() >= 3 else "-"
+	var puzzle_text := "%d/3" % exploration_puzzle_progress
 	var use_arabic := TranslationServer.get_locale().begins_with("ar")
 	mission_objective_label.text_direction = Control.TEXT_DIRECTION_RTL if use_arabic else Control.TEXT_DIRECTION_LTR
 	if is_instance_valid(interact_button):
 		interact_button.text = "تفاعل" if use_arabic else "INTERACT"
 	if use_arabic and boss_gate_pending:
-		mission_objective_label.text = "بوابة الزعيم مغلقة  |  ترتيب الأختام %s  |  %d/3" % [order_text, mission_relic_count]
+		mission_objective_label.text = "بوابة الزعيم مغلقة  |  الأختام %d/3  |  الترتيب %s  |  لغز الرنين الاختياري %s" % [mission_relic_count, order_text, puzzle_text]
 	elif use_arabic and mission_relic_count < 3:
-		mission_objective_label.text = "لغز الأختام  |  الترتيب %s  |  %d/3  |  اقترب واضغط تفاعل" % [order_text, mission_relic_count]
+		mission_objective_label.text = "استكشف المسارات  |  الأختام %d/3  |  الترتيب %s  |  لغز الرنين الاختياري %s" % [mission_relic_count, order_text, puzzle_text]
 	elif boss_gate_pending:
-		mission_objective_label.text = "BOSS GATE SEALED  |  SEAL ORDER %s  |  %d/3" % [order_text, mission_relic_count]
+		mission_objective_label.text = "BOSS GATE SEALED  |  SEALS %d/3  |  ORDER %s  |  OPTIONAL RUNE PUZZLE %s" % [mission_relic_count, order_text, puzzle_text]
 	elif mission_relic_count < 3:
-		mission_objective_label.text = "SEAL PUZZLE  |  ORDER %s  |  %d/3  |  APPROACH AND INTERACT" % [order_text, mission_relic_count]
+		mission_objective_label.text = "EXPLORE THE ROUTES  |  SEALS %d/3  |  ORDER %s  |  OPTIONAL RUNE PUZZLE %s" % [mission_relic_count, order_text, puzzle_text]
 	else:
 		mission_objective_label.visible = false
 
