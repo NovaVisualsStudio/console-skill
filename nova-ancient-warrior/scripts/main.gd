@@ -936,13 +936,13 @@ func _update_mission_objective_ui() -> void:
 	if is_instance_valid(interact_button):
 		interact_button.text = "تفاعل" if use_arabic else "INTERACT"
 	if use_arabic and boss_gate_pending:
-		mission_objective_label.text = "بوابة الزعيم مغلقة  |  الأختام %d/3  |  الترتيب %s  |  لغز الرنين الاختياري %s" % [mission_relic_count, order_text, puzzle_text]
+		mission_objective_label.text = "البوابة مغلقة  |  الأختام %d/3  |  مكافأة الرنين %s" % [mission_relic_count, puzzle_text]
 	elif use_arabic and mission_relic_count < 3:
-		mission_objective_label.text = "استكشف المسارات  |  الأختام %d/3  |  الترتيب %s  |  لغز الرنين الاختياري %s" % [mission_relic_count, order_text, puzzle_text]
+		mission_objective_label.text = "المسارات  |  الأختام %d/3  |  مكافأة الرنين %s" % [mission_relic_count, puzzle_text]
 	elif boss_gate_pending:
-		mission_objective_label.text = "BOSS GATE SEALED  |  SEALS %d/3  |  ORDER %s  |  OPTIONAL RUNE PUZZLE %s" % [mission_relic_count, order_text, puzzle_text]
+		mission_objective_label.text = "GATE SEALED  |  SEALS %d/3  |  RUNE BONUS %s" % [mission_relic_count, puzzle_text]
 	elif mission_relic_count < 3:
-		mission_objective_label.text = "EXPLORE THE ROUTES  |  SEALS %d/3  |  ORDER %s  |  OPTIONAL RUNE PUZZLE %s" % [mission_relic_count, order_text, puzzle_text]
+		mission_objective_label.text = "ROUTES  |  SEALS %d/3  |  RUNE BONUS %s" % [mission_relic_count, puzzle_text]
 	else:
 		mission_objective_label.visible = false
 
