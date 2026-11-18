@@ -5,8 +5,7 @@ const TouchCamera = preload("res://scripts/touch_camera_controller.gd")
 
 
 func _initialize() -> void:
-	var actions: Array[String] = MobileInputSafety.ACTIONS
-	for action_name in actions:
+	for action_name in MobileInputSafety.ACTIONS:
 		if not InputMap.has_action(action_name):
 			InputMap.add_action(action_name)
 		Input.action_press(action_name)
@@ -15,7 +14,7 @@ func _initialize() -> void:
 	camera.yaw = 1.2
 	camera.pitch = 0.7
 	MobileInputSafety.release_synthetic_inputs(camera)
-	for action_name in actions:
+	for action_name in MobileInputSafety.ACTIONS:
 		if Input.is_action_pressed(action_name):
 			_fail("Focus recovery left synthetic action pressed: " + action_name)
 			return
