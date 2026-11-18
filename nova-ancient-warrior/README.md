@@ -9,7 +9,7 @@ Nova Ancient Warrior is an original third-person 3D action game prototype built 
 - Chapter III: The Obsidian Throne, ending with The Obsidian Sovereign.
 - Nine encounters total, with boss encounters at waves 3, 6 and 9.
 - Each chapter has a distinct procedural visual theme and hazards with warning windows and safe routes.
-- Current structure: each chapter has its own PackedScene entry point and chapter-specific procedural collision layout, landmarks and flank geometry, generated through shared builders. These are still arena-scale combat spaces, not yet fully authored exploration levels with connected traversal routes, multi-stage environmental puzzles and mission-scale progression.
+- Exploration expansion: each chapter now uses a 48 x 72 playable footprint with collision-backed entry, middle and boss-approach trail sections, three broad cross-routes, three route gates and chapter-themed waypoints. Seal fragments are distributed across the connected districts, and each boss encounter spawns in the final chamber rather than the central combat arena. The routes are traversable and regression-tested, but remain procedurally assembled greybox exploration spaces rather than fully hand-authored open-world levels.
 
 ## Implemented gameplay
 

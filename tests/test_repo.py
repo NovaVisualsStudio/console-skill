@@ -312,13 +312,15 @@ class Repo(unittest.TestCase):
         self.assertIn("var to_enemy: Vector3 = enemy.global_position - player.global_position", script)
         self.assertIn("CombatRules.is_target_in_attack_arc(facing, to_enemy, ATTACK_RANGE)", script)
 
-    def test_player_is_clamped_to_arena_bounds(self):
+    def test_player_is_clamped_to_expanded_world_bounds(self):
         script_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "main.gd")
         with open(script_path, encoding="utf-8") as fh:
             script = fh.read()
-        self.assertIn("const ARENA_LIMIT := 16.0", script)
-        self.assertIn("safe_position.x = clampf(safe_position.x, -ARENA_LIMIT, ARENA_LIMIT)", script)
-        self.assertIn("safe_position.z = clampf(safe_position.z, -ARENA_LIMIT, ARENA_LIMIT)", script)
+        self.assertIn("const WORLD_LIMIT_X := 22.0", script)
+        self.assertIn("const WORLD_LIMIT_Z := 34.0", script)
+        self.assertIn("safe_position.x = clampf(safe_position.x, -WORLD_LIMIT_X, WORLD_LIMIT_X)", script)
+        self.assertIn("safe_position.z = clampf(safe_position.z, -WORLD_LIMIT_Z, WORLD_LIMIT_Z)", script)
+        self.assertIn("floor_mesh.size = Vector3(48.0, 0.6, 72.0)", script)
         self.assertIn("player.global_position = safe_position", script)
 
     def test_project_has_original_application_icon(self):

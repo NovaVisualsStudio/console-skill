@@ -58,6 +58,38 @@ func _run_joystick_smoke(joystick: Control) -> void:
 		_fail(joystick, "Joystick finger ownership was not released")
 		return
 
+	# Simulate Android backgrounding while a finger is still holding the stick.
+	var resume_touch := InputEventScreenTouch.new()
+	resume_touch.index = 5
+	resume_touch.position = center
+	resume_touch.pressed = true
+	joystick._input(resume_touch)
+	var resume_drag := InputEventScreenDrag.new()
+	resume_drag.index = 5
+	resume_drag.position = center + Vector2(60.0, 0.0)
+	resume_drag.relative = Vector2(60.0, 0.0)
+	joystick._input(resume_drag)
+	if Input.get_action_strength("move_right") < 0.70:
+		_fail(joystick, "The joystick did not establish movement before simulated app suspension")
+		return
+	joystick._notification(NOTIFICATION_APPLICATION_FOCUS_OUT)
+	for action_name in ["move_left", "move_right", "move_forward", "move_back"]:
+		if Input.get_action_strength(action_name) > 0.01:
+			_fail(joystick, "Application focus loss left a virtual movement action pressed")
+			return
+	if joystick.active_touch_id != -1 or joystick._pressed or not joystick._axis.is_zero_approx():
+		_fail(joystick, "Application focus loss did not clear joystick finger and visual state")
+		return
+	var post_resume_touch := InputEventScreenTouch.new()
+	post_resume_touch.index = 6
+	post_resume_touch.position = center
+	post_resume_touch.pressed = true
+	joystick._input(post_resume_touch)
+	if joystick.active_touch_id != 6:
+		_fail(joystick, "The joystick did not accept a new finger after application resume")
+		return
+	joystick._notification(NOTIFICATION_APPLICATION_FOCUS_OUT)
+
 	print("Virtual joystick smoke test passed: analogue axis, isolated finger and release cleanup")
 	joystick.queue_free()
 	quit(0)

@@ -19,6 +19,7 @@ var _right_leg: Node3D
 var _sword_pivot: Node3D
 var _telegraph_ring: MeshInstance3D
 var _attack_tween: Tween
+var _dead := false
 var _base_torso_color := Color(0.46, 0.18, 0.11)
 var _base_armor_color := Color(0.55, 0.31, 0.13)
 
@@ -28,6 +29,8 @@ func _ready() -> void:
 
 
 func set_locomotion(speed_ratio: float, delta: float) -> void:
+	if _dead:
+		return
 	var amount := clampf(speed_ratio, 0.0, 1.0)
 	_phase += delta * lerpf(2.0, 8.5, amount)
 	var swing := sin(_phase) * amount * 0.62
@@ -126,6 +129,19 @@ func _update_telegraph_radius() -> void:
 	var radius := CombatRules.boss_attack_range(boss_kind, _boss_phase)
 	ring.inner_radius = maxf(0.1, radius - 0.23)
 	ring.outer_radius = radius + 0.12
+
+
+func play_death() -> void:
+	if _dead:
+		return
+	_dead = true
+	if _attack_tween != null and _attack_tween.is_running():
+		_attack_tween.kill()
+	var fall := create_tween()
+	fall.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	fall.tween_property(self, "rotation:z", -1.28, 0.72)
+	fall.parallel().tween_property(self, "position:y", maxf(0.18, position.y - 0.48), 0.72)
+	fall.parallel().tween_property(self, "rotation:x", -0.16, 0.58)
 
 
 func hit_react() -> void:

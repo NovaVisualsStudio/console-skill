@@ -58,13 +58,19 @@ func _run_combat_window_smoke() -> void:
 	TranslationServer.set_locale("ar")
 	game.call("_update_hud")
 	if hud == null or not hud.text.contains("الفصل") or hud.text_direction != Control.TEXT_DIRECTION_RTL:
+		TranslationServer.set_locale(original_locale)
 		await _finish(1, game, "In-game HUD did not switch to Arabic and right-to-left layout")
+		return
+	# SaveManager may restore Arabic from the player's persisted profile. Test the
+	# English direction explicitly instead of assuming the initial locale is English.
+	TranslationServer.set_locale("en")
+	game.call("_update_hud")
+	if hud.text_direction != Control.TEXT_DIRECTION_LTR or not hud.text.begins_with("NOVA"):
+		TranslationServer.set_locale(original_locale)
+		await _finish(1, game, "In-game HUD did not switch back to English and left-to-right layout")
 		return
 	TranslationServer.set_locale(original_locale)
 	game.call("_update_hud")
-	if hud.text_direction != Control.TEXT_DIRECTION_LTR:
-		await _finish(1, game, "In-game HUD did not restore its original layout direction")
-		return
 	print("Combat window test: in-game HUD supports Arabic and English layout")
 	var music_director := game.get_node_or_null("MusicDirector")
 	if music_director == null:
@@ -161,10 +167,21 @@ func _finish(exit_code: int, game: Node, message: String = "") -> void:
 	_finished = true
 	if not message.is_empty():
 		push_error(message)
-	# Let the in-flight attack-window coroutine and its SceneTreeTimer finish before
-	# destroying the scene. This avoids nondeterministic ObjectDB/resource leaks.
-	await create_timer(0.35).timeout
 	if is_instance_valid(game):
+		# Stop short-lived SFX voices and detach their streams before freeing the scene.
+		# The audio server can otherwise retain active WAV playback after this test exits.
+		var voices: Array = game.get("sound_players")
+		for voice_variant in voices:
+			var voice := voice_variant as AudioStreamPlayer
+			if is_instance_valid(voice):
+				voice.stop()
+				voice.stream = null
+		voices.clear()
+		# Allow AudioServer one frame to retire stopped playback handles before
+		# dropping the scene's final references to the streams.
+		await process_frame
+		var streams: Dictionary = game.get("sfx_streams")
+		streams.clear()
 		game.free()
 	_active_game = null
 	if is_instance_valid(_watchdog_timer):
