@@ -28,6 +28,16 @@ func _run_layout_smoke() -> void:
 		if layout.get_node_or_null(expected_landmarks[chapter]) == null or layout.get_node_or_null(expected_routes[chapter]) == null:
 			_fail(root, "Chapter %d landmark is missing" % chapter)
 			return
+		var required_routes := [
+			"ExplorationTrail_Entry", "ExplorationTrail_Mid", "ExplorationTrail_Boss",
+			"ExplorationBranch_Entry", "ExplorationBranch_Mid", "ExplorationBranch_Boss",
+			"RouteGate_Entry_Lintel", "RouteGate_Mid_Lintel", "RouteGate_Boss_Lintel"
+		]
+		for route_name in required_routes:
+			var route_body := layout.get_node_or_null(route_name) as StaticBody3D
+			if route_body == null or not route_body.get_node_or_null("Collision") is CollisionShape3D:
+				_fail(root, "Chapter %d route segment %s must be collision-backed" % [chapter, route_name])
+				return
 		var colliders := 0
 		for node in layout.get_children():
 			if node is StaticBody3D and node.get_node_or_null("Collision") is CollisionShape3D:
