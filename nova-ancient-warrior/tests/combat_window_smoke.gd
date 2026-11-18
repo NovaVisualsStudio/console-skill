@@ -167,10 +167,21 @@ func _finish(exit_code: int, game: Node, message: String = "") -> void:
 	_finished = true
 	if not message.is_empty():
 		push_error(message)
-	# Let the in-flight attack-window coroutine and its SceneTreeTimer finish before
-	# destroying the scene. This avoids nondeterministic ObjectDB/resource leaks.
-	await create_timer(0.35).timeout
 	if is_instance_valid(game):
+		# Stop short-lived SFX voices and detach their streams before freeing the scene.
+		# The audio server can otherwise retain active WAV playback after this test exits.
+		var voices: Array = game.get("sound_players")
+		for voice_variant in voices:
+			var voice := voice_variant as AudioStreamPlayer
+			if is_instance_valid(voice):
+				voice.stop()
+				voice.stream = null
+		voices.clear()
+		# Allow AudioServer one frame to retire stopped playback handles before
+		# dropping the scene's final references to the streams.
+		await process_frame
+		var streams: Dictionary = game.get("sfx_streams")
+		streams.clear()
 		game.free()
 	_active_game = null
 	if is_instance_valid(_watchdog_timer):
