@@ -122,6 +122,27 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_APPLICATION_FOCUS_OUT and what != NOTIFICATION_APPLICATION_PAUSED:
+		return
+	# Android can suspend the app while a finger is still holding a virtual control.
+	# Release every synthetic action so movement, guard or attacks cannot stick on resume.
+	for action_name in [
+		"move_left", "move_right", "move_forward", "move_back",
+		"attack", "heavy_attack", "jump", "dodge", "block",
+		"lock_on", "interact", "restart"
+	]:
+		if InputMap.has_action(action_name):
+			Input.action_release(action_name)
+	touch_camera_controller.reset()
+	attack_sequence += 1
+	dodge_remaining = 0.0
+	block_window_remaining = 0.0
+	player_blocking = false
+	if is_instance_valid(hero_visual):
+		hero_visual.call("set_blocking", false)
+
+
 func _get_touch_ui_exclusions() -> Array[Rect2]:
 	var exclusions: Array[Rect2] = []
 	for control in [quality_button, upgrade_panel, restart_button]:
