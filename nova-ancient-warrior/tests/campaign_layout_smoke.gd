@@ -40,7 +40,8 @@ func _run_layout_smoke() -> void:
 				return
 		for route_name in ["ExplorationTrail_Entry", "ExplorationTrail_Mid", "ExplorationTrail_Boss", "ExplorationBranch_Entry", "ExplorationBranch_Mid", "ExplorationBranch_Boss"]:
 			var flush_route_body := layout.get_node(route_name) as StaticBody3D
-			var flush_route_shape := flush_route_body.get_node("Collision").shape as BoxShape3D
+			var flush_collision := flush_route_body.get_node("Collision") as CollisionShape3D
+			var flush_route_shape := flush_collision.shape as BoxShape3D
 			var route_top := flush_route_body.position.y + flush_route_shape.size.y * 0.5
 			if absf(route_top) > 0.01:
 				_fail(root, "Chapter %d route %s must be flush with the main floor" % [chapter, route_name])
@@ -67,8 +68,10 @@ func _run_layout_smoke() -> void:
 
 
 func _z_overlap(first: StaticBody3D, second: StaticBody3D) -> float:
-	var first_shape := first.get_node("Collision").shape as BoxShape3D
-	var second_shape := second.get_node("Collision").shape as BoxShape3D
+	var first_collision := first.get_node("Collision") as CollisionShape3D
+	var second_collision := second.get_node("Collision") as CollisionShape3D
+	var first_shape := first_collision.shape as BoxShape3D
+	var second_shape := second_collision.shape as BoxShape3D
 	var first_min := first.position.z - first_shape.size.z * 0.5
 	var first_max := first.position.z + first_shape.size.z * 0.5
 	var second_min := second.position.z - second_shape.size.z * 0.5
