@@ -155,9 +155,9 @@ static func _build_exploration_routes(root: Node3D, stage_index: int) -> void:
 
 
 static func _add_route_gate(root: Node3D, prefix: String, z_position: float, stone: Material, accent: Material) -> void:
-	_solid_block(root, prefix + "_Left", Vector3(0.65, 4.6, 0.8), Vector3(-5.6, 2.3, z_position), stone)
-	_solid_block(root, prefix + "_Right", Vector3(0.65, 4.6, 0.8), Vector3(5.6, 2.3, z_position), stone)
-	_solid_block(root, prefix + "_Lintel", Vector3(11.8, 0.48, 1.0), Vector3(0.0, 4.72, z_position), accent)
+	_solid_block(root, prefix + "_Left", Vector3(0.65, 4.6, 0.8), Vector3(-8.5, 2.3, z_position), stone)
+	_solid_block(root, prefix + "_Right", Vector3(0.65, 4.6, 0.8), Vector3(8.5, 2.3, z_position), stone)
+	_solid_block(root, prefix + "_Lintel", Vector3(18.0, 0.48, 1.0), Vector3(0.0, 4.72, z_position), accent)
 
 
 static func _add_arch(root: Node3D, prefix: String, beam_size: Vector3, stone: Material, accent: Material) -> void:
