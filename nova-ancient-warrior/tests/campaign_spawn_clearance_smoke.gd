@@ -3,7 +3,7 @@ extends SceneTree
 const CampaignLayout = preload("res://scripts/campaign_layout.gd")
 const CombatRules = preload("res://scripts/combat_rules.gd")
 
-const PLAYER_SPAWN := Vector3(0.0, 0.0, 3.5)
+const PLAYER_SPAWN := Vector3(0.0, 0.0, 29.0)
 const ACTOR_RADIUS := 0.46
 const ACTOR_HEIGHT := 1.8
 const WALKABLE_SURFACE_TOLERANCE := 0.12
