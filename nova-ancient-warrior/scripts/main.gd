@@ -493,7 +493,7 @@ func _build_player() -> void:
 	player.name = "AncientWarrior"
 	player.collision_layer = 1
 	player.collision_mask = 3
-	player.position = Vector3(0.0, 0.15, 3.5)
+	player.position = Vector3(0.0, 0.15, 29.0)
 	add_child(player)
 	blade_damage_bonus = int(_save_profile().get("upgrade_blade", 0)) * 4
 	health = 100 + int(_save_profile().get("upgrade_vitality", 0)) * 15
@@ -571,6 +571,17 @@ func _apply_level_theme(wave: int) -> void:
 		hazard_damage_cooldown = 0.0
 		hazard_warning_cooldown = 0.0
 		rune_hazard_lit = false
+		# Every chapter begins at its entrance so traversal and objectives form one continuous route.
+		if is_instance_valid(player):
+			player.global_position = Vector3(0.0, 0.15, 29.0)
+			player.velocity = Vector3.ZERO
+			locked_target = null
+			player_blocking = false
+			block_window_remaining = 0.0
+			dodge_remaining = 0.0
+			attack_sequence += 1
+			if is_instance_valid(hero_visual):
+				hero_visual.call("set_blocking", false)
 		StageBuilder.set_rune_intensity(active_chapter_scene if is_instance_valid(active_chapter_scene) else self, 0.0)
 		exploration_cache = ExplorationSecretDirector.build_stage(self, next_stage_index)
 		exploration_puzzle_nodes = ExplorationPuzzleDirector.build_stage(self, next_stage_index)
@@ -674,10 +685,27 @@ func _play_chapter_intro(chapter: int) -> void:
 		titles = ["", "الفصل الأول  |  الأطلال الغارقة", "الفصل الثاني  |  ممر الجمر", "الفصل الثالث  |  عرش السبج"]
 		subtitles = ["", "الختم الأول يرقد تحت المعبد الغارق. اكسر دفاع عملاق الرماد.", "اعبر ممر النار. قائد الحرب النارية يحرس الختم الثاني.", "الختم الأخير ينتظر في قاعة العرش المتجمدة. أنهِ حكم سيد السبج."]
 	var safe_chapter := clampi(chapter, 1, 3)
+	cinematic_active = true
 	if chapter_intro_tween != null and chapter_intro_tween.is_running():
 		chapter_intro_tween.kill()
-	chapter_intro_title.text = titles[safe_chapter]
-	chapter_intro_subtitle.text = subtitles[safe_chapter]
+	var return_position := player.global_position + Vector3(0.0, 6.3, 9.0) if is_instance_valid(player) else Vector3(0.0, 6.3, 9.0)
+	var return_target := player.global_position + Vector3(0.0, 1.1, 0.0) if is_instance_valid(player) else Vector3.ZERO
+	var reveal := CinematicDirector.play_camera_reveal(camera, player, return_position, return_target, 2.8)
+	if reveal == null:
+		_show_chapter_title_card(titles[safe_chapter], subtitles[safe_chapter], safe_chapter)
+		return
+	reveal.finished.connect(func():
+		if is_inside_tree():
+			_show_chapter_title_card(titles[safe_chapter], subtitles[safe_chapter], safe_chapter)
+	)
+
+
+func _show_chapter_title_card(title_text: String, subtitle_text: String, chapter: int) -> void:
+	if not is_instance_valid(chapter_intro_title) or not is_instance_valid(chapter_intro_subtitle):
+		cinematic_active = false
+		return
+	chapter_intro_title.text = title_text
+	chapter_intro_subtitle.text = subtitle_text
 	chapter_intro_title.visible = true
 	chapter_intro_subtitle.visible = true
 	chapter_intro_title.modulate.a = 0.0
@@ -694,7 +722,7 @@ func _play_chapter_intro(chapter: int) -> void:
 			chapter_intro_title.visible = false
 		if is_instance_valid(chapter_intro_subtitle):
 			chapter_intro_subtitle.visible = false
-		_start_dialogue(NarrativeDirector.chapter_dialogue(safe_chapter))
+		_start_dialogue(NarrativeDirector.chapter_dialogue(chapter))
 	)
 
 
