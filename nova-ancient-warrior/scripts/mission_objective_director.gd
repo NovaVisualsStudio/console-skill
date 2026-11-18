@@ -20,10 +20,10 @@ static func relic_positions(stage_index: int) -> Array[Vector3]:
 			return [Vector3(-18.0, 0.0, 0.0), Vector3(18.0, 0.0, 15.0), Vector3(0.0, 0.0, -29.0)]
 		1:
 			# Sequence 3 -> 1 -> 2 follows the same forward route with chapter-specific placement.
-			return [Vector3(-18.0, 0.0, -5.0), Vector3(0.0, 0.0, -29.0), Vector3(18.0, 0.0, 15.0)]
+			return [Vector3(-18.0, 0.0, -5.0), Vector3(0.0, 0.0, -30.0), Vector3(18.0, 0.0, 14.0)]
 		_:
 			# Sequence 1 -> 3 -> 2 traverses the left entrance, right middle route and boss approach.
-			return [Vector3(-18.0, 0.0, 15.0), Vector3(0.0, 0.0, -29.0), Vector3(18.0, 0.0, -5.0)]
+			return [Vector3(-18.0, 0.0, 14.0), Vector3(0.0, 0.0, -31.0), Vector3(18.0, 0.0, -5.0)]
 
 
 static func clear_stage(parent: Node3D) -> void:
