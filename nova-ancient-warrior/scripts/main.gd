@@ -27,6 +27,7 @@ const TouchCameraController = preload("res://scripts/touch_camera_controller.gd"
 const ThirdPersonCameraRig = preload("res://scripts/third_person_camera_rig.gd")
 const NovaTouchJoystickScript = preload("res://scripts/virtual_joystick.gd")
 const PauseMenuScript = preload("res://scripts/pause_menu.gd")
+const MobileInputSafety = preload("res://scripts/mobile_input_safety.gd")
 
 var player: CharacterBody3D
 var hero_visual: Node3D
@@ -120,6 +121,20 @@ func _input(event: InputEvent) -> void:
 	touch_camera_controller.set_excluded_rects(_get_touch_ui_exclusions())
 	if not cinematic_active and touch_camera_controller.handle_event(event, get_viewport().get_visible_rect().size):
 		get_viewport().set_input_as_handled()
+
+
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_APPLICATION_FOCUS_OUT and what != NOTIFICATION_APPLICATION_PAUSED:
+		return
+	# Android can suspend the app while a finger is still holding a virtual control.
+	# Release synthetic actions and reset the camera so controls cannot stick on resume.
+	MobileInputSafety.release_synthetic_inputs(touch_camera_controller)
+	attack_sequence += 1
+	dodge_remaining = 0.0
+	block_window_remaining = 0.0
+	player_blocking = false
+	if is_instance_valid(hero_visual):
+		hero_visual.call("set_blocking", false)
 
 
 func _get_touch_ui_exclusions() -> Array[Rect2]:

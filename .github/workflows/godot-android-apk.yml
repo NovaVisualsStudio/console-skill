@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+      - release/nova-ancient-warrior-integration-20261108
     paths:
       - "nova-ancient-warrior/**"
       - ".github/workflows/godot-android-apk.yml"
@@ -195,6 +196,10 @@ jobs:
             --script res://tests/stage_builder_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/campaign_layout_smoke.gd
+          for test_script in exploration_puzzle_smoke.gd exploration_secret_smoke.gd mission_objective_smoke.gd touch_camera_controller_smoke.gd virtual_joystick_smoke.gd mobile_input_safety_smoke.gd title_screen_smoke.gd gameplay_localization_smoke.gd third_person_camera_rig_smoke.gd; do
+            echo "RUN ANDROID QA REGRESSION: $test_script"
+            "$GODOT_BIN" --headless --path nova-ancient-warrior --script "res://tests/$test_script"
+          done
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
             --script res://tests/mobile_render_profile_smoke.gd
           "$GODOT_BIN" --headless --path nova-ancient-warrior \
