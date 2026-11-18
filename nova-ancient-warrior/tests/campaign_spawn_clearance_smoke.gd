@@ -28,6 +28,12 @@ func _run_spawn_clearance() -> void:
 			var count := CombatRules.wave_enemy_count(wave)
 			for index in range(count):
 				var spawn := CombatRules.wave_enemy_spawn_position(wave, index)
+				if CombatRules.is_boss_wave(wave) and spawn.z > -20.0:
+					_fail(root, "Boss wave %d must spawn in the final exploration chamber" % wave)
+					return
+				if not CombatRules.is_boss_wave(wave) and absf(spawn.z) > 12.0:
+					_fail(root, "Regular wave %d must remain in the central encounter district" % wave)
+					return
 				if _overlaps_blocker(layout, spawn):
 					_fail(root, "Chapter %d wave %d enemy spawn %d intersects solid geometry at %s" % [chapter + 1, wave, index + 1, str(spawn)])
 					return
