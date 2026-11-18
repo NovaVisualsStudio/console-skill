@@ -144,8 +144,11 @@ static func wave_enemy_spawn_position(wave: int, enemy_index: int) -> Vector3:
 	var count := wave_enemy_count(wave)
 	var safe_index := clampi(enemy_index, 0, count - 1)
 	var angle := TAU * float(safe_index) / float(count) + 0.4
+	if is_boss_wave(wave):
+		# Boss encounters belong to the final chamber at the end of the connected exploration route.
+		return Vector3(cos(angle) * 3.8, 0.0, -27.0 + sin(angle) * 3.8)
 	var chapter_offset := chapter_for_wave(wave) - 1
-	var radius := 7.8 if is_boss_wave(wave) else 6.2 + float(chapter_offset) * 0.7
+	var radius := 6.2 + float(chapter_offset) * 0.7
 	return Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
 
 
