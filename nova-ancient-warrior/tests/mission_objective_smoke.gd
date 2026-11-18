@@ -14,8 +14,13 @@ func _initialize() -> void:
 		assert(sequence.size() == 3, "Each chapter needs a three-step seal puzzle")
 		assert(sequence.has(1) and sequence.has(2) and sequence.has(3), "Seal sequence must use each carved number exactly once")
 		for position in positions:
-			assert(absf(position.x) <= 16.0 and absf(position.z) <= 16.0, "Relic must remain inside the playable arena")
+			assert(absf(position.x) <= 22.0 and absf(position.z) <= 34.0, "Relic must remain inside the expanded playable world")
 			assert(not previous_positions.has(position) or stage_index == 0, "Chapter layouts should not reuse identical relic placements")
+		var route_depths: Array[float] = []
+		for position in positions:
+			route_depths.append(position.z)
+		route_depths.sort()
+		assert(route_depths[2] - route_depths[0] >= 20.0, "Seal fragments must span the entrance, middle district and boss approach")
 		previous_positions = positions
 		var relics := MissionObjectives.build_stage(parent, stage_index)
 		assert(relics.size() == 3, "Stage builder must create all three relic visuals")
