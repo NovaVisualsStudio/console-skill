@@ -75,6 +75,11 @@ func play_tone(frequency: float, duration: float, amplitude: float) -> bool:
 	return true
 
 
+func set_music_intensity(value: float) -> void:
+	if is_instance_valid(_music_director):
+		_music_director.call("set_intensity", value)
+
+
 func stop_and_release() -> void:
 	if is_instance_valid(_music_director):
 		_music_director.call("stop_and_release")
