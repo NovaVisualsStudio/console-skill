@@ -589,8 +589,8 @@ func _start_boss_intro(boss: Node3D) -> void:
 	if cinematic_active or not is_instance_valid(boss) or not is_instance_valid(player) or not is_instance_valid(camera):
 		return
 	cinematic_active = true
-	if is_instance_valid(music_director):
-		music_director.call("set_intensity", 0.9)
+	if is_instance_valid(audio_manager):
+		audio_manager.call("set_music_intensity", 0.9)
 	_play_sfx_or_tone("boss_roar", 82.0, 0.34, 0.22)
 	var return_position := player.global_position + Vector3(0.0, 6.3, 9.0)
 	var return_target := player.global_position + Vector3(0.0, 1.1, 0.0)
@@ -600,8 +600,8 @@ func _start_boss_intro(boss: Node3D) -> void:
 		return
 	reveal.finished.connect(func():
 		cinematic_active = false
-		if is_instance_valid(music_director):
-			music_director.call("set_intensity", 0.35)
+		if is_instance_valid(audio_manager):
+			audio_manager.call("set_music_intensity", 0.35)
 	)
 
 
@@ -612,8 +612,8 @@ func _handle_wave_cleared() -> void:
 	_save_checkpoint()
 	if CombatRules.is_boss_wave(cleared_wave):
 		_save_call("record_boss_victory", [cleared_wave])
-		if is_instance_valid(music_director):
-			music_director.call("set_intensity", 0.24)
+		if is_instance_valid(audio_manager):
+			audio_manager.call("set_music_intensity", 0.24)
 	if cleared_wave >= CombatRules.CAMPAIGN_WAVES:
 		game_over = true
 		_save_run(true)
@@ -848,8 +848,8 @@ func _update_enemies(delta: float) -> void:
 			enemy.set_meta("speed", enemy_speed * 1.12)
 			if visual != null:
 				visual.call("phase_change", phase)
-			if is_instance_valid(music_director):
-				music_director.call("set_intensity", 0.68 if phase == 2 else 1.0)
+			if is_instance_valid(audio_manager):
+				audio_manager.call("set_music_intensity", 0.68 if phase == 2 else 1.0)
 			status_label.text = "%s | PHASE %d" % [CombatRules.boss_display_name(current_wave), phase]
 
 		var attack_state := str(enemy.get_meta("attack_state", "approach"))
