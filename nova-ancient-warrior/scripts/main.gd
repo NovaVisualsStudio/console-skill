@@ -8,7 +8,7 @@ const ATTACK_RANGE := 2.35
 const ARENA_LIMIT := 16.0
 const CombatRules = preload("res://scripts/combat_rules.gd")
 const WarriorVisual = preload("res://scripts/warrior_visual.gd")
-const MusicDirector = preload("res://scripts/music_director.gd")
+const AudioManager = preload("res://scripts/audio_manager.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
 const LevelCatalog = preload("res://scripts/level_catalog.gd")
 const StageBuilder = preload("res://scripts/stage_builder.gd")
@@ -40,13 +40,10 @@ var chapter_intro_title: Label
 var chapter_intro_subtitle: Label
 var chapter_intro_tween: Tween
 var restart_button: Button
-var sound_players: Array[AudioStreamPlayer] = []
-var sound_cursor := 0
-var sfx_streams: Dictionary = {}
+var audio_manager: Node
 var footstep_timer := 0.0
 var souls_earned := 0
 var cinematic_active := false
-var music_director: Node
 var _shutdown_in_progress := false
 var _quit_request_pending := false
 var arena_environment: Environment
@@ -109,12 +106,8 @@ func stop_audio_and_wait() -> void:
 	if _shutdown_in_progress:
 		return
 	_shutdown_in_progress = true
-	if is_instance_valid(music_director):
-		music_director.call("stop_and_release")
-	for voice in sound_players:
-		if is_instance_valid(voice):
-			voice.stop()
-			voice.stream = null
+	if is_instance_valid(audio_manager):
+		audio_manager.call("stop_and_release")
 	# AudioServer retires stopped playbacks asynchronously; allow one short mix window.
 	await get_tree().create_timer(0.15).timeout
 
@@ -1081,65 +1074,24 @@ func _purchase_upgrade(upgrade_name: String) -> void:
 
 
 func _build_audio() -> void:
-	music_director = MusicDirector.new()
-	music_director.name = "MusicDirector"
-	add_child(music_director)
-	var sfx_level := float(_save_profile().get("sfx_volume", 0.85))
-	var sfx_gain_db := linear_to_db(maxf(sfx_level, 0.0001)) - 5.0
-	for i in range(4):
-		var voice := AudioStreamPlayer.new()
-		voice.volume_db = sfx_gain_db
-		add_child(voice)
-		sound_players.append(voice)
-	var sound_names := [
-		"sword_swing", "heavy_swing", "impact", "parry", "footstep",
-		"dodge", "jump", "hurt", "boss_roar", "hazard_warning",
-		"hazard_burst", "victory", "upgrade"
-	]
-	for sound_name in sound_names:
-		var audio_path := "res://audio/generated/%s.wav" % sound_name
-		if ResourceLoader.exists(audio_path):
-			var stream := load(audio_path) as AudioStreamWAV
-			if stream != null:
-				sfx_streams[sound_name] = stream
+	audio_manager = AudioManager.new()
+	audio_manager.name = "AudioManager"
+	add_child(audio_manager)
+	audio_manager.call("configure", _save_profile())
 
 
 func _play_sfx(sound_name: String) -> bool:
-	if sound_players.is_empty() or not sfx_streams.has(sound_name):
-		return false
-	var voice := sound_players[sound_cursor]
-	sound_cursor = (sound_cursor + 1) % sound_players.size()
-	voice.stream = sfx_streams[sound_name]
-	voice.play()
-	return true
+	return is_instance_valid(audio_manager) and bool(audio_manager.call("play_sfx", sound_name))
 
 
 func _play_sfx_or_tone(sound_name: String, frequency: float, duration: float, amplitude: float) -> void:
-	if not _play_sfx(sound_name):
-		_play_tone(frequency, duration, amplitude)
+	if is_instance_valid(audio_manager):
+		audio_manager.call("play_sfx_or_tone", sound_name, frequency, duration, amplitude)
 
 
 func _play_tone(frequency: float, duration: float, amplitude: float) -> void:
-	if sound_players.is_empty():
-		return
-	var voice := sound_players[sound_cursor]
-	sound_cursor = (sound_cursor + 1) % sound_players.size()
-	var sample_rate := 22050
-	var count := maxi(1, int(sample_rate * duration))
-	var data := PackedByteArray()
-	data.resize(count * 2)
-	for i in range(count):
-		var t := float(i) / float(sample_rate)
-		var envelope := 1.0 - float(i) / float(count)
-		var sample := int(sin(TAU * frequency * t) * amplitude * envelope * 32767.0)
-		data.encode_s16(i * 2, sample)
-	var stream := AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.mix_rate = sample_rate
-	stream.stereo = false
-	stream.data = data
-	voice.stream = stream
-	voice.play()
+	if is_instance_valid(audio_manager):
+		audio_manager.call("play_tone", frequency, duration, amplitude)
 
 
 func _material(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
