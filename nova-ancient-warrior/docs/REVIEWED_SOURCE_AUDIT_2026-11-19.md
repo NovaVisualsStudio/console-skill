@@ -1,4 +1,4 @@
-# Nova Ancient Warrior — reviewed source audit (2026-11-19)
+# Nova Ancient Warrior - reviewed source audit (2026-11-19)
 
 ## Scope and decision
 
@@ -14,7 +14,7 @@ This audit covers the 12 allowlisted GDScript candidates staged by GitHub Action
 
 Every listed file's SHA-256 was recomputed from the downloaded artifact and matched its `SOURCE_PROVENANCE.json` entry.
 
-### Adventure Mode — MIT code (7 files)
+### Adventure Mode - MIT code (7 files)
 
 The upstream license file was included in the artifact. Its code grant is MIT; the repository's art/assets are separately marked CC-BY-4.0 and were not staged or approved by this code-only audit.
 
@@ -39,7 +39,7 @@ The upstream license file was included in the artifact. Its code grant is MIT; t
 
 **Decision:** do not integrate any of these seven files. Their movement concepts may inform a separately authored Nova traversal controller, but wholesale copying would introduce missing project dependencies and likely duplicate existing combat/input systems.
 
-### GOAT — MIT code (5 files)
+### GOAT - MIT code (5 files)
 
 The upstream MIT license was included. The staged set contains code only; GOAT demo assets have mixed licenses, including CC0 and CC-BY-NC-4.0, and are not approved for commercial reuse by this audit.
 
