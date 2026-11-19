@@ -224,6 +224,16 @@ class Repo(unittest.TestCase):
         self.assertIn("THE SOFTWARE IS PROVIDED \"AS IS\"", notice)
 
 
+    def test_agents_skill_directory_inventory_matches_root(self):
+        mirror = os.path.join(ROOT, ".agents", "skills")
+        self.assertTrue(os.path.isdir(mirror), ".agents/skills is missing")
+        found = sorted(
+            name for name in os.listdir(mirror)
+            if os.path.isdir(os.path.join(mirror, name))
+        )
+        self.assertEqual(found, sorted(SKILLS),
+                         "Codex skill directories must match the 11 canonical root skills")
+
     def test_agents_skill_copies_match_root(self):
         mirror = os.path.join(ROOT, ".agents", "skills")
         self.assertTrue(os.path.isdir(mirror), ".agents/skills is missing")
