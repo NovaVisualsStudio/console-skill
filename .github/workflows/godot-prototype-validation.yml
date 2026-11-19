@@ -62,6 +62,10 @@ jobs:
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/audio_assets_smoke.gd
 
+      - name: Smoke-test isolated audio manager
+        run: |
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/audio_manager_smoke.gd
+
       - name: Run deterministic gameplay combat checks
         run: |
           ./Godot_v4.7.2-stable_linux.x86_64 --headless --path nova-ancient-warrior --script res://tests/combat_rules_smoke.gd
