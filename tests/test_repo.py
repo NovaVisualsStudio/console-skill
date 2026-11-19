@@ -23,6 +23,21 @@ GAME_EXT = (".iso", ".bin", ".img", ".mdf", ".mds", ".nrg", ".chd", ".cso", ".zs
             ".irx", ".tm2", ".vag", ".ps2", ".mcd", ".psu", ".pdf", ".pnach")
 MAX_FILE = 512 * 1024
 
+# The integration PR adds these governance documents at the root. They are
+# optional on main until that PR lands, but must not make the exact root check
+# fail or cause the .github directory to be hidden by a broad .git prefix test.
+ROOT_REQUIRED = {
+    ".agents", ".claude-plugin", ".github", "LICENSE", "README.md",
+    "docs", "nova-ancient-warrior", "ps2-game", "tests",
+} | set(SKILLS)
+ROOT_OPTIONAL = {
+    "AGENTS.md", "AI_DEVELOPMENT_WORKFLOW.md", "CLAUDE.md", "ZERO_COST_POLICY.md",
+}
+
+
+def root_inventory_matches(root):
+    return ROOT_REQUIRED.issubset(root) and root.issubset(ROOT_REQUIRED | ROOT_OPTIONAL)
+
 
 def frontmatter(path):
     with open(path, encoding="utf-8") as fh:
@@ -61,10 +76,20 @@ class Repo(unittest.TestCase):
         root = set()
         for relpath in tracked_paths():
             top = relpath.split("/", 1)[0]
-            if not top.startswith(".git"):
+            if top != ".git":
                 root.add(top)
-        self.assertEqual(sorted(root),
-                         sorted([".agents", ".claude-plugin", "LICENSE", "README.md", "ps2-game", "tests"] + SKILLS))
+        self.assertTrue(
+            root_inventory_matches(root),
+            "Unexpected root entries: %r; missing required entries: %r"
+            % (sorted(root - (ROOT_REQUIRED | ROOT_OPTIONAL)),
+               sorted(ROOT_REQUIRED - root)),
+        )
+
+    def test_root_inventory_policy_allows_only_known_governance_docs(self):
+        self.assertTrue(root_inventory_matches(ROOT_REQUIRED))
+        self.assertTrue(root_inventory_matches(ROOT_REQUIRED | ROOT_OPTIONAL))
+        self.assertFalse(root_inventory_matches(ROOT_REQUIRED | {"unexpected.md"}))
+        self.assertFalse(root_inventory_matches(ROOT_REQUIRED - {"README.md"}))
 
     def test_frontmatter_name_description_hint(self):
         for s in SKILLS:
@@ -198,6 +223,16 @@ class Repo(unittest.TestCase):
         self.assertIn("Permission is hereby granted", notice)
         self.assertIn("THE SOFTWARE IS PROVIDED \"AS IS\"", notice)
 
+
+    def test_agents_skill_directory_inventory_matches_root(self):
+        mirror = os.path.join(ROOT, ".agents", "skills")
+        self.assertTrue(os.path.isdir(mirror), ".agents/skills is missing")
+        found = sorted(
+            name for name in os.listdir(mirror)
+            if os.path.isdir(os.path.join(mirror, name))
+        )
+        self.assertEqual(found, sorted(SKILLS),
+                         "Codex skill directories must match the 11 canonical root skills")
 
     def test_agents_skill_copies_match_root(self):
         mirror = os.path.join(ROOT, ".agents", "skills")
