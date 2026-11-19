@@ -6,6 +6,7 @@ on:
       - ".github/workflows/nova-mocap-character.yml"
       - "nova-ancient-warrior/tools/blender/**"
       - "nova-ancient-warrior/tests/test_mocap_optimizer.py"
+      - "nova-ancient-warrior/tests/test_mocap_provenance.py"
       - "nova-ancient-warrior/tests/character_asset_smoke.gd"
       - "nova-ancient-warrior/mocap/**"
   workflow_dispatch:
@@ -45,8 +46,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Test GLB facial morph preservation and Android stripping
-        run: python -m unittest discover -s nova-ancient-warrior/tests -p 'test_mocap_optimizer.py' -v
+      - name: Test GLB optimization and provenance manifests
+        run: |
+          python -m py_compile nova-ancient-warrior/tools/blender/write_mocap_provenance.py
+          python -m unittest discover -s nova-ancient-warrior/tests -p 'test_mocap_optimizer.py' -v
+          python -m unittest discover -s nova-ancient-warrior/tests -p 'test_mocap_provenance.py' -v
 
       - name: Install video runtime libraries
         run: |
@@ -74,6 +78,10 @@ jobs:
           if [ "$REQUESTED_VIDEO" = "demo" ]; then
             VIDEO_PATH="$GITHUB_WORKSPACE/.v2bm/assets/video/kung_fu_haikou.mp4"
             VIDEO_LICENCE="CC0-1.0"
+            VIDEO_SOURCE_ID="video_kung_fu_haikou"
+            VIDEO_SOURCE_URL="https://commons.wikimedia.org/wiki/File:Kung_fu_at_Haikou_People%27s_Park.ogv"
+            VIDEO_CREATOR="Anna Frodesiak"
+            VIDEO_LABEL="demo"
           else
             case "$REQUESTED_VIDEO" in
               nova-ancient-warrior/mocap/*) ;;
@@ -82,13 +90,25 @@ jobs:
             VIDEO_PATH="$GITHUB_WORKSPACE/$REQUESTED_VIDEO"
             test -s "$VIDEO_PATH"
             VIDEO_LICENCE="user-supplied; confirm performer rights before commercial release"
+            VIDEO_SOURCE_ID="user_supplied"
+            VIDEO_SOURCE_URL=""
+            VIDEO_CREATOR=""
+            VIDEO_LABEL="$REQUESTED_VIDEO"
           fi
           RIG_PATH="$GITHUB_WORKSPACE/.v2bm/assets/rigs/$REQUESTED_RIG.fbx"
+          RIG_LICENCE="CC0-1.0"
+          RIG_SOURCE_URL="https://github.com/s0ck3t/VideoIntoBlenderModel/blob/c1f1fa8f01524d60197c4d65306349e266d339cb/assets/rigs/$REQUESTED_RIG.fbx"
           test -s "$VIDEO_PATH"
           test -s "$RIG_PATH"
           echo "video_path=$VIDEO_PATH" >> "$GITHUB_OUTPUT"
-          echo "rig_path=$RIG_PATH" >> "$GITHUB_OUTPUT"
           echo "video_licence=$VIDEO_LICENCE" >> "$GITHUB_OUTPUT"
+          echo "video_source_id=$VIDEO_SOURCE_ID" >> "$GITHUB_OUTPUT"
+          echo "video_source_url=$VIDEO_SOURCE_URL" >> "$GITHUB_OUTPUT"
+          echo "video_creator=$VIDEO_CREATOR" >> "$GITHUB_OUTPUT"
+          echo "video_label=$VIDEO_LABEL" >> "$GITHUB_OUTPUT"
+          echo "rig_path=$RIG_PATH" >> "$GITHUB_OUTPUT"
+          echo "rig_licence=$RIG_LICENCE" >> "$GITHUB_OUTPUT"
+          echo "rig_source_url=$RIG_SOURCE_URL" >> "$GITHUB_OUTPUT"
           echo "rig_profile=$REQUESTED_RIG" >> "$GITHUB_OUTPUT"
 
       - name: Run markerless video-to-character motion retargeting
@@ -114,6 +134,38 @@ jobs:
             --max-mb 64 | tee "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate_face_preserved.optimize.json"
           cp "$(dirname "$OUTPUT_GLB")/run.json" "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters/nova_mocap_candidate.run.json"
 
+      - name: Write pinned source and SHA-256 provenance
+        env:
+          VIDEO_PATH: ${{ steps.input.outputs.video_path }}
+          VIDEO_LABEL: ${{ steps.input.outputs.video_label }}
+          VIDEO_SOURCE_ID: ${{ steps.input.outputs.video_source_id }}
+          VIDEO_LICENCE: ${{ steps.input.outputs.video_licence }}
+          VIDEO_SOURCE_URL: ${{ steps.input.outputs.video_source_url }}
+          VIDEO_CREATOR: ${{ steps.input.outputs.video_creator }}
+          RIG_PATH: ${{ steps.input.outputs.rig_path }}
+          RIG_PROFILE: ${{ steps.input.outputs.rig_profile }}
+          RIG_LICENCE: ${{ steps.input.outputs.rig_licence }}
+          RIG_SOURCE_URL: ${{ steps.input.outputs.rig_source_url }}
+        run: |
+          set -euo pipefail
+          python nova-ancient-warrior/tools/blender/write_mocap_provenance.py \
+            --video "$VIDEO_PATH" \
+            --video-label "$VIDEO_LABEL" \
+            --video-source-id "$VIDEO_SOURCE_ID" \
+            --video-license "$VIDEO_LICENCE" \
+            --video-source-url "$VIDEO_SOURCE_URL" \
+            --video-creator "$VIDEO_CREATOR" \
+            --rig "$RIG_PATH" \
+            --rig-profile "$RIG_PROFILE" \
+            --rig-license "$RIG_LICENCE" \
+            --rig-source-url "$RIG_SOURCE_URL" \
+            --pipeline-root "$GITHUB_WORKSPACE/.v2bm" \
+            --pipeline-commit c1f1fa8f01524d60197c4d65306349e266d339cb \
+            --output-dir "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters" \
+            --repository "$GITHUB_REPOSITORY" \
+            --source-commit "$GITHUB_SHA" \
+            --workflow-run-id "$GITHUB_RUN_ID"
+
       - name: Download Godot 4.7.2
         run: |
           curl -L --fail --retry 3 -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
@@ -138,5 +190,6 @@ jobs:
             nova-ancient-warrior/assets/characters/nova_mocap_candidate_face_preserved.glb
             nova-ancient-warrior/assets/characters/nova_mocap_candidate_face_preserved.optimize.json
             nova-ancient-warrior/assets/characters/nova_mocap_candidate.run.json
+            nova-ancient-warrior/assets/characters/nova_mocap_candidate.provenance.json
           if-no-files-found: error
           retention-days: 14
