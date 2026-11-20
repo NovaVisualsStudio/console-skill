@@ -8,6 +8,8 @@ Secondary PS2SDK target remains separate from the APK.
 
 GitHub discovery returned **300 unique repositories** across MIT-, Apache-2.0-, and BSD-3-Clause-filtered Godot repository searches. This register lists 110 candidates. These are discovery candidates, not a claim that every code file, bundled model, texture, sound, or dependency is legally cleared. The curated shortlist below was inspected more closely. Check the exact LICENSE, release tag, engine compatibility, asset provenance and dependencies before copying anything.
 
+For marketplace discovery beyond open-source repositories, use the standing [asset ecosystem and production policy](NOVA_ASSET_ECOSYSTEM_POLICY.md), which includes OpenGameArt, SourceForge, GitLab, Bitbucket, Unity Asset Store, Fab, Godot Asset Library and the wider production toolchain. It defines licence and integration gates; inclusion in a shortlist is not approval to ship an asset.
+
 ## Shortlist assessed for Nova
 
 | Resource | Practical relevance / decision |

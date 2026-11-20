@@ -8,10 +8,13 @@ const ATTACK_RANGE := 2.35
 const ARENA_LIMIT := 16.0
 const CombatRules = preload("res://scripts/combat_rules.gd")
 const WarriorVisual = preload("res://scripts/warrior_visual.gd")
-const MusicDirector = preload("res://scripts/music_director.gd")
+const AudioManager = preload("res://scripts/audio_manager.gd")
 const CinematicDirector = preload("res://scripts/cinematic_director.gd")
 const LevelCatalog = preload("res://scripts/level_catalog.gd")
 const StageBuilder = preload("res://scripts/stage_builder.gd")
+const CampaignLayout = preload("res://scripts/campaign_layout.gd")
+const MobileRenderProfile = preload("res://scripts/mobile_render_profile.gd")
+const RiggedWarriorVisual = preload("res://scripts/rigged_warrior_visual.gd")
 const StageHazardRules = preload("res://scripts/stage_hazard_rules.gd")
 
 var player: CharacterBody3D
@@ -37,13 +40,12 @@ var chapter_intro_title: Label
 var chapter_intro_subtitle: Label
 var chapter_intro_tween: Tween
 var restart_button: Button
-var sound_players: Array[AudioStreamPlayer] = []
-var sound_cursor := 0
-var sfx_streams: Dictionary = {}
+var audio_manager: Node
 var footstep_timer := 0.0
 var souls_earned := 0
 var cinematic_active := false
-var music_director: Node
+var _shutdown_in_progress := false
+var _quit_request_pending := false
 var arena_environment: Environment
 var arena_floor_material: StandardMaterial3D
 var arena_sun: DirectionalLight3D
@@ -73,6 +75,41 @@ func _ready() -> void:
 	_build_enemies()
 	_build_audio()
 	_update_hud()
+	if OS.get_environment("NOVA_SMOKE_GRACEFUL_SHUTDOWN") == "1":
+		_run_graceful_shutdown_smoke.call_deferred()
+
+
+func _run_graceful_shutdown_smoke() -> void:
+	await get_tree().create_timer(0.8).timeout
+	await stop_audio_and_wait()
+	print("MAIN_SCENE_GRACEFUL_SHUTDOWN_OK")
+	get_tree().quit()
+
+
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_WM_CLOSE_REQUEST and what != NOTIFICATION_WM_GO_BACK_REQUEST:
+		return
+	# Godot 4.7.2 Android may deliver more than one Back notification per press.
+	if _quit_request_pending:
+		return
+	_quit_request_pending = true
+	get_tree().set_auto_accept_quit(false)
+	_finish_quit_request.call_deferred()
+
+
+func _finish_quit_request() -> void:
+	await stop_audio_and_wait()
+	get_tree().quit()
+
+
+func stop_audio_and_wait() -> void:
+	if _shutdown_in_progress:
+		return
+	_shutdown_in_progress = true
+	if is_instance_valid(audio_manager):
+		audio_manager.call("stop_and_release")
+	# AudioServer retires stopped playbacks asynchronously; allow one short mix window.
+	await get_tree().create_timer(0.15).timeout
 
 
 func _process(delta: float) -> void:
@@ -134,6 +171,8 @@ func _physics_process(delta: float) -> void:
 		dodge_remaining = 0.28
 		dodge_cooldown = 0.88
 		player_invulnerability_time = maxf(player_invulnerability_time, 0.42)
+		if is_instance_valid(hero_visual):
+			hero_visual.call("play_dodge")
 		_play_sfx_or_tone("dodge", 360.0, 0.09, 0.17)
 
 	if dodge_remaining > 0.0:
@@ -306,6 +345,7 @@ func _build_world() -> void:
 	sun.light_energy = 1.25
 	sun.shadow_enabled = true
 	add_child(sun)
+	MobileRenderProfile.apply(OS.get_name() == "Android", env, sun)
 
 	var floor_body := StaticBody3D.new()
 	floor_body.name = "ArenaFloor"
@@ -348,12 +388,13 @@ func _build_world() -> void:
 		brazier.position = Vector3(cos(angle) * 9.0, 0.45, sin(angle) * 9.0)
 		brazier.material_override = _material(Color(0.16, 0.14, 0.13), 0.0, 0.85)
 		add_child(brazier)
-		var fire_light := OmniLight3D.new()
-		fire_light.position = brazier.position + Vector3(0.0, 0.8, 0.0)
-		fire_light.light_color = Color(1.0, 0.29, 0.075)
-		fire_light.light_energy = 1.2
-		fire_light.omni_range = 5.5
-		add_child(fire_light)
+		if OS.get_name() != "Android" or i % 2 == 0:
+			var fire_light := OmniLight3D.new()
+			fire_light.position = brazier.position + Vector3(0.0, 0.8, 0.0)
+			fire_light.light_color = Color(1.0, 0.29, 0.075)
+			fire_light.light_energy = 1.2
+			fire_light.omni_range = 5.5
+			add_child(fire_light)
 
 	for i in range(34):
 		var rock := MeshInstance3D.new()
@@ -389,7 +430,10 @@ func _build_player() -> void:
 	collision.shape = capsule
 	collision.position.y = 0.9
 	player.add_child(collision)
-	hero_visual = WarriorVisual.new()
+	if ResourceLoader.exists("res://assets/characters/nova_hero.glb"):
+		hero_visual = RiggedWarriorVisual.new()
+	else:
+		hero_visual = WarriorVisual.new()
 	hero_visual.name = "WarriorVisual"
 	hero_visual.set("blade_upgrade", int(_save_profile().get("upgrade_blade", 0)))
 	player.add_child(hero_visual)
@@ -428,6 +472,7 @@ func _apply_level_theme(wave: int) -> void:
 	var next_stage_index := LevelCatalog.stage_index(wave)
 	if next_stage_index != built_stage_index:
 		StageBuilder.build_stage(self, next_stage_index)
+		CampaignLayout.build_stage(self, next_stage_index)
 		built_stage_index = next_stage_index
 		hazard_elapsed = 0.0
 		hazard_damage_cooldown = 0.0
@@ -544,8 +589,8 @@ func _start_boss_intro(boss: Node3D) -> void:
 	if cinematic_active or not is_instance_valid(boss) or not is_instance_valid(player) or not is_instance_valid(camera):
 		return
 	cinematic_active = true
-	if is_instance_valid(music_director):
-		music_director.call("set_intensity", 0.9)
+	if is_instance_valid(audio_manager):
+		audio_manager.call("set_music_intensity", 0.9)
 	_play_sfx_or_tone("boss_roar", 82.0, 0.34, 0.22)
 	var return_position := player.global_position + Vector3(0.0, 6.3, 9.0)
 	var return_target := player.global_position + Vector3(0.0, 1.1, 0.0)
@@ -555,8 +600,8 @@ func _start_boss_intro(boss: Node3D) -> void:
 		return
 	reveal.finished.connect(func():
 		cinematic_active = false
-		if is_instance_valid(music_director):
-			music_director.call("set_intensity", 0.35)
+		if is_instance_valid(audio_manager):
+			audio_manager.call("set_music_intensity", 0.35)
 	)
 
 
@@ -567,8 +612,8 @@ func _handle_wave_cleared() -> void:
 	_save_checkpoint()
 	if CombatRules.is_boss_wave(cleared_wave):
 		_save_call("record_boss_victory", [cleared_wave])
-		if is_instance_valid(music_director):
-			music_director.call("set_intensity", 0.24)
+		if is_instance_valid(audio_manager):
+			audio_manager.call("set_music_intensity", 0.24)
 	if cleared_wave >= CombatRules.CAMPAIGN_WAVES:
 		game_over = true
 		_save_run(true)
@@ -803,8 +848,8 @@ func _update_enemies(delta: float) -> void:
 			enemy.set_meta("speed", enemy_speed * 1.12)
 			if visual != null:
 				visual.call("phase_change", phase)
-			if is_instance_valid(music_director):
-				music_director.call("set_intensity", 0.68 if phase == 2 else 1.0)
+			if is_instance_valid(audio_manager):
+				audio_manager.call("set_music_intensity", 0.68 if phase == 2 else 1.0)
 			status_label.text = "%s | PHASE %d" % [CombatRules.boss_display_name(current_wave), phase]
 
 		var attack_state := str(enemy.get_meta("attack_state", "approach"))
@@ -1029,65 +1074,24 @@ func _purchase_upgrade(upgrade_name: String) -> void:
 
 
 func _build_audio() -> void:
-	music_director = MusicDirector.new()
-	music_director.name = "MusicDirector"
-	add_child(music_director)
-	var sfx_level := float(_save_profile().get("sfx_volume", 0.85))
-	var sfx_gain_db := linear_to_db(maxf(sfx_level, 0.0001)) - 5.0
-	for i in range(4):
-		var voice := AudioStreamPlayer.new()
-		voice.volume_db = sfx_gain_db
-		add_child(voice)
-		sound_players.append(voice)
-	var sound_names := [
-		"sword_swing", "heavy_swing", "impact", "parry", "footstep",
-		"dodge", "jump", "hurt", "boss_roar", "hazard_warning",
-		"hazard_burst", "victory", "upgrade"
-	]
-	for sound_name in sound_names:
-		var audio_path := "res://audio/generated/%s.wav" % sound_name
-		if ResourceLoader.exists(audio_path):
-			var stream := load(audio_path) as AudioStreamWAV
-			if stream != null:
-				sfx_streams[sound_name] = stream
+	audio_manager = AudioManager.new()
+	audio_manager.name = "AudioManager"
+	add_child(audio_manager)
+	audio_manager.call("configure", _save_profile())
 
 
 func _play_sfx(sound_name: String) -> bool:
-	if sound_players.is_empty() or not sfx_streams.has(sound_name):
-		return false
-	var voice := sound_players[sound_cursor]
-	sound_cursor = (sound_cursor + 1) % sound_players.size()
-	voice.stream = sfx_streams[sound_name]
-	voice.play()
-	return true
+	return is_instance_valid(audio_manager) and bool(audio_manager.call("play_sfx", sound_name))
 
 
 func _play_sfx_or_tone(sound_name: String, frequency: float, duration: float, amplitude: float) -> void:
-	if not _play_sfx(sound_name):
-		_play_tone(frequency, duration, amplitude)
+	if is_instance_valid(audio_manager):
+		audio_manager.call("play_sfx_or_tone", sound_name, frequency, duration, amplitude)
 
 
 func _play_tone(frequency: float, duration: float, amplitude: float) -> void:
-	if sound_players.is_empty():
-		return
-	var voice := sound_players[sound_cursor]
-	sound_cursor = (sound_cursor + 1) % sound_players.size()
-	var sample_rate := 22050
-	var count := maxi(1, int(sample_rate * duration))
-	var data := PackedByteArray()
-	data.resize(count * 2)
-	for i in range(count):
-		var t := float(i) / float(sample_rate)
-		var envelope := 1.0 - float(i) / float(count)
-		var sample := int(sin(TAU * frequency * t) * amplitude * envelope * 32767.0)
-		data.encode_s16(i * 2, sample)
-	var stream := AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.mix_rate = sample_rate
-	stream.stereo = false
-	stream.data = data
-	voice.stream = stream
-	voice.play()
+	if is_instance_valid(audio_manager):
+		audio_manager.call("play_tone", frequency, duration, amplitude)
 
 
 func _material(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:

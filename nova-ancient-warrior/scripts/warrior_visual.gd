@@ -15,6 +15,7 @@ var _left_leg: Node3D
 var _right_leg: Node3D
 var _sword_pivot: Node3D
 var _attack_tween: Tween
+var _dodge_tween: Tween
 var _base_torso_color := Color(0.46, 0.18, 0.11)
 var _base_armor_color := Color(0.55, 0.31, 0.13)
 
@@ -50,6 +51,17 @@ func play_attack(combo_step: int) -> void:
 	_attack_tween.tween_property(_right_arm, "rotation:z", 0.0, 0.17)
 	_attack_tween.parallel().tween_property(_sword_pivot, "rotation:z", -0.55, 0.17)
 	_attack_tween.parallel().tween_property(_right_arm, "rotation:x", 0.0, 0.17)
+
+
+func play_dodge() -> void:
+	if _dodge_tween != null and _dodge_tween.is_running():
+		_dodge_tween.kill()
+	_dodge_tween = create_tween()
+	_dodge_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_dodge_tween.tween_property(self, "rotation:z", -0.24, 0.08)
+	_dodge_tween.parallel().tween_property(self, "position:y", -0.12, 0.08)
+	_dodge_tween.tween_property(self, "rotation:z", 0.0, 0.18)
+	_dodge_tween.parallel().tween_property(self, "position:y", 0.0, 0.18)
 
 
 func telegraph(enabled: bool) -> void:
@@ -179,6 +191,29 @@ func _build_character() -> void:
 		_add_box(self, "BossCrown", Vector3(0.48, 0.20, 0.18), Vector3(0.0, 2.18, 0.0), crest_material)
 		_add_box(self, "BossLeftSpur", Vector3(0.12, 0.62, 0.16), Vector3(-0.40, 1.55, 0.0), crest_material, Vector3(0.0, 0.0, -0.35))
 		_add_box(self, "BossRightSpur", Vector3(0.12, 0.62, 0.16), Vector3(0.40, 1.55, 0.0), crest_material, Vector3(0.0, 0.0, 0.35))
+
+		match boss_kind:
+			"ash_titan":
+				_add_box(self, "AshTitanMantle", Vector3(1.05, 0.46, 0.52), Vector3(0.0, 1.56, 0.10), dark)
+				_add_sphere(self, "AshTitanShoulder", 0.36, 0.42, Vector3(-0.62, 1.55, 0.02), _mat(Color(0.31, 0.20, 0.17), 0.28, 0.86), 8, 5)
+				_add_capsule(self, "AshTitanMaulHandle", 0.095, 1.25, Vector3(0.98, 0.68, 0.04), dark, 8, 4)
+				_add_box(self, "AshTitanMaulHead", Vector3(0.55, 0.48, 0.44), Vector3(0.98, 1.38, 0.04), steel)
+			"ember_warlord":
+				var ember_horn_left := _add_capsule(self, "EmberHornLeft", 0.105, 0.68, Vector3(-0.32, 2.26, 0.0), crest_material, 8, 4)
+				ember_horn_left.rotation.z = -0.48
+				var ember_horn_right := _add_capsule(self, "EmberHornRight", 0.105, 0.68, Vector3(0.32, 2.26, 0.0), crest_material, 8, 4)
+				ember_horn_right.rotation.z = 0.48
+				var ember_core := _mat(Color(1.0, 0.20, 0.035), 0.18, 0.28)
+				ember_core.emission_enabled = true
+				ember_core.emission = Color(1.0, 0.08, 0.01)
+				_add_sphere(self, "EmberFlameCore", 0.19, 0.24, Vector3(0.0, 1.44, -0.36), ember_core, 10, 6)
+			"obsidian_sovereign":
+				var obsidian_crystal := _mat(Color(0.30, 0.46, 0.95), 0.72, 0.20)
+				obsidian_crystal.emission_enabled = true
+				obsidian_crystal.emission = Color(0.08, 0.20, 0.82)
+				_add_box(self, "ObsidianCrownSpire", Vector3(0.12, 0.78, 0.14), Vector3(0.0, 2.58, 0.0), obsidian_crystal, Vector3(0.0, 0.0, 0.12))
+				_add_sphere(self, "ObsidianRuneOrb", 0.22, 0.28, Vector3(0.72, 1.98, 0.0), obsidian_crystal, 10, 6)
+				_add_box(self, "ObsidianRoyalMantle", Vector3(0.88, 0.76, 0.10), Vector3(0.0, 1.15, 0.30), dark)
 
 	if not is_enemy:
 		var shield := Node3D.new()

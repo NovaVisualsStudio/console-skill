@@ -95,3 +95,18 @@ This is an intake and retarget pipeline, not yet the final armoured hero. The ge
 - [ ] Save migration, checkpoint and chapter unlock tests pass.
 - [ ] Music/SFX mix and boss cinematic can be skipped or interrupted safely.
 - [ ] Android APK installed and play-tested on target hardware.
+
+
+## Facial morph preservation and Android candidate split
+
+The mocap workflow emits two deliberately separate GLB candidates:
+
+- nova_mocap_candidate.glb is the size-constrained Android-oriented candidate. Its default optimization removes facial morph targets and weight channels to stay within the configured 12 MiB budget; it is not a claim that facial animation is complete.
+- nova_mocap_candidate_face_preserved.glb is a review-only candidate produced with --keep-morph-targets. It retains the input mesh morph targets, mesh/node weights and weight animation channels, and is allowed a larger 64 MiB research-artifact budget. It is not wired into the live hero or Android package.
+
+The optimizer regression test builds a small GLB fixture and verifies both modes: target accessors and weight channels survive the face-preserved path, while the Android path strips them intentionally without corrupting remaining accessor references. A successful GLB import still does not replace visual review, facial retarget validation or device profiling.
+
+
+### Godot-compatible facial blendshape preservation
+
+Some mocap exports contain multiple primitives in one glTF mesh, while only one primitive carries the 52 facial targets. Godot expects a consistent morph-target count across primitives in the same mesh. The face-preserved optimizer therefore pads targetless primitives with zero-delta accessors to the mesh's shared target count, preserves the weight animation channel, and verifies that the weight output count matches the target count. The Android-size candidate continues to strip these data intentionally. The Godot 4.7.2 import smoke test checks both variants and requires the face-preserved scene to expose all 52 blendshapes and at least one facial animation track.
