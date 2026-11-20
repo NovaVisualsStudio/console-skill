@@ -257,7 +257,15 @@ class Repo(unittest.TestCase):
             script = fh.read()
         self.assertIn('restart_button.button_down.connect(func(): Input.action_press("restart"))', script)
         self.assertIn("restart_button.visible = true", script)
-        self.assertIn("var sound_players: Array[AudioStreamPlayer] = []", script)
+        self.assertIn('const AudioManager = preload("res://scripts/audio_manager.gd")', script)
+        self.assertIn("var audio_manager: Node", script)
+        self.assertIn("audio_manager = AudioManager.new()", script)
+        audio_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "audio_manager.gd")
+        with open(audio_path, encoding="utf-8") as fh:
+            audio_manager = fh.read()
+        self.assertIn("var _voices: Array[AudioStreamPlayer] = []", audio_manager)
+        self.assertIn("for index in range(4):", audio_manager)
+        self.assertIn("func stop_and_release() -> void:", audio_manager)
         self.assertNotIn(chr(0x2014), script)
 
     def test_android_debug_export_preset_and_workflow(self):

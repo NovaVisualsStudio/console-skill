@@ -8,6 +8,11 @@ var _player: AudioStreamPlayer
 var _playback: AudioStreamGeneratorPlayback
 var _sample_cursor := 0
 var _intensity := 0.22
+var _music_volume := 0.72
+
+
+func configure(profile: Dictionary) -> void:
+	_music_volume = clampf(float(profile.get("music_volume", 0.72)), 0.0, 1.0)
 
 
 func _ready() -> void:
@@ -16,8 +21,7 @@ func _ready() -> void:
 	stream.buffer_length = 0.65
 	_player = AudioStreamPlayer.new()
 	_player.stream = stream
-	var music_level := float(SaveManager.profile.get("music_volume", 0.72))
-	_player.volume_db = linear_to_db(maxf(music_level, 0.0001)) - 8.0
+	_player.volume_db = linear_to_db(maxf(_music_volume, 0.0001)) - 8.0
 	add_child(_player)
 	_player.play()
 	_playback = _player.get_stream_playback() as AudioStreamGeneratorPlayback

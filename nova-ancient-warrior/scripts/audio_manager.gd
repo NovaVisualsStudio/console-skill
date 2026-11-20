@@ -15,6 +15,7 @@ func configure(profile: Dictionary) -> void:
 		return
 	_configured = true
 	_music_director = MusicDirector.new()
+	_music_director.configure(profile)
 	_music_director.name = "MusicDirector"
 	add_child(_music_director)
 	var sfx_level := float(profile.get("sfx_volume", 0.85))
