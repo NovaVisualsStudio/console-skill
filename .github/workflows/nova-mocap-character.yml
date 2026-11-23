@@ -146,6 +146,7 @@ jobs:
           RIG_PROFILE: ${{ steps.input.outputs.rig_profile }}
           RIG_LICENCE: ${{ steps.input.outputs.rig_licence }}
           RIG_SOURCE_URL: ${{ steps.input.outputs.rig_source_url }}
+          SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           python nova-ancient-warrior/tools/blender/write_mocap_provenance.py \
@@ -163,7 +164,7 @@ jobs:
             --pipeline-commit c1f1fa8f01524d60197c4d65306349e266d339cb \
             --output-dir "$GITHUB_WORKSPACE/nova-ancient-warrior/assets/characters" \
             --repository "$GITHUB_REPOSITORY" \
-            --source-commit "$GITHUB_SHA" \
+            --source-commit "$SOURCE_COMMIT" \
             --workflow-run-id "$GITHUB_RUN_ID"
 
       - name: Download Godot 4.7.2
