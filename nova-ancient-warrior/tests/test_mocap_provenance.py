@@ -68,5 +68,13 @@ class MocapProvenanceTests(unittest.TestCase):
             build_manifest(self.args)
 
 
+    def test_workflow_records_pull_request_head_not_merge_commit(self):
+        workflow_path = Path(__file__).resolve().parents[2] / ".github" / "workflows" / "nova-mocap-character.yml"
+        workflow = workflow_path.read_text(encoding="utf-8")
+        self.assertIn("SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}", workflow)
+        self.assertIn('--source-commit "$SOURCE_COMMIT"', workflow)
+        self.assertNotIn('--source-commit "$GITHUB_SHA"', workflow)
+
+
 if __name__ == "__main__":
     unittest.main()
