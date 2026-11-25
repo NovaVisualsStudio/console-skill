@@ -17,6 +17,20 @@ OUTPUTS = {
     "nova_mocap_candidate_face_preserved.optimize.json": "face-preserved optimization report",
     "nova_mocap_candidate.run.json": "capture and retarget report",
 }
+MODEL_WEIGHTS = (
+    (
+        "weights/mediapipe/pose_landmarker_full.task",
+        "Google MediaPipe Pose Landmarker (Full)",
+        "Apache-2.0",
+        "https://developers.google.com/mediapipe/solutions/vision/pose_landmarker",
+    ),
+    (
+        "weights/mediapipe/face_landmarker.task",
+        "Google MediaPipe Face Landmarker",
+        "Apache-2.0",
+        "https://developers.google.com/mediapipe/solutions/vision/face_landmarker",
+    ),
+)
 OPT_FIELDS = (
     "input_bytes", "output_bytes", "saved_bytes", "removed_morph_targets",
     "removed_weight_channels", "morph_target_count", "weight_channel_count",
@@ -72,6 +86,23 @@ def build_manifest(a):
     if not license_file.is_file() or not asset_register.is_file():
         raise FileNotFoundError("Pinned pipeline license evidence is missing")
     files = [record(output / name, role) for name, role in OUTPUTS.items()]
+    model_weights = []
+    for relative_path, name, license_name, source_url in MODEL_WEIGHTS:
+        weight_path = pipeline / relative_path
+        if not weight_path.is_file():
+            raise FileNotFoundError("Missing provenance model weight: %s" % relative_path)
+        model_weights.append({
+            "name": name,
+            "path": relative_path,
+            "license": license_name,
+            "license_evidence": {
+                "path": "assets/LICENCES.md",
+                "sha256": sha256(asset_register),
+            },
+            "source_url": source_url,
+            "size_bytes": weight_path.stat().st_size,
+            "sha256": sha256(weight_path),
+        })
     run = read_json(output / "nova_mocap_candidate.run.json")
     mobile = read_json(output / "nova_mocap_candidate.optimize.json")
     face = read_json(output / "nova_mocap_candidate_face_preserved.optimize.json")
@@ -79,7 +110,7 @@ def build_manifest(a):
     video_cleared = a.video_license.strip() == "CC0-1.0"
     rig_cleared = a.rig_license.strip() == "CC0-1.0"
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "project": "Nova Ancient Warrior",
         "generated_at_utc": now,
         "repository": a.repository or None,
@@ -90,6 +121,7 @@ def build_manifest(a):
             "commit": a.pipeline_commit, "code_license": "Apache-2.0",
             "license_file": {"path": "LICENSE", "source_url": "%s/blob/%s/LICENSE" % (PIPELINE_REPO, a.pipeline_commit), "sha256": sha256(license_file)},
             "asset_license_register": {"path": "assets/LICENCES.md", "source_url": "%s/blob/%s/assets/LICENCES.md" % (PIPELINE_REPO, a.pipeline_commit), "sha256": sha256(asset_register)},
+            "model_weights": model_weights,
             "package_versions": versions(),
         },
         "inputs": {

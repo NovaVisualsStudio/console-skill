@@ -17,6 +17,10 @@ class MocapProvenanceTests(unittest.TestCase):
         root = Path(self.tmp.name)
         self.pipeline = root / "pipeline"
         (self.pipeline / "assets").mkdir(parents=True)
+        weights = self.pipeline / "weights" / "mediapipe"
+        weights.mkdir(parents=True)
+        (weights / "pose_landmarker_full.task").write_bytes(b"pose-model-weights")
+        (weights / "face_landmarker.task").write_bytes(b"face-model-weights")
         (self.pipeline / "LICENSE").write_text("Apache License Version 2.0\n", encoding="utf-8")
         (self.pipeline / "assets" / "LICENCES.md").write_text("video CC0-1.0; rig CC0-1.0\n", encoding="utf-8")
         self.output = root / "output"
@@ -51,6 +55,24 @@ class MocapProvenanceTests(unittest.TestCase):
         self.assertEqual(data["pipeline"]["license_file"]["sha256"], hashlib.sha256(b"Apache License Version 2.0\n").hexdigest())
         self.assertEqual(data["pipeline"]["asset_license_register"]["sha256"], hashlib.sha256(b"video CC0-1.0; rig CC0-1.0\n").hexdigest())
         self.assertFalse(data["integration"]["integrated_into_live_hero"])
+
+    def test_manifest_records_model_weight_hashes_and_licenses(self):
+        data = build_manifest(self.args)
+        weights = {item["path"]: item for item in data["pipeline"]["model_weights"]}
+        pose_path = "weights/mediapipe/pose_landmarker_full.task"
+        face_path = "weights/mediapipe/face_landmarker.task"
+        self.assertEqual(data["schema_version"], 2)
+        self.assertEqual(weights[pose_path]["license"], "Apache-2.0")
+        self.assertEqual(weights[pose_path]["sha256"], hashlib.sha256(b"pose-model-weights").hexdigest())
+        self.assertEqual(weights[face_path]["license"], "Apache-2.0")
+        self.assertEqual(weights[face_path]["sha256"], hashlib.sha256(b"face-model-weights").hexdigest())
+        self.assertEqual(weights[face_path]["license_evidence"]["path"], "assets/LICENCES.md")
+        self.assertEqual(weights[face_path]["license_evidence"]["sha256"], hashlib.sha256(b"video CC0-1.0; rig CC0-1.0\\n").hexdigest())
+
+    def test_missing_model_weight_fails_closed(self):
+        (self.pipeline / "weights" / "mediapipe" / "face_landmarker.task").unlink()
+        with self.assertRaisesRegex(FileNotFoundError, "Missing provenance model weight"):
+            build_manifest(self.args)
 
     def test_user_video_is_not_marked_commercially_cleared(self):
         self.args.video_license = "user-supplied; confirm performer rights before commercial release"
