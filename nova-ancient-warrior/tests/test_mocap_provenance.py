@@ -67,7 +67,7 @@ class MocapProvenanceTests(unittest.TestCase):
         self.assertEqual(weights[face_path]["license"], "Apache-2.0")
         self.assertEqual(weights[face_path]["sha256"], hashlib.sha256(b"face-model-weights").hexdigest())
         self.assertEqual(weights[face_path]["license_evidence"]["path"], "assets/LICENCES.md")
-        self.assertEqual(weights[face_path]["license_evidence"]["sha256"], hashlib.sha256(b"video CC0-1.0; rig CC0-1.0\\n").hexdigest())
+        self.assertEqual(weights[face_path]["license_evidence"]["sha256"], hashlib.sha256(b"video CC0-1.0; rig CC0-1.0\n").hexdigest())
 
     def test_missing_model_weight_fails_closed(self):
         (self.pipeline / "weights" / "mediapipe" / "face_landmarker.task").unlink()
