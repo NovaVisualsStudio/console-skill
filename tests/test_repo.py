@@ -243,8 +243,12 @@ class Repo(unittest.TestCase):
         project_path = os.path.join(ROOT, "nova-ancient-warrior", "project.godot")
         with open(project_path, encoding="utf-8") as fh:
             project = fh.read()
-        self.assertIn("window/size/viewport_width=1280", project)
-        self.assertIn("window/size/viewport_height=720", project)
+        self.assertIn("window/size/viewport_width=1920", project)
+        self.assertIn("window/size/viewport_height=1080", project)
+        self.assertIn("window/size/viewport_width.mobile=1280", project)
+        self.assertIn("window/size/viewport_height.mobile=720", project)
+        self.assertIn('renderer/rendering_method="forward_plus"', project)
+        self.assertIn('renderer/rendering_method.mobile="gl_compatibility"', project)
         self.assertIn("window/handheld/orientation=0", project)
 
     def test_android_game_has_touch_restart_and_audio_pool(self):
@@ -253,7 +257,15 @@ class Repo(unittest.TestCase):
             script = fh.read()
         self.assertIn('restart_button.button_down.connect(func(): Input.action_press("restart"))', script)
         self.assertIn("restart_button.visible = true", script)
-        self.assertIn("var sound_players: Array[AudioStreamPlayer] = []", script)
+        self.assertIn('const AudioManager = preload("res://scripts/audio_manager.gd")', script)
+        self.assertIn("var audio_manager: Node", script)
+        self.assertIn("audio_manager = AudioManager.new()", script)
+        audio_path = os.path.join(ROOT, "nova-ancient-warrior", "scripts", "audio_manager.gd")
+        with open(audio_path, encoding="utf-8") as fh:
+            audio_manager = fh.read()
+        self.assertIn("var _voices: Array[AudioStreamPlayer] = []", audio_manager)
+        self.assertIn("for index in range(4):", audio_manager)
+        self.assertIn("func stop_and_release() -> void:", audio_manager)
         self.assertNotIn(chr(0x2014), script)
 
     def test_android_debug_export_preset_and_workflow(self):

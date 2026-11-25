@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "project": "Nova Ancient Warrior",
+  "reviewed_on": "2026-11-08",
+  "policy": {
+    "description": "External repositories are research sources, not trusted dependencies. Never download, execute or merge third-party code automatically.",
+    "require_file_level_review": true,
+    "require_license_and_provenance": true,
+    "prohibit_copy_without_license": true,
+    "prohibit_gpl_into_non_gpl_distribution_without_explicit_approval": true,
+    "separate_code_and_asset_licenses": true
+  },
+  "sources": [
+    {
+      "id": "adventure-mode-godot",
+      "repository": "EasterEggProductions/adventure-mode-godot",
+      "url": "https://github.com/EasterEggProductions/adventure-mode-godot",
+      "branch": "main",
+      "reviewed_commit": "57d337f425af3b679de6c14eacc312872d07d007",
+      "engine": "Godot 4.7",
+      "code_license": "MIT",
+      "assets_license": "CC-BY-4.0",
+      "github_license_spdx": "NOASSERTION",
+      "reuse_policy": "code_with_mit_notice_assets_with_cc_by_4_attribution",
+      "priority": "high",
+      "status": "approved_for_selective_code_review",
+      "relevance": [
+        "third_person_movement",
+        "climbing",
+        "combat_movesets",
+        "camera_follow",
+        "actor_and_armament_architecture"
+      ],
+      "candidate_paths": [
+        "Modular Mobility/MovementPackage.gd",
+        "Modular Mobility/mvpk_walk.gd",
+        "Modular Mobility/mvpk_climb.gd",
+        "Modular Mobility/mvpk_combat.gd",
+        "scripts/camera_control.gd",
+        "scripts/actor.gd",
+        "scripts/armament.gd"
+      ],
+      "cautions": [
+        "Movement scripts depend on source project Actor, AnimationTree, input actions and root-motion layout.",
+        "Check every asset's attribution and license separately.",
+        "Do not contribute machine-learning-generated content back to this upstream project."
+      ],
+      "code_license_file": "LICENSE.txt"
+    },
+    {
+      "id": "goat-godot",
+      "repository": "miskatonicstudio/goat",
+      "url": "https://github.com/miskatonicstudio/goat",
+      "branch": "master",
+      "reviewed_commit": "6c0d0905f8ff3eab06f6dff9a185544d5eef4c44",
+      "engine": "Godot 4.3 in checked project configuration; inspect current plugin compatibility",
+      "code_license": "MIT",
+      "assets_license": "mixed; individual demo assets include CC0 and CC-BY-NC-4.0",
+      "github_license_spdx": "MIT",
+      "reuse_policy": "code_with_mit_notice_review_third_party_dependencies_and_exclude_unapproved_demo_assets",
+      "priority": "high",
+      "status": "approved_for_selective_code_review",
+      "relevance": [
+        "inventory",
+        "object_interaction",
+        "dialogue",
+        "voice_and_subtitles",
+        "settings",
+        "localization",
+        "world_state"
+      ],
+      "candidate_paths": [
+        "addons/goat/globals/goat_inventory.gd",
+        "addons/goat/globals/goat_interaction.gd",
+        "addons/goat/globals/goat_voice.gd",
+        "addons/goat/globals/goat_settings.gd",
+        "addons/goat/globals/goat_state.gd"
+      ],
+      "cautions": [
+        "GOAT is changing during its Godot 4 plugin migration and documentation may be outdated.",
+        "Do not copy demo assets without checking the per-asset license.",
+        "Avoid duplicating Nova SaveManager, combat inventory or input systems.",
+        "Dialogue Manager and Random Audio Stream Player are separately licensed dependencies."
+      ],
+      "code_license_file": "LICENSE"
+    },
+    {
+      "id": "fly-dangerous",
+      "repository": "jukibom/FlyDangerous",
+      "url": "https://github.com/jukibom/FlyDangerous",
+      "branch": "main",
+      "reviewed_commit": "2a520e98256187070ff58e84e819d3b791b47797",
+      "engine": "Unity; C#",
+      "code_license": "GPL-3.0",
+      "assets_license": "project-owned models, textures and materials CC-BY-NC-SA-4.0; third-party assets may differ",
+      "github_license_spdx": "GPL-3.0",
+      "reuse_policy": "reference_only_for_nova_unless_gpl_distribution_is_explicitly_approved",
+      "priority": "low",
+      "status": "reference_only",
+      "relevance": [
+        "procedural_terrain",
+        "telemetry",
+        "input_abstraction",
+        "replay_ghosts",
+        "multiplayer_architecture"
+      ],
+      "candidate_paths": [
+        "Assets/Scripts/Gameplay",
+        "Assets/Scripts/InputProcessors",
+        "Assets/Scripts/Core",
+        "Assets/Scripts/VFX"
+      ],
+      "cautions": [
+        "GPL-3.0 obligations apply to distributed derivative code.",
+        "Project-owned art is non-commercial CC BY-NC-SA 4.0.",
+        "README lists paid Unity Asset Store dependencies for the full release build.",
+        "Large Unity project with low direct relevance to Nova's Godot melee adventure."
+      ]
+    },
+    {
+      "id": "clutch-unity-racing",
+      "repository": "siddharth4001/CLUTCH",
+      "url": "https://github.com/siddharth4001/CLUTCH",
+      "branch": "main",
+      "reviewed_commit": "04a307a603da78f9e943ed8bb462fee7d19bd07b",
+      "engine": "Unity 2020.3.8; C#",
+      "code_license": "NOASSERTION",
+      "assets_license": "NOASSERTION",
+      "github_license_spdx": "NOASSERTION",
+      "reuse_policy": "inspiration_only_no_code_or_asset_copy_without_permission",
+      "priority": "low",
+      "status": "permission_required",
+      "relevance": [
+        "vehicle_physics_if_vehicles_are_added",
+        "racing_controls_reference"
+      ],
+      "candidate_paths": [],
+      "cautions": [
+        "No recognized license metadata and no root LICENSE file were found during review.",
+        "Do not copy source code, scripts, models, textures or audio without written permission or an explicit license."
+      ]
+    },
+    {
+      "id": "lee-reilly-games-index",
+      "repository": "leereilly/games",
+      "url": "https://github.com/leereilly/games",
+      "branch": "master",
+      "reviewed_commit": "c67976ddcf6f7aef26dc3884116205ab9ef40f74",
+      "engine": "Repository index",
+      "code_license": "NOASSERTION",
+      "assets_license": "N/A; links to independent projects",
+      "github_license_spdx": "NOASSERTION",
+      "reuse_policy": "discovery_index_only_check_each_target_repository",
+      "priority": "medium",
+      "status": "archived_index",
+      "relevance": [
+        "discover_game_projects",
+        "discover_plugins_and_maps",
+        "discover_engine_examples"
+      ],
+      "candidate_paths": [
+        "README.md"
+      ],
+      "cautions": [
+        "Repository is archived and read-only.",
+        "It is an index, not a license grant for linked projects.",
+        "Verify every destination repository separately."
+      ]
+    },
+    {
+      "id": "kavex-gamedev-resources",
+      "repository": "Kavex/GameDev-Resources",
+      "url": "https://github.com/Kavex/GameDev-Resources",
+      "branch": "master",
+      "reviewed_commit": "f7c89aae1128fe1ab5f5acaec4c1ab76ee87c7c3",
+      "engine": "Repository index",
+      "code_license": "NOASSERTION",
+      "assets_license": "N/A; links to independent resources",
+      "github_license_spdx": "NOASSERTION",
+      "reuse_policy": "discovery_index_only_check_each_target_resource",
+      "priority": "medium",
+      "status": "discovery_index",
+      "relevance": [
+        "discover_3d_assets",
+        "discover_audio",
+        "discover_animation",
+        "discover_tools",
+        "discover_source_code"
+      ],
+      "candidate_paths": [
+        "README.md"
+      ],
+      "cautions": [
+        "The README explicitly tells users to check each resource's license.",
+        "Free, limited-free and open-source labels are not legal proof for an individual asset."
+      ]
+    }
+  ]
+}
